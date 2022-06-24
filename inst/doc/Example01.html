@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Design evaluation and optimization 01</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Design evaluation and optimization 01</h1>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#design-evaluation">Design evaluation</a>
+<ul>
+<li><a href="#create-two-pfim-projects">Create two PFIM
+projects:</a></li>
+<li><a href="#create-the-statistical-model-and-set-the-parameters-for-the-ode-solver">Create
+the statistical model and set the parameters for the ode solver</a></li>
+<li><a href="#define-the-model-equations-of-the-pkpd-model">Define the
+model equations of the PKPD model</a></li>
+<li><a href="#assign-the-pkpd-model-the-statistical-model">Assign the
+PKPD model the statistical model</a></li>
+<li><a href="#create-the-variables-of-the-pkpd-model">Create the
+variables of the PKPD model</a></li>
+<li><a href="#assign-the-model-variables-to-the-statistical-model">Assign the
+model variables to the statistical model</a></li>
+<li><a href="#set-mu-and-omega-for-each-parameter">Set mu and omega for
+each parameter</a></li>
+<li><a href="#assign-the-model-parameters-to-the-statistical-model">Assign the
+model parameters to the statistical model</a></li>
+<li><a href="#create-and-add-the-error-model-to-the-responses-pk-and-pd.-create-and-add-the-responses-pk-and-pd-to-the-statistical-model">Create
+and add the error model to the responses PK and PD. Create and add the
+responses PK and PD to the statistical model</a></li>
+<li><a href="#assign-the-statistical-model-to-the-pfim-projects">Assign
+the statistical model to the PFIM projects</a></li>
+<li><a href="#create-a-design-called-mydesign">Create a design called
+<code>MyDesign</code></a></li>
+<li><a href="#define-the-arms-and-for-each-arm">Define the arms and for
+each arm</a></li>
+<li><a href="#add-the-arms-to-the-design-mydesign">Add the arms to the
+design <code>MyDesign</code></a></li>
+<li><a href="#add-the-design-mydesign-to-the-pfim-project-myproject_evaluation">Add
+the design <code>MyDesign</code> to the PFIM project
+<code>MyProject_evaluation</code></a></li>
+<li><a href="#evaluate-the-population-fim">Evaluate the population
+FIM</a></li>
+<li><a href="#display-the-results-of-the-design-evaluation">Display the
+results of the design evaluation</a></li>
+<li><a href="#create-and-save-the-report-for-the-design-evaluation">Create and
+save the report for the design evaluation</a></li>
+<li><a href="#evaluate-the-individual-and-bayesian-fims">Evaluate the
+individual and Bayesian FIMs</a></li>
+<li><a href="#display-the-results-of-the-design-evaluation-1">Display
+the results of the design evaluation</a></li>
+<li><a href="#reports-for-the-design-evaluation">Reports for the design
+evaluation</a></li>
+</ul></li>
+<li><a href="#design-optimization">Design optimization</a>
+<ul>
+<li><a href="#define-the-arm-and">Define the arm and</a></li>
+<li><a href="#create-and-add-the-design-mydesign2-to-the-project-myproject_optimization">Create
+and add the design <code>MyDesign2</code> to the project
+<code>MyProject_optimization</code></a></li>
+<li><a href="#create-a-sampling-constraint-for-the-responses-pk-and-pd">Create
+a sampling constraint for the responses PK and PD</a></li>
+<li><a href="#define-the-vector-of-allowed-sampling-times-for-the-responses-pk-and-pd">Define
+the vector of allowed sampling times for the responses PK and
+PD</a></li>
+<li><a href="#set-the-initial-vectors-for-the-fedorovwynn-algorithm">Set
+the initial vectors for the FedorovWynn algorithm</a></li>
+<li><a href="#set-the-number-of-optimisable-sampling-times">Set the
+number of optimisable sampling times</a></li>
+<li><a href="#fix-certain-time-values">Fix certain time values</a></li>
+<li><a href="#create-a-design-constraint-and-add-the-sampling-constraints-to-the-design">Create
+a design constraint and add the sampling constraints to the
+design</a></li>
+<li><a href="#create-an-administration-for-response-pk">Create an
+administration for response PK</a></li>
+<li><a href="#define-the-vector-of-allowed-amount-of-doses-for-the-response-pk">Define
+the vector of allowed amount of doses for the response PK</a></li>
+<li><a href="#define-the-total-number-of-individuals-to-be-considered">Define
+the total number of individuals to be considered</a></li>
+<li><a href="#add-the-design-to-the-project">Add the design to the
+project</a></li>
+<li><a href="#set-the-vector-of-initial-proportions-or-numbers-of-subjects-for-each-elementary-design">Set
+the vector of initial proportions or numbers of subjects for each
+elementary design</a></li>
+<li><a href="#set-the-the-parameters-of-the-fedorovwynn-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim">Set
+the the parameters of the FedorovWynn algorithm and run the algorithm
+for the design optimization with a population FIM</a></li>
+<li><a href="#display-the-results-of-the-design-optimization">Display
+the results of the design optimization</a></li>
+<li><a href="#reports-for-the-design-optimization">Reports for the
+design optimization</a></li>
+</ul></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+
+<style type="text/css">
+
+body{
+font-size: 11pt;
+}
+
+h1.title {
+font-size: 40pt;
+}
+
+code.r{
+font-size: 11pt;
+}
+
+body {
+  max-width: 1600px;  
+  margin-left:10px;
+  line-height: 20px;
+}
+
+</style>
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>Data for this example result from a PKPD population study on a
+non-steroidal molecule <span class="citation">(<a href="#ref-FloresMurrieta1998" role="doc-biblioref">Flores-Murrieta et
+al. 1998</a>)</span>. Single doses of 1, 3.2, 10, 31.6, 56.2, or
+100mg/kg per os were given respectively to 6 groups, each of which
+contained at least 6 rats (weighing 200g on average), following a
+parallel design. Blood sampling and drug response (DI score) evaluation
+were conducted at 0, 15, 30, and 45 min and at 1, 1.25, 1.5, 2, 3 and 4
+hours after administration.</p>
+<p>Based on the evaluation results, we choose to optimize a design for
+30 rats receiving a single dose of either 100mg/kg or 320 mg/kg,
+selecting only 3 from previously defined time points for blood sampling
+and response evaluation by using Fedorov-Wynn method.</p>
+<p>Reports of the design evaluation and optimization are available at <a href="https://github.com/iame-researchCenter/PFIM" class="uri">https://github.com/iame-researchCenter/PFIM</a></p>
+</div>
+<div id="design-evaluation" class="section level1">
+<h1>Design evaluation</h1>
+<div id="create-two-pfim-projects" class="section level3">
+<h3>Create two PFIM projects:</h3>
+<div id="myproject_evaluation-project-for-the-design-evaluation-named-eval_pkpd_floresmurrieta1998" class="section level4">
+<h4>- <code>MyProject_evaluation</code>: project for the design
+evaluation named <code>eval_PKPD_FloresMurrieta1998</code></h4>
+</div>
+<div id="myproject_optimization-project-for-the-design-optimization-named-opti_pkpd_floresmurrieta1998" class="section level4">
+<h4>- <code>MyProject_optimization</code>: project for the design
+optimization named <code>opti_PKPD_FloresMurrieta1998</code></h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>MyProject_evaluation <span class="ot">=</span> <span class="fu">PFIMProject</span>(<span class="at">name =</span> <span class="st">&quot;eval_PKPD_FloresMurrieta1998&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>MyProject_optimization <span class="ot">=</span> <span class="fu">PFIMProject</span>(<span class="at">name =</span> <span class="st">&quot;opti_PKPD_FloresMurrieta1998&quot;</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="create-the-statistical-model-and-set-the-parameters-for-the-ode-solver" class="section level3">
+<h3>Create the statistical model and set the parameters for the ode
+solver</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">StatisticalModel</span>()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">setParametersOdeSolver</span>( MyStatisticalModel, <span class="fu">list</span>( <span class="at">atol=</span><span class="fl">1e-8</span>, <span class="at">rtol=</span><span class="fl">1e-8</span>, <span class="at">.relStep=</span><span class="fl">1e-8</span> ) )</span></code></pre></div>
+</div>
+<div id="define-the-model-equations-of-the-pkpd-model" class="section level3">
+<h3>Define the model equations of the PKPD model</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>MyModelEquations  <span class="ot">=</span>  <span class="fu">ModelODEquations</span>( <span class="fu">list</span>(<span class="at">RespPK =</span> <span class="fu">expression</span>( Cc ),</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">RespPD =</span> <span class="fu">expression</span>( E )) ,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">list</span>(<span class="st">&quot;Deriv_Cc&quot;</span> <span class="ot">=</span> <span class="fu">expression</span>( dose_RespPK<span class="sc">/</span>V<span class="sc">*</span>ka<span class="sc">*</span><span class="fu">exp</span>(<span class="sc">-</span>ka<span class="sc">*</span>t) <span class="sc">-</span> Cl<span class="sc">/</span>V<span class="sc">*</span>Cc ),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                                           <span class="st">&quot;Deriv_E&quot;</span> <span class="ot">=</span> <span class="fu">expression</span>(Rin<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>Imax<span class="sc">*</span>(Cc<span class="sc">**</span>gamma)<span class="sc">/</span>(Cc<span class="sc">**</span>gamma <span class="sc">+</span> IC50<span class="sc">**</span>gamma))<span class="sc">-</span>kout<span class="sc">*</span>E) ) )</span></code></pre></div>
+</div>
+<div id="assign-the-pkpd-model-the-statistical-model" class="section level3">
+<h3>Assign the PKPD model the statistical model</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineModelEquations</span>( MyStatisticalModel, MyModelEquations )</span></code></pre></div>
+</div>
+<div id="create-the-variables-of-the-pkpd-model" class="section level3">
+<h3>Create the variables of the PKPD model</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>vCc  <span class="ot">=</span>  <span class="fu">ModelVariable</span>( <span class="st">&quot;Cc&quot;</span> )</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>vE  <span class="ot">=</span>  <span class="fu">ModelVariable</span>( <span class="st">&quot;E&quot;</span> )</span></code></pre></div>
+</div>
+<div id="assign-the-model-variables-to-the-statistical-model" class="section level3">
+<h3>Assign the model variables to the statistical model</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel  <span class="ot">=</span>  <span class="fu">defineVariable</span>( MyStatisticalModel, vCc )</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel  <span class="ot">=</span>  <span class="fu">defineVariable</span>( MyStatisticalModel, vE )</span></code></pre></div>
+</div>
+<div id="set-mu-and-omega-for-each-parameter" class="section level3">
+<h3>Set mu and omega for each parameter</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>pV <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;V&quot;</span>, <span class="at">mu =</span> <span class="fl">0.74</span>, <span class="at">omega =</span> <span class="fl">0.316</span>, <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pCl <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;Cl&quot;</span>, <span class="at">mu =</span> <span class="fl">0.28</span>, <span class="at">omega =</span> <span class="fl">0.456</span>, <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>pka <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;ka&quot;</span>, <span class="at">mu =</span> <span class="dv">10</span>, <span class="at">fixedMu =</span> <span class="cn">TRUE</span>, <span class="at">omega =</span> <span class="fu">sqrt</span>( <span class="dv">0</span> ), <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>pkout <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;kout&quot;</span>, <span class="at">mu =</span> <span class="fl">6.14</span>, <span class="at">omega =</span> <span class="fl">0.947</span>, <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>pRin <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;Rin&quot;</span>, <span class="at">mu =</span> <span class="dv">614</span>, <span class="at">fixedMu =</span> <span class="cn">TRUE</span>, <span class="at">omega =</span> <span class="fu">sqrt</span>( <span class="dv">0</span> ), <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>pImax <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;Imax&quot;</span>, <span class="at">mu =</span> <span class="fl">0.76</span>, <span class="at">omega =</span> <span class="fl">0.439</span>, <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>pIC50 <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;IC50&quot;</span>, <span class="at">mu =</span> <span class="fl">9.22</span>, <span class="at">omega =</span> <span class="fl">0.452</span>, <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>pgamma <span class="ot">=</span> <span class="fu">ModelParameter</span>( <span class="st">&quot;gamma&quot;</span>, <span class="at">mu =</span> <span class="fl">2.77</span>, <span class="at">omega =</span> <span class="fl">1.761</span>, <span class="at">distribution =</span> <span class="fu">LogNormalDistribution</span>() )</span></code></pre></div>
+</div>
+<div id="assign-the-model-parameters-to-the-statistical-model" class="section level3">
+<h3>Assign the model parameters to the statistical model</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pka )</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pV )</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pCl )</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pkout )</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pRin )</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pImax )</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pIC50 )</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">defineParameter</span>( MyStatisticalModel, pgamma )</span></code></pre></div>
+</div>
+<div id="create-and-add-the-error-model-to-the-responses-pk-and-pd.-create-and-add-the-responses-pk-and-pd-to-the-statistical-model" class="section level3">
+<h3>Create and add the error model to the responses PK and PD. Create
+and add the responses PK and PD to the statistical model</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">addResponse</span>( MyStatisticalModel, <span class="fu">Response</span>( <span class="st">&quot;RespPK&quot;</span>, <span class="fu">Proportional</span>( <span class="at">sigma_slope =</span> <span class="fl">0.21</span> ) ) )</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>MyStatisticalModel <span class="ot">=</span> <span class="fu">addResponse</span>( MyStatisticalModel, <span class="fu">Response</span>( <span class="st">&quot;RespPD&quot;</span>, <span class="fu">Constant</span>( <span class="at">sigma_inter =</span> <span class="fl">9.6</span> ) ) )</span></code></pre></div>
+</div>
+<div id="assign-the-statistical-model-to-the-pfim-projects" class="section level3">
+<h3>Assign the statistical model to the PFIM projects</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>MyProject_evaluation <span class="ot">=</span> <span class="fu">defineStatisticalModel</span>( MyProject_evaluation, MyStatisticalModel )</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>MyProject_optimization <span class="ot">=</span> <span class="fu">defineStatisticalModel</span>( MyProject_optimization, MyStatisticalModel )</span></code></pre></div>
+</div>
+<div id="create-a-design-called-mydesign" class="section level3">
+<h3>Create a design called <code>MyDesign</code></h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>MyDesign <span class="ot">=</span>  <span class="fu">Design</span>( <span class="at">name =</span> <span class="st">&quot;MyDesign&quot;</span>)</span></code></pre></div>
+</div>
+<div id="define-the-arms-and-for-each-arm" class="section level3">
+<h3>Define the arms and for each arm</h3>
+<pre><code>- create and add the administration parameters for the response PK
+- create and add the sampling times for the responses PK and PD</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>brasTest1 <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name=</span><span class="st">&quot;0.2mg Arm&quot;</span>, <span class="at">arm_size =</span> <span class="dv">6</span>, <span class="at">cond_init =</span> <span class="fu">list</span>(<span class="st">&quot;Cc&quot;</span><span class="ot">=</span><span class="dv">0</span>,<span class="st">&quot;E&quot;</span><span class="ot">=</span><span class="dv">100</span>) )</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>brasTest1 <span class="ot">=</span> <span class="fu">addAdministration</span>( brasTest1, <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">time_dose =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">amount_dose =</span> <span class="fu">c</span>(<span class="fl">0.2</span>) ) )</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>brasTest1 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest1, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>brasTest1 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest1, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPD&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>brasTest2 <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name=</span><span class="st">&quot;0.64mg Arm&quot;</span>, <span class="at">arm_size =</span> <span class="dv">6</span>, <span class="at">cond_init =</span> <span class="fu">list</span>(<span class="st">&quot;Cc&quot;</span><span class="ot">=</span><span class="dv">0</span>,<span class="st">&quot;E&quot;</span><span class="ot">=</span><span class="dv">100</span>) )</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>brasTest2 <span class="ot">=</span> <span class="fu">addAdministration</span>( brasTest2, <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">time_dose =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">amount_dose =</span> <span class="fu">c</span>(<span class="fl">0.64</span>) ) )</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>brasTest2 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest2, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>brasTest2 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest2, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPD&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>brasTest3 <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name=</span><span class="st">&quot;2mg Arm&quot;</span>, <span class="at">arm_size =</span> <span class="dv">6</span>, <span class="at">cond_init =</span> <span class="fu">list</span>(<span class="st">&quot;Cc&quot;</span><span class="ot">=</span><span class="dv">0</span>,<span class="st">&quot;E&quot;</span><span class="ot">=</span><span class="dv">100</span>) )</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>brasTest3 <span class="ot">=</span> <span class="fu">addAdministration</span>( brasTest3, <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">time_dose =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">amount_dose =</span> <span class="fu">c</span>(<span class="dv">2</span>) ) )</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>brasTest3 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest3, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>brasTest3 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest3, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPD&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>brasTest4 <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name=</span><span class="st">&quot;6.24mg Arm&quot;</span>, <span class="at">arm_size =</span> <span class="dv">6</span>, <span class="at">cond_init =</span> <span class="fu">list</span>(<span class="st">&quot;Cc&quot;</span><span class="ot">=</span><span class="dv">0</span>,<span class="st">&quot;E&quot;</span><span class="ot">=</span><span class="dv">100</span>) )</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>brasTest4 <span class="ot">=</span> <span class="fu">addAdministration</span>( brasTest4, <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">time_dose =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">amount_dose =</span> <span class="fu">c</span>(<span class="fl">6.24</span>) ) )</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>brasTest4 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest4, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>brasTest4 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest4, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPD&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>brasTest5 <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name=</span><span class="st">&quot;11.24mg Arm&quot;</span>, <span class="at">arm_size =</span> <span class="dv">6</span>, <span class="at">cond_init =</span> <span class="fu">list</span>(<span class="st">&quot;Cc&quot;</span><span class="ot">=</span><span class="dv">0</span>,<span class="st">&quot;E&quot;</span><span class="ot">=</span><span class="dv">100</span>) )</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>brasTest5 <span class="ot">=</span> <span class="fu">addAdministration</span>( brasTest5, <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">time_dose =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">amount_dose =</span> <span class="fu">c</span>(<span class="fl">11.24</span>) ) )</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>brasTest5 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest5, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>brasTest5 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest5, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPD&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>brasTest6 <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name=</span><span class="st">&quot;20mg Arm&quot;</span>, <span class="at">arm_size =</span> <span class="dv">6</span>, <span class="at">cond_init =</span> <span class="fu">list</span>(<span class="st">&quot;Cc&quot;</span><span class="ot">=</span><span class="dv">0</span>,<span class="st">&quot;E&quot;</span><span class="ot">=</span><span class="dv">100</span>) )</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>brasTest6 <span class="ot">=</span> <span class="fu">addAdministration</span>( brasTest6, <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">time_dose =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">amount_dose =</span> <span class="fu">c</span>(<span class="dv">20</span>) ) )</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>brasTest6 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest6, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>brasTest6 <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest6, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPD&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> ) ) ) </span></code></pre></div>
+</div>
+<div id="add-the-arms-to-the-design-mydesign" class="section level3">
+<h3>Add the arms to the design <code>MyDesign</code></h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>MyDesign  <span class="ot">=</span>  <span class="fu">addArm</span>( MyDesign, brasTest1 )</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>MyDesign  <span class="ot">=</span>  <span class="fu">addArm</span>( MyDesign, brasTest2 )</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>MyDesign  <span class="ot">=</span>  <span class="fu">addArm</span>( MyDesign, brasTest3 )</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>MyDesign  <span class="ot">=</span>  <span class="fu">addArm</span>( MyDesign, brasTest4 )</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>MyDesign  <span class="ot">=</span>  <span class="fu">addArm</span>( MyDesign, brasTest5 )</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>MyDesign  <span class="ot">=</span>  <span class="fu">addArm</span>( MyDesign, brasTest6 )</span></code></pre></div>
+</div>
+<div id="add-the-design-mydesign-to-the-pfim-project-myproject_evaluation" class="section level3">
+<h3>Add the design <code>MyDesign</code> to the PFIM project
+<code>MyProject_evaluation</code></h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>MyProject_evaluation  <span class="ot">=</span>  <span class="fu">addDesign</span>( MyProject_evaluation, MyDesign )</span></code></pre></div>
+</div>
+<div id="evaluate-the-population-fim" class="section level3">
+<h3>Evaluate the population FIM</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>evaluationPop  <span class="ot">=</span>  <span class="fu">EvaluatePopulationFIM</span>( MyProject_evaluation )</span></code></pre></div>
+</div>
+<div id="display-the-results-of-the-design-evaluation" class="section level3">
+<h3>Display the results of the design evaluation</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show</span>( evaluationPop )</span></code></pre></div>
+</div>
+<div id="create-and-save-the-report-for-the-design-evaluation" class="section level3">
+<h3>Create and save the report for the design evaluation</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># set the path and name of the report to save the report</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>outputPath <span class="ot">=</span> <span class="st">&quot;C:/Users/ADMIN Romain LEROUX/Documents/GIT PFIM/PFIM/PAGE2022&quot;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>plotOptions <span class="ot">=</span> <span class="fu">list</span>( <span class="at">unitTime=</span><span class="fu">c</span>(<span class="st">&quot;hour&quot;</span>), <span class="at">unitResponses=</span> <span class="fu">c</span>(<span class="st">&quot;mcg/mL&quot;</span>,<span class="st">&quot;DI%&quot;</span>) )</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>evaluationPop <span class="ot">=</span> <span class="fu">setNamePFIMProject</span>( evaluationPop, <span class="st">&quot;PKPD_FloresMurrieta1998_populationFIM&quot;</span> )</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="fu">reportPFIMProject</span>( evaluationPop,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>                   <span class="at">outputPath =</span> outputPath, <span class="at">plotOptions =</span> plotOptions )</span></code></pre></div>
+</div>
+<div id="evaluate-the-individual-and-bayesian-fims" class="section level3">
+<h3>Evaluate the individual and Bayesian FIMs</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>evaluationInd <span class="ot">=</span> <span class="fu">EvaluateIndividualFIM</span>( MyProject_evaluation )</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>evaluationBay <span class="ot">=</span> <span class="fu">EvaluateBayesianFIM</span>( MyProject_evaluation )</span></code></pre></div>
+</div>
+<div id="display-the-results-of-the-design-evaluation-1" class="section level3">
+<h3>Display the results of the design evaluation</h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show</span>( evaluationInd )</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">show</span>( evaluationBay )</span></code></pre></div>
+</div>
+<div id="reports-for-the-design-evaluation" class="section level3">
+<h3>Reports for the design evaluation</h3>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>evaluationInd <span class="ot">=</span> <span class="fu">setNamePFIMProject</span>( evaluationInd, <span class="st">&quot;PKPD_FloresMurrieta1998_IndividualFIM&quot;</span> )</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">reportPFIMProject</span>( evaluationInd,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">outputPath =</span> outputPath, <span class="at">plotOptions =</span> plotOptions )</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>evaluationBay <span class="ot">=</span> <span class="fu">setNamePFIMProject</span>( evaluationBay, <span class="st">&quot;PKPD_FloresMurrieta1998_BayesianFIM&quot;</span> )</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">reportPFIMProject</span>( evaluationBay,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">outputPath =</span> outputPath, <span class="at">plotOptions =</span> plotOptions )</span></code></pre></div>
+</div>
+</div>
+<div id="design-optimization" class="section level1">
+<h1>Design optimization</h1>
+<div id="define-the-arm-and" class="section level3">
+<h3>Define the arm and</h3>
+<pre><code>- create and add the administration parameters for the response PK
+- create and add the sampling times for the responses PK and PD</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>brasTest <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name=</span><span class="st">&quot;20mg Arm&quot;</span>, <span class="at">arm_size =</span> <span class="dv">30</span>, <span class="at">cond_init =</span> <span class="fu">list</span>( <span class="st">&quot;Cc&quot;</span> <span class="ot">=</span> <span class="dv">0</span>,<span class="st">&quot;E&quot;</span><span class="ot">=</span> <span class="fu">expression</span>( Rin<span class="sc">/</span>kout ) ) )</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>brasTest <span class="ot">=</span> <span class="fu">addAdministration</span>( brasTest, <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">time_dose =</span> <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">amount_dose =</span> <span class="fu">c</span>(<span class="dv">20</span>) ) )</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>brasTest <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="dv">1</span>, <span class="dv">4</span> ) ) )</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>brasTest <span class="ot">=</span> <span class="fu">addSampling</span>( brasTest, <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPD&quot;</span>, <span class="at">sample_time =</span> <span class="fu">c</span>( <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">6</span> ) ) )</span></code></pre></div>
+</div>
+<div id="create-and-add-the-design-mydesign2-to-the-project-myproject_optimization" class="section level3">
+<h3>Create and add the design <code>MyDesign2</code> to the project
+<code>MyProject_optimization</code></h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>MyDesign2<span class="ot">=</span> <span class="fu">Design</span>( <span class="at">name =</span> <span class="st">&quot;MyDesign2&quot;</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>MyDesign2 <span class="ot">=</span> <span class="fu">addArm</span>( MyDesign2, brasTest )</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>MyProject_optimization <span class="ot">=</span> <span class="fu">addDesign</span>( MyProject_optimization, MyDesign2 )</span></code></pre></div>
+</div>
+<div id="create-a-sampling-constraint-for-the-responses-pk-and-pd" class="section level3">
+<h3>Create a sampling constraint for the responses PK and PD</h3>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>samplingRespPK <span class="ot">=</span> <span class="fu">SamplingConstraint</span>( <span class="at">response =</span> <span class="st">&quot;RespPK&quot;</span> )</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>samplingRespPD <span class="ot">=</span> <span class="fu">SamplingConstraint</span>( <span class="at">response =</span> <span class="st">&quot;RespPD&quot;</span> )</span></code></pre></div>
+</div>
+<div id="define-the-vector-of-allowed-sampling-times-for-the-responses-pk-and-pd" class="section level3">
+<h3>Define the vector of allowed sampling times for the responses PK and
+PD</h3>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>samplingRespPK <span class="ot">=</span> <span class="fu">allowedDiscretSamplingTimes</span>( samplingRespPK, <span class="fu">list</span>( <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.75</span>, <span class="dv">1</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">6</span> ) ) )</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>samplingRespPD <span class="ot">=</span> <span class="fu">allowedDiscretSamplingTimes</span>( samplingRespPD, <span class="fu">list</span>( <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="fl">0.75</span>, <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">8</span>, <span class="dv">12</span> ) ) )</span></code></pre></div>
+</div>
+<div id="set-the-initial-vectors-for-the-fedorovwynn-algorithm" class="section level3">
+<h3>Set the initial vectors for the FedorovWynn algorithm</h3>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>initialElementaryProtocols <span class="ot">=</span> <span class="fu">list</span>( <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="dv">1</span>, <span class="dv">4</span> ), <span class="fu">c</span>( <span class="fl">1.5</span>, <span class="dv">2</span>, <span class="dv">6</span> ) )</span></code></pre></div>
+</div>
+<div id="set-the-number-of-optimisable-sampling-times" class="section level3">
+<h3>Set the number of optimisable sampling times</h3>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>samplingRespPK <span class="ot">=</span> <span class="fu">numberOfSamplingTimesIsOptimisable</span>( samplingRespPK, <span class="fu">c</span>(<span class="dv">3</span>) )</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>samplingRespPD <span class="ot">=</span> <span class="fu">numberOfSamplingTimesIsOptimisable</span>( samplingRespPD, <span class="fu">c</span>(<span class="dv">3</span>) ) </span></code></pre></div>
+</div>
+<div id="fix-certain-time-values" class="section level3">
+<h3>Fix certain time values</h3>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>samplingRespPK <span class="ot">=</span> <span class="fu">FixTimeValues</span>( samplingRespPK, <span class="fu">c</span>( <span class="fl">0.25</span>, <span class="dv">4</span> ) )</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>samplingRespPD <span class="ot">=</span> <span class="fu">FixTimeValues</span>( samplingRespPD, <span class="fu">c</span>( <span class="dv">2</span>, <span class="dv">6</span> ) )</span></code></pre></div>
+</div>
+<div id="create-a-design-constraint-and-add-the-sampling-constraints-to-the-design" class="section level3">
+<h3>Create a design constraint and add the sampling constraints to the
+design</h3>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>Constr <span class="ot">=</span> <span class="fu">DesignConstraint</span>()</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>Constr <span class="ot">=</span> <span class="fu">addSamplingConstraint</span>( Constr, samplingRespPK )</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>Constr <span class="ot">=</span> <span class="fu">addSamplingConstraint</span>( Constr, samplingRespPD )</span></code></pre></div>
+</div>
+<div id="create-an-administration-for-response-pk" class="section level3">
+<h3>Create an administration for response PK</h3>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>administrationResp <span class="ot">=</span> <span class="fu">AdministrationConstraint</span>( <span class="at">response =</span> <span class="st">&quot;RespPK&quot;</span> )</span></code></pre></div>
+</div>
+<div id="define-the-vector-of-allowed-amount-of-doses-for-the-response-pk" class="section level3">
+<h3>Define the vector of allowed amount of doses for the response
+PK</h3>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>administrationResp  <span class="ot">=</span>  <span class="fu">AllowedDoses</span>( administrationResp, <span class="fu">c</span>(<span class="dv">20</span>,<span class="dv">64</span>) )</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>Constr <span class="ot">=</span> <span class="fu">addAdministrationConstraint</span>( Constr, administrationResp )</span></code></pre></div>
+</div>
+<div id="define-the-total-number-of-individuals-to-be-considered" class="section level3">
+<h3>Define the total number of individuals to be considered</h3>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>Constr <span class="ot">=</span> <span class="fu">setTotalNumberOfIndividuals</span>( Constr, <span class="dv">30</span> )</span></code></pre></div>
+</div>
+<div id="add-the-design-to-the-project" class="section level3">
+<h3>Add the design to the project</h3>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>MyProject_optimization <span class="ot">=</span> <span class="fu">setConstraint</span>( MyProject_optimization, Constr )</span></code></pre></div>
+</div>
+<div id="set-the-vector-of-initial-proportions-or-numbers-of-subjects-for-each-elementary-design" class="section level3">
+<h3>Set the vector of initial proportions or numbers of subjects for
+each elementary design</h3>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>numberOfSubjects <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">30</span>)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>proportionsOfSubjects <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">30</span>)<span class="sc">/</span><span class="dv">30</span></span></code></pre></div>
+</div>
+<div id="set-the-the-parameters-of-the-fedorovwynn-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim" class="section level3">
+<h3>Set the the parameters of the FedorovWynn algorithm and run the
+algorithm for the design optimization with a population FIM</h3>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>optimizer  <span class="ot">=</span>  <span class="fu">FedorovWynnAlgorithm</span>( initialElementaryProtocols,numberOfSubjects, proportionsOfSubjects, <span class="at">showProcess =</span> T )</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>optimization_populationFIM  <span class="ot">=</span>  <span class="fu">OptimizeDesign</span>( MyProject_optimization , optimizer, <span class="fu">PopulationFim</span>() )</span></code></pre></div>
+</div>
+<div id="display-the-results-of-the-design-optimization" class="section level3">
+<h3>Display the results of the design optimization</h3>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show</span>( optimization_populationFIM )</span></code></pre></div>
+</div>
+<div id="reports-for-the-design-optimization" class="section level3">
+<h3>Reports for the design optimization</h3>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># set the path and name of the report to save the report</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>outputPath <span class="ot">=</span> <span class="st">&quot;C:/Users/ADMIN Romain LEROUX/Documents/GIT PFIM/PFIM/PAGE2022&quot;</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>plotOptions <span class="ot">=</span> <span class="fu">list</span>( <span class="at">unitTime=</span><span class="fu">c</span>(<span class="st">&quot;hour&quot;</span>), <span class="at">unitResponses=</span> <span class="fu">c</span>(<span class="st">&quot;mcg/mL&quot;</span>,<span class="st">&quot;DI%&quot;</span>) )</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="fu">reportPFIMProject</span>( optimization_populationFIM, <span class="at">outputPath =</span> outputPath, <span class="at">plotOptions =</span> plotOptions  )</span></code></pre></div>
+</div>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-FloresMurrieta1998" class="csl-entry">
+Flores-Murrieta, Francisco, Holly Kimko, Dora Flores-Acevedo, Francisco
+López-Muñoz, William Jusko, Mark Sale, and Gilberto Castañeda-Hernández.
+1998. <span>“Pharmacokinetic–Pharmacodynamic Modeling of Tolmetin
+Antinociceptive Effect in the Rat Using an Indirect Response Model: A
+Population Approach.”</span> <em>Journal of Pharmacokinetics and
+Biopharmaceutics</em> 26 (November): 547–57.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
