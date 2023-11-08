@@ -2,16 +2,16 @@
 % Please edit documentation in R/Fim.R
 \name{getSE}
 \alias{getSE}
-\title{Get the Standard Errors for a \code{Fim} object..}
+\title{Get the SE.}
 \usage{
 getSE(object)
 }
 \arguments{
-\item{object}{A \code{Fim} object.}
+\item{object}{An object from the class \linkS4class{Fim}.}
 }
 \value{
-A vector of numerical values giving the Standard Errors from the Fisher Information Matrix.
+A vector giving the SE.
 }
 \description{
-Get the Standard Errors for a \code{Fim} object..
+Get the SE.
 }

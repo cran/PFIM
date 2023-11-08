@@ -42,7 +42,7 @@ FedorovWynnAlgorithm_Rcpp(
 \item{freqdep_input}{parameter freqdep_input}
 }
 \value{
-A list ginving the results of the outputs of the FedorovWynn algorithm.
+A list giving the results of the outputs of the FedorovWynn algorithm.
 }
 \description{
 Run the FedorovWynnAlgorithm in Rcpp

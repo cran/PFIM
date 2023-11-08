@@ -6,11 +6,11 @@
 \alias{PSOAlgorithm}
 \title{Class "PSOAlgorithm"}
 \description{
-The Class "PSOAlgorithm" implements the PSO algortihm : Particle Swarm Optimization
+The class "PSOAlgorithm" implements the PSO algorithm.
 }
 \section{Objects from the class \code{PSOAlgorithm}}{
 
-Objects form the xlass \code{PSOAlgorithm} can be created by calls of the form \code{PSOAlgorithm(...)} where
+Objects form the class \code{PSOAlgorithm} can be created by calls of the form \code{PSOAlgorithm(...)} where
 (...) are the parameters for the \code{PSOAlgorithm} objects.
 }
 
@@ -18,11 +18,13 @@ Objects form the xlass \code{PSOAlgorithm} can be created by calls of the form \
 
  \describe{
    \item{\code{maxIteration}:}{A numeric giving the maximum of iterations.}
-   \item{\code{populationSize}:}{A numeric giving the mpopulation size.}
-   \item{\code{intertiaWeight}:}{A numeric giving the inertial weight.}
+   \item{\code{populationSize}:}{A numeric giving the population size.}
+   \item{\code{seed}:}{A numeric giving the seed.}
    \item{\code{personalLearningCoefficient}:}{A numeric giving the personal learning coefficient.}
    \item{\code{globalLearningCoefficient}:}{A numeric giving the global learning coefficient.}
-   \item{\code{resultsPSO}:}{A list giving the iteration and the results when a new best criteria is found.}
+   \item{\code{showProcess}:}{A boolean to show or not the process.}
+   \item{\code{optimalDesign}:}{A \code{Design} object giving the optimal design.}
+   \item{\code{iterationAndCriteria}:}{A list giving the optimal criteria at each iteration.}
  }
 }
 

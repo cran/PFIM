@@ -1,50 +1,38 @@
-##################################################################################
 #' Class "ModelParameter"
+#'
 #' @description
-#' Class \code{ModelParameter} represents a parameters theta
-#' included in f(x,theta)
-#' theta = {mu, covariance_matrix}
-#' mu - parameter that acts in the individual model
-#' covariance_matrix - additional parameter for the population model
-#' theta_distribution - Distribution.
+#' The class \code{ModelParameter} defines information concerning the model parameters.
 #'
 #' @name ModelParameter-class
 #' @aliases ModelParameter
 #' @docType class
 #' @include Distribution.R
-#' @exportClass ModelParameter
+#' @include GenericMethods.R
+#' @export
 #'
 #' @section Objects from the class:
 #' Objects form the class \code{ModelParameter} can be created by calls of the form \code{ModelParameter(...)} where
 #' (...) are the parameters for the \code{ModelParameter} objects.
 #'
-#' @section Slots for ModelParameter objects:
-#' \describe{
-#' \item{\code{name}:}{A character string giving the name of the parameter.}
-#' \item{\code{mu}:}{A numeric giving the value of the mean mu.}
-#' \item{\code{omega}:}{A numeric giving the value of the variance.}
-#' \item{\code{distribution}:}{An object of the class \code{Distribution}.}
-#' \item{\code{fixed}:}{A boolean giving if the parameter is fixed or remain to be estimated.}
-#' \item{\code{fixedMu}:}{A boolean giving if the mean mu is fixed or remain to be estimaed.}
-#' }
-##################################################################################
+#' @section Slots for \code{ModelParameter} objects:
+#'  \describe{
+#'    \item{\code{name}:}{A string giving the name of the parameter.}
+#'    \item{\code{distribution}:}{An object from the class \code{Distribution} giving the distribution of the parameter.}
+#'    \item{\code{fixedMu}:}{A boolean giving if mu is fixed or not.}
+#'    \item{\code{fixedOmega}:}{A boolean giving if omega is fixed or not.}
+#'  }
 
-ModelParameter <- setClass(
+ModelParameter = setClass(
   Class = "ModelParameter",
   representation = representation(
     name = "character",
-    mu = "numeric",
-    omega = "numeric",
     distribution = "Distribution",
-    fixed = "logical",
     fixedMu = "logical",
     fixedOmega = "logical"
   ),
   prototype = prototype(
-    omega = 0,
-    fixedMu = F,
-    fixedOmega = F,
-    fixed = F
+    fixedMu = FALSE,
+    fixedOmega = FALSE
   )
 )
 
@@ -52,244 +40,239 @@ ModelParameter <- setClass(
 setMethod(
   f = "initialize",
   signature = "ModelParameter",
-  definition = function( .Object, name, mu, omega, distribution, fixed, fixedOmega, fixedMu )
+  definition = function( .Object, name, distribution, fixedMu, fixedOmega )
   {
     if(!missing(name))
-      .Object@name <-name
-    if(!missing(mu))
-      .Object@mu <-mu
-    if(!missing(omega))
-      .Object@omega <- omega
+    {
+      .Object@name = name
+    }
     if(!missing(distribution))
-      .Object@distribution<-distribution
-    if(!missing(fixed))
-      .Object@fixed<-fixed
+    {
+      .Object@distribution = distribution
+    }
     if(!missing(fixedMu))
-      .Object@fixedMu<-fixedMu
+    {
+      .Object@fixedMu = fixedMu
+    }
     if(!missing(fixedOmega))
-      .Object@fixedOmega<-fixedOmega
-
-    # for fixed parameters
-    if ( omega ==0 ){
-      .Object@fixedOmega <- TRUE
+    {
+      .Object@fixedOmega = fixedOmega
     }
-    if ( mu ==0 ){
-      .Object@fixedMu <- TRUE
-    }
-
     validObject(.Object)
     return(.Object)
   }
 )
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the name of a \code{ModelParameter} object.
-#'
-#' @name getNameModelParameter
-#' @param object \code{ModelParameter} object.
-#' @return A character string \code{name} giving the name of a \code{ModelParameter} object.
+# ======================================================================================================
+# getName
+# ======================================================================================================
 
-setGeneric("getNameModelParameter",
-           function(object)
-           {
-             standardGeneric("getNameModelParameter")
-           }
-)
-
-
-setMethod("getNameModelParameter",
-          signature =  "ModelParameter",
+setMethod("getName",
+          "ModelParameter",
           function(object)
           {
-            return(object@name)
-          }
-)
+            name = object@name
+            return(name)
+          })
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get \code{mu} for a \code{ModelParameter} object.
+# ======================================================================================================
+#' Get the distribution.
 #'
-#' @name getMu
-#' @param object \code{ModelParameter} object.
-#' @return A numeric \code{mu} giving the value of the mean \code{mu} for a \code{ModelParameter} object.
+#' @name getDistribution
+#' @param object An object from the class \linkS4class{ModelParameter}.
+#' @return The parameter distribution.
+# ======================================================================================================
 
-setGeneric("getMu",
-           function(object)
-           {
-             standardGeneric("getMu")
-           }
-)
+setGeneric(
+  "getDistribution",
+  function(object) {
+    standardGeneric("getDistribution")
+  })
+
+setMethod("getDistribution",
+          "ModelParameter",
+          function(object)
+          {
+            distribution = object@distribution
+            return(distribution)
+          })
+
+# ======================================================================================================
+#' Set the distribution.
+#'
+#' @name setDistribution
+#' @param object An object from the class \linkS4class{ModelParameter}.
+#' @param distribution An object from the class \linkS4class{Distribution}.
+#' @return The model parameter with the updated distribution.
+# ======================================================================================================
+
+setGeneric(
+  "setDistribution",
+  function(object,distribution) {
+    standardGeneric("setDistribution")
+  })
+
+setMethod("setDistribution",
+          "ModelParameter",
+          function(object,distribution)
+          {
+            object@distribution = distribution
+            return(object)
+          })
+
+# ======================================================================================================
+#' Get the fixed effect.
+#'
+#' @name getFixedMu
+#' @param object An object from the class \linkS4class{ModelParameter}.
+#' @return A boolean giving the fixed mu.
+# ======================================================================================================
+
+setGeneric(
+  "getFixedMu",
+  function(object) {
+    standardGeneric("getFixedMu")
+  })
+
+setMethod("getFixedMu",
+          signature("ModelParameter"),
+          function(object)
+          {
+            return(object@fixedMu)
+          })
+
+# ======================================================================================================
+#' Set the mu as fixed or not.
+#'
+#' @name setFixedMu
+#' @param object An object from the class \linkS4class{ModelParameter}.
+#' @param value A Boolean if fixed or not.
+#' @return The mode parameter with the the mu updated as fixed or not.
+# ======================================================================================================
+
+setGeneric(
+  "setFixedMu",
+  function(object,value) {
+    standardGeneric("setFixedMu")
+  })
+
+setMethod("setFixedMu",
+          signature("ModelParameter"),
+          function(object,value)
+          {
+            object@fixedMu = value
+            return(object)
+          })
+
+# ======================================================================================================
+#' Get the fixed variance.
+#'
+#' @name getFixedOmega
+#' @param object An object from the class \linkS4class{ModelParameter}.
+#' @return A boolean giving the fixed omega.
+# ======================================================================================================
+
+setGeneric(
+  "getFixedOmega",
+  function(object) {
+    standardGeneric("getFixedOmega")
+  })
+
+setMethod("getFixedOmega",
+          signature("ModelParameter"),
+          function(object)
+          {
+            return(object@fixedOmega)
+          })
+
+# ======================================================================================================
+#' Set the omega as fixed of not.
+#'
+#' @name setFixedOmega
+#' @param object An object from the class \linkS4class{ModelParameter}.
+#' @param value A Boolean fixed or not.
+#' @return The model parameter with the omega updated as fixed or not.
+# ======================================================================================================
+
+setGeneric(
+  "setFixedOmega",
+  function(object,value) {
+    standardGeneric("setFixedOmega")
+  })
+
+setMethod("setFixedOmega",
+          signature("ModelParameter"),
+          function(object,value)
+          {
+            object@fixedOmega = value
+            return(object)
+          })
+
+# ======================================================================================================
+# getMu
+# ======================================================================================================
 
 setMethod("getMu",
           "ModelParameter",
           function(object)
           {
-            return( object@mu )
-          }
-)
+            distribution = getDistribution( object )
+            parameters = getParameters( distribution )
+            mu = parameters$mu
+            return(mu)
+          })
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Boolean to set if a model parameters is fixed or not.
-#'
-#' @name isFixed
-#' @param object \code{ModelParameter} object.
-#' @return A boolean \code{fixed} giving TRUE if the model parameters is fixed, or FALSE is this parameters remain to be estimated.
+# ======================================================================================================
+# setMu
+# ======================================================================================================
 
-
-setGeneric("isFixed",
-           function(object)
-           {
-             standardGeneric("isFixed")
-           }
-)
-
-setMethod("isFixed",
+setMethod("setMu",
           "ModelParameter",
-          function(object)
+          function(object,value)
           {
-            return( object@fixed )
-          }
-)
+            distribution = getDistribution( object )
+            distribution = setMu( distribution, value)
+            object = setDistribution( object, distribution )
+            return( object )
+          })
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Boolean to set if a model parameters is not fixed or not.
-#'
-#' @name isNotFixed
-#' @param object \code{ModelParameter} object.
-#' @return A boolean \code{isNotFixed} giving TRUE if the model parameters is not fixed, FALSE otherwise.
-
-setGeneric("isNotFixed",
-           function(object)
-           {
-             standardGeneric("isNotFixed")
-           }
-)
-
-setMethod("isNotFixed",
-          "ModelParameter",
-          function(object)
-          {
-            return( !object@fixed )
-          }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Boolean to set if \code{mu} is fixed or not.
-#'
-#' @name isFixedMu
-#' @param object \code{ModelParameter} object.
-#' @return A boolean \code{isFixedMu} giving TRUE if \code{mu} is fixed, FALSE otherwise.
-
-setGeneric("isFixedMu",
-           function(object)
-           {
-             standardGeneric("isFixedMu")
-           }
-)
-
-setMethod("isFixedMu",
-          "ModelParameter",
-          function(object)
-          {
-            return( object@fixedMu )
-          }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Boolean to set if \code{mu} is not fixed or not.
-#'
-#' @name isNotFixedMu
-#' @param object \code{ModelParameter} object.
-#' @return A boolean \code{isNotFixedMu} giving TRUE if \code{mu} is not fixed, FALSE otherwise.
-
-setGeneric("isNotFixedMu",
-           function(object)
-           {
-             standardGeneric("isNotFixedMu")
-           }
-)
-
-setMethod("isNotFixedMu",
-          "ModelParameter",
-          function(object)
-          {
-            return( !object@fixedMu )
-          }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Get \code{Omega} of a \code{ModelParameter} object.
-#'
-#' @name getOmega
-#' @param object \code{ModelParameter} object.
-#' @return A numeric \code{omega} giving the variance \code{Omega} of a \code{ModelParameter} object.
-
-setGeneric("getOmega",
-           function(object)
-           {
-             standardGeneric("getOmega")
-           }
-)
+# ======================================================================================================
+# getOmega
+# ======================================================================================================
 
 setMethod("getOmega",
           "ModelParameter",
           function(object)
           {
-            return( object@omega )
-          }
-)
+            distribution = getDistribution( object )
+            parameters = getParameters( distribution )
+            omega = parameters$omega
+            return(omega)
+          })
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the distribution of a \code{ModelParameter} object.
-#'
-#' @name getDistribution
-#' @param object \code{ModelParameter} object.
-#' @return The distribution given by \code{distribution} of a \code{ModelParameter} object.
+# ======================================================================================================
+# setOmega
+# ======================================================================================================
 
-setGeneric("getDistribution",
-           function(object)
-           {
-             standardGeneric("getDistribution")
-           }
-)
-setMethod("getDistribution",
+setMethod("setOmega",
           "ModelParameter",
-          function(object)
-          {
-            return(object@distribution)
-          }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the derivates adjusted by distribution of a \code{ModelParameter} object.
-#' @name getDerivatesAdjustedByDistribution
-#' @param object \code{ModelParameter} object.
-#' @param df_total df_total
-#' @return A list of expression giving the derivates adjusted by distribution \code{distribution},
-#' the mu \code{distribution} and the dftotal \code{distribution} of a \code{ModelParameter} object.
-
-setGeneric("getDerivatesAdjustedByDistribution",
-           function( object, df_total )
-           {
-             standardGeneric("getDerivatesAdjustedByDistribution")
-           }
-)
-setMethod("getDerivatesAdjustedByDistribution",
-          "ModelParameter",
-          function( object, df_total )
+          function(object,value)
           {
             distribution = getDistribution( object )
+            distribution = setOmega( distribution, value )
+            object = setDistribution( object, distribution )
+            return( object )
+          })
 
-            if (class( distribution )[1] =="LogNormalDistribution" )
-            {
-              return( AdjustLogNormalDistribution( object@distribution, object@mu, df_total ) )
-            }
-            else if ( class( distribution )[1] =="NormalDistribution" )
-            {
-              return( AdjustNormalDistribution( object@distribution, object@mu, df_total ) )
-            }
-          }
-)
+###########################################################################################
+# End class ModelParameter
+###########################################################################################
 
-##########################################################################################################
-# END Class "ModelParameter"
-##########################################################################################################
+
+
+
+
+
+
+
+

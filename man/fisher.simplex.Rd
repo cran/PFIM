@@ -4,15 +4,17 @@
 \alias{fisher.simplex}
 \title{Compute the fisher.simplex}
 \usage{
-fisher.simplex(samplingTimes, data)
+fisher.simplex(simplex, optimizationObject, outcomes)
 }
 \arguments{
-\item{samplingTimes}{A \code{SamplnigTimes} object.}
+\item{simplex}{A list giving the parameters of the simplex.}
 
-\item{data}{A list containing the design, arm, response names, statistical model, constraint and FIM.}
+\item{optimizationObject}{An object from the class \linkS4class{Optimization}.}
+
+\item{outcomes}{A vector giving the outcomes of the arms.}
 }
 \value{
-The fisher.simplex giving the evalation of the optimization criterion ( i.e. D-criterion)
+A list giving the results of the optimization.
 }
 \description{
 Compute the fisher.simplex

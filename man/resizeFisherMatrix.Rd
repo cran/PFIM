@@ -4,15 +4,15 @@
 \alias{resizeFisherMatrix}
 \title{Resize the fisher Matrix from a vector to a matrix.}
 \usage{
-resizeFisherMatrix(nb_dimensions, fisherMatrix)
+resizeFisherMatrix(nbOfDimensions, fisherMatrix)
 }
 \arguments{
-\item{nb_dimensions}{: a numeric for the dimensions of the fisher matrix.}
+\item{nbOfDimensions}{: a numeric for the dimensions of the fisher matrix.}
 
 \item{fisherMatrix}{: a vector that contain the low triangular Fisher matrix + its main diagonal.}
 }
 \value{
-The Fisher matrix of size nb_dimensions*nb_dimensions.
+The Fisher matrix of size nbOfDimensions*nbOfDimensions
 }
 \description{
 Resize the fisher Matrix from a vector to a matrix.

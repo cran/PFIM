@@ -2,18 +2,18 @@
 % Please edit documentation in R/Administration.R
 \name{setTau}
 \alias{setTau}
-\title{Set the infusion lag tau.}
+\title{Set the frequency \code{tau}.}
 \usage{
-setTau(object, value)
+setTau(object, tau)
 }
 \arguments{
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}
 
-\item{value}{A numeric value for the infusion lag tau.}
+\item{tau}{A numeric value for the infusion lag tau.}
 }
 \value{
 The object \code{Administration} object with its new value of the infusion lag tau.
 }
 \description{
-Set the infusion lag tau.
+Set the frequency \code{tau}.
 }

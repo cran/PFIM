@@ -4,12 +4,10 @@
 \name{Fim-class}
 \alias{Fim-class}
 \alias{Fim}
-\title{Class "Fim" representing the Fisher information matrix,
-a parent class used by three classes PopulationFim, IndividualFim and BayesianFim.}
+\title{Class "Fim"}
 \description{
-A class storing information regarding the Fisher computation matrix.
+A class storing information regarding the Fisher matrix.
 Type of the Fisher information: population ("PopulationFIM"), individual ("IndividualFIM") or Bayesian ("BayesianFIM").
-The computation method for population and Bayesian matrix is first order linearisation (FO).
 }
 \section{Objects from the class}{
 
@@ -20,11 +18,10 @@ Objects form the class \code{Fim} can be created by calls of the form \code{Fim(
 \section{Slots for \code{Fim} objects}{
 
 \describe{
-\item{\code{isOptimizationResult}:}{A Boolean giving TRUE for an optimization result and FALSE an evaluation result.}
-\item{\code{mfisher}:}{A matrix of numeric giving the Fisher information.}
-\item{\code{omega}:}{A matrix of numeric giving the variances.}
-\item{\code{mu}:}{A matrix of numeric giving the means.}
-\item{\code{fim_comput_method}:}{Name of the method used to approximate the population matrix : character strings, 'FO' }
+\item{\code{fisherMatrix}:}{A matrix giving the Fisher matrix.}
+\item{\code{fixedEffects}:}{A matrix giving the fixed effects of the Fisher matrix.}
+\item{\code{varianceEffects}:}{A matrix giving the variance effects of the Fisher matrix.}
+\item{\code{shrinkage}:}{A vector giving the shrinkage value of the parameters.}
 }
 }
 

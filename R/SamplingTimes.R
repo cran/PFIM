@@ -1,74 +1,53 @@
-##################################################################################
 #' Class "SamplingTimes"
-#' @description
-#' Class "SamplingTimes" stores information concerning sampling times.
+#'
+#' @description The class "SamplingTimes" implements the sampling times.
 #'
 #' @name SamplingTimes-class
 #' @aliases SamplingTimes
-#' [,Sampling-method [<-,Sampling-method
 #' @docType class
-#' @exportClass SamplingTimes
+#' @include GenericMethods.R
+#' @export
 #'
-#' @section Objects from the Class:
-#' Objects form the Class \code{SamplingTimes} can be created by calls of the form \code{SamplingTimes(...)} where
+#' @section Objects from the class \code{SamplingTimes}:
+#' Objects form the class \code{SamplingTimes} can be created by calls of the form \code{SamplingTimes(...)} where
 #' (...) are the parameters for the \code{SamplingTimes} objects.
 #'
-#'@section Slots for the \code{SamplingTimes} objects:
-#' \describe{
-#' \item{\code{outcome}:}{A character string giving either a compartment name or number (character or integer, TBD with model) (nombre de reponses "1", "2").}
-#' \item{\code{sample_time}:}{A list of discrete vectors giving the times when sampling design is performed. }
-#' \item{\code{initialTime}:}{A numeric giving the initial time of the vecotr of sampling times.}
-#' }
-##################################################################################
+#' @section Slots for \code{SamplingTimes} objects:
+#'  \describe{
+#'    \item{\code{outcome}:}{A string giving the outcome.}
+#'    \item{\code{samplings}:}{A vector giving the sampling times.}
+#'  }
 
-SamplingTimes <- setClass(Class="SamplingTimes",
-                          representation=representation
-                          (
-                            outcome = "character",    # either a compartment name or number (character or integer, TBD with model) (nombre de reponses "1", "2")
-                            sample_time="vector",     # sampling times (t_ij)
-                            initialTime="numeric"
-                          ),
-                          prototype=prototype
-                          (#default options
-                            outcome = "1" #The Sampling class should necessarily contain outcome (outcome can be null but if it is the case, the default value equal to 1 is given)
-                          ))
-
+SamplingTimes = setClass(Class="SamplingTimes",
+                         representation=representation
+                         (
+                           outcome = "character",
+                           samplings ="vector"
+                         ))
 # Initialize method
 setMethod(
   f="initialize",
   signature="SamplingTimes",
-  definition= function (.Object, outcome, sample_time, initialTime )
+  definition= function (.Object, outcome, samplings )
   {
     if(!missing(outcome))
-      .Object@outcome<-outcome
-
-    if(!missing(sample_time))
-      .Object@sample_time = sample_time
-
-    if(!missing(initialTime))
-      .Object@initialTime <- initialTime
-    else
-      .Object@initialTime = 0
+    {
+      .Object@outcome = outcome
+    }
+    if(!missing(samplings))
+    {
+      .Object@samplings = samplings
+    }
     validObject(.Object)
     return (.Object )
   }
 )
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the name of the response of the \code{SamplingTimes} object.
-#'
-#' @rdname getNameSampleTime
-#' @param object A \code{SamplingTimes} object.
-#' @return A character string \code{outcome} giving the name of the response of the model.
+# ======================================================================================================
+# getOutcome
+# ======================================================================================================
 
-setGeneric("getNameSampleTime",
-           function(object)
-           {
-             standardGeneric("getNameSampleTime")
-           }
-)
-
-setMethod("getNameSampleTime",
+setMethod("getOutcome",
           "SamplingTimes",
           function(object)
           {
@@ -76,93 +55,54 @@ setMethod("getNameSampleTime",
           }
 )
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the sample time of the response of the \code{SamplingTimes} object.
-#'
-#' @name getSampleTime
-#' @param object A \code{getSampleTime} object.
-#' @return A vector \code{sample_time} giving the sample time.
 
+# ======================================================================================================
+# setOutcome
+# ======================================================================================================
 
-setGeneric("getSampleTime",
-           function(object)
-           {
-             standardGeneric("getSampleTime")
-           }
-)
-
-setMethod("getSampleTime",
+setMethod("setOutcome",
           "SamplingTimes",
-          function(object)
+          function(object, outcome)
           {
-            return(object@sample_time)
-          }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Set the sample time of the response of the \code{SamplingTimes} object.
-#'
-#' @name setSampleTime
-#' @param object A \code{SamplingTimes} object.
-#' @param values A vector giving the new values of the sampling times.
-#' @return The \code{SamplingTimes} object with the new sample times.
-
-
-setGeneric("setSampleTime",
-           function(object, values )
-           {
-             standardGeneric("setSampleTime")
-           }
-)
-
-setMethod("setSampleTime",
-          "SamplingTimes",
-          function(object, values)
-          {
-            object@sample_time<-values
+            object@outcome = outcome
             return(object)
           }
 )
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the number of times in a \code{SamplingTimes} object.
-#'
-#' @name getNumberTime
-#' @param object A \code{SamplingTimes} object.
-#' @return A numeric  giving the number of times.
+# ======================================================================================================
+# getSamplings
+# ======================================================================================================
 
-setGeneric("getNumberTime",
-           function(object)
-           {
-             standardGeneric("getNumberTime")
-           }
-)
-setMethod("getNumberTime",
+setMethod("getSamplings",
           "SamplingTimes",
           function(object)
           {
-            return( length( object@sample_time ) )
+            return(object@samplings)
           }
 )
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the initial time of a \code{SamplingTimes} object.
+# ======================================================================================================
+#' Set the sampling times.
 #'
-#' @name getInitialTime
-#' @param object \code{SamplingTimes} object.
-#' @return A numeric \code{initialTime} giving the inital time of a \code{SamplingTimes} object.
+#' @name setSamplings
+#' @param object An object from the class \linkS4class{SamplingTimes}.
+#' @param samplings A vector giving the sampling times.
+#' @return The updated sampling times.
+# ======================================================================================================
 
-setGeneric("getInitialTime",
-           function(object)
+setGeneric("setSamplings",
+           function(object, samplings)
            {
-             standardGeneric("getInitialTime")
+             standardGeneric("setSamplings")
            }
 )
-setMethod("getInitialTime",
+
+setMethod("setSamplings",
           "SamplingTimes",
-          function(object)
+          function(object, samplings)
           {
-            return(object@initialTime)
+            object@samplings = samplings
+            return(object)
           }
 )
 

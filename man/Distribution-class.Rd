@@ -7,5 +7,17 @@
 \title{Class "Distribution"}
 \description{
 The class defines all the required methods for a distribution object.
-However, the actual functionality needs to implemented by the inheriting class.
 }
+\section{Objects from the class}{
+
+Objects form the class \code{Distribution} can be created by calls of the form \code{Distribution(...)} where
+(...) are the parameters for the \code{Distribution} objects.
+}
+
+\section{Slots for \code{Distribution} objects}{
+
+ \describe{
+   \item{\code{parameters}:}{A list containing the distribution parameters.}
+ }
+}
+

@@ -8,28 +8,21 @@
 \description{
 The class \code{Design} defines information concerning the parametrization of the designs.
 }
-\section{Objects from the class Design}{
+\section{Objects from the class}{
 
-Objects form the class \code{Design} can be created by calls of the form \code{Design(...)} where
-(...) are the parameters for the \code{Design} objects.
+Objects form the class \code{Design} can be created by calls of the form \code{Design(...)} where (...) are the parameters for the \code{Design} objects.
 }
 
 \section{Slots for the \code{Design} objects}{
 
 \describe{
-\item{\code{isOptimalDesign}:}{A Boolean for testing if the Design is optimal (isOptimalDesign=TRUE) or not.}
-\item{\code{name}:}{A character string giving the name of the design - optional.}
-\item{\code{total_size}:}{A numeric giving the total number of subjects in the design - optional.}
-\item{\code{arms}:}{List of objects from the class \linkS4class{Arm}.}
-\item{\code{number_samples}:}{A numeric giving the raint on the number of samples for one subject - optional.
-Default to the set of possible number of sampling points present in the sampling windows
-defining the different arms or the design spaces.}
-\item{\code{arms}:}{A list of arm objects from the class \linkS4class{Arm}.}
-\item{\code{amountOfArm}:}{A numeric giving the number of arms in the study.}
-\item{\code{optimizationResult}:}{An optimization object from the class \linkS4class{Optimization} giving the results from the optimizsation process.}
-\item{\code{fimOfDesign}:}{A character string giving the Fisher Information Matrix of the design (Population, Individual or Bayesian).}
-\item{\code{concentration}:}{A list giving the result of the evaluaton for the responses.}
-\item{\code{sensitivityindices}:}{A list giving the result of the sensitivity indices for the responses.}
+\item{\code{name}:}{A string giving the name of the design.}
+\item{\code{size}:}{An integer giving the number of subjects in the design.}
+\item{\code{arms}:}{A list of the arms.}
+\item{\code{outcomesEvaluation}:}{A list of the results of the design evaluation for the outcomes.}
+\item{\code{outcomesGradient}:}{A list of the results of the design evaluation for the sensitivity indices.}
+\item{\code{numberOfArms}:}{A numeric giving the number of arms in the design.}
+\item{\code{fim}:}{An object of the class \code{Fim} containing the Fisher Information Matrix of the design.}
 }
 }
 

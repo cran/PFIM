@@ -4,24 +4,21 @@
 \name{LibraryOfModels-class}
 \alias{LibraryOfModels-class}
 \alias{LibraryOfModels}
-\title{Class for the library of models.}
+\title{Class "LibraryOfModels"}
 \description{
-\code{LibraryOfModels} is an S4 class that implements the library of models, consisting
-of two libraries of PK and PD models respectively.
-
-The PK library includes model with different administration routes (bolus, infusion, first-order absorption),
-different number of compartments (from 1 to 3), and different types of eliminations (linear or Michaelis-Menten).
-The PD model library, contains direct immediate models (e.g. Emax and Imax) with various baseline models,
-and turnover response models. The PK/PD models, on the other hand, are obtained with combination of the models
-from the PK and PD model libraries. Throught the use of the \code{LibraryOfModels} PFIM handles both analytical and ODE models and offers the possibility to the user to define his own models.
-
-The library of pharmacokinetic (PK) and pharmacodynamic (PD) models is described in the vignette LibraryOfModels.
+The class \code{LibraryOfModels} represents the library of models.
 }
 \section{Objects from the class}{
- \code{LibraryOfModels} objects are created by calls to \code{\link{LibraryOfModels}} and contain the following slots:
+
+Objects form the class \code{LibraryOfModels} can be created by calls of the form \code{LibraryOfModels(...)} where
+(...) are the parameters for the \code{LibraryOfModels} objects.
+}
+
+\section{Slots for \code{LibraryOfModels} objects}{
+
 \describe{
-\item{\code{nameLibraryOfModels}:}{A character string giving the name of the library of models.}
-\item{\code{contentsLibraryOfModels}:}{A list of the PK, PD and PKPD models that are in the library of models.}
+\item{\code{name}:}{A string giving the name of the library of models.}
+\item{\code{content}:}{A list giving the content of the library of model.}
 }
 }
 

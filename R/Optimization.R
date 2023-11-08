@@ -1,547 +1,916 @@
-##################################################################################
 #' Class "Optimization"
 #'
-#' @description
-#' A class storing information concerning Optimization.
+#' @description A class storing information concerning the design optimization.
 #'
 #' @name Optimization-class
 #' @aliases Optimization
 #' @docType class
-#' @include Design.R
-#' @exportClass Optimization
+#' @include PFIMProject.R
+#' @include Model.R
+#' @include Fim.R
+#' @include GenericMethods.R
+#' @include OptimizationAlgorithm.R
+#' @export
 #'
-#' @section Objects from the class \code{Optimization}:
+#' @section Objects from the class:
 #' Objects form the class \code{Optimization} can be created by calls of the form \code{Optimization(...)} where
 #' (...) are the parameters for the \code{Optimization} objects.
 #'
-#'@section Slots for \code{Optimization} objects:
+#' @section Slots for \code{Administration} objects:
 #'  \describe{
-#'    \item{\code{showProcess}:}{A logical if the optimization process is shown or not.}
-#'    \item{\code{FisherMatrices}:}{A list of all the Fisher matrices used in the optimization process.}
-#'    \item{\code{combinedTimes}:}{A list giving all he combinaison of n elements for a vector of times. }
-#'    \item{\code{arms}:}{A list giving all the arms on which the optimization processis done.}
+#'    \item{\code{name}:}{A character string giving the name of the optimization process.}
+#'    \item{\code{model}:}{A object of class \code{Model} giving the model.}
+#'    \item{\code{modelEquations}:}{A list giving the model equations.}
+#'    \item{\code{modelParameters}:}{A list giving the model parameters.}
+#'    \item{\code{modelError}:}{A list giving the model error.}
+#'    \item{\code{optimizer}:}{A object of class \code{OptimizationAlgorithm} giving the optimization algorithm.}
+#'    \item{\code{optimizerParameters}:}{A list giving the parameters of the optimization algorithm.}
+#'    \item{\code{outcomes}:}{A list giving the outcomes of the model.}
+#'    \item{\code{designs}:}{A list giving the designs to be optimized.}
+#'    \item{\code{fim}:}{A object of class \code{FIM} giving the Fisher information matrix.}
+#'    \item{\code{odeSolverParameters}:}{A list giving the parameters for the ode solver.}
+#'    \item{\code{optimizationResults}:}{A object of class \code{OptimizationAlgorithm} giving the results of the optimization.}
+#'    \item{\code{evaluationFIMResults}:}{A object of class \code{Evaluation} giving the results of the evaluation of the optimal design.}
+#'    \item{\code{evaluationInitialDesignResults}:}{A object of class \code{Evaluation} giving the results of the evaluation of the initial design.}
 #'  }
-##################################################################################
 
-Optimization <-setClass(
+Optimization = setClass(
   Class = "Optimization",
+  contains = "PFIMProject",
   representation = representation(
-    showProcess = "logical",
-    FisherMatrices = "list",
-    combinedTimes = "list",
-    initialElementaryProtocols = "list",
-    #OptimalDesign = "Design",# warning : add for simplex
-    arms = "list"
-  ),
-  prototype = prototype(
-    FisherMatrices = list(),
-    combinedTimes = list()
-  )
+    name = "character",
+    model = "Model",
+    modelEquations = "list",
+    modelParameters ="list",
+    modelError = "list",
+    optimizer = "OptimizationAlgorithm",
+    optimizerParameters = "list",
+    outcomes = "list",
+    designs = "list",
+    fim = "Fim",
+    odeSolverParameters = "list",
+    optimizationResults = "OptimizationAlgorithm",
+    evaluationFIMResults = "Evaluation",
+    evaluationInitialDesignResults = "Evaluation" ),
 
-)
+  prototype = prototype( odeSolverParameters = list( atol = 1e-6, rtol = 1e-6 ) ) )
 
 setMethod(
   f="initialize",
   signature="Optimization",
-  definition=function(.Object)
+  definition=function(.Object, name, model, modelEquations, modelParameters, modelError, optimizer,
+                      optimizerParameters, outcomes, designs, fim, odeSolverParameters, optimizationResults, evaluationFIMResults, evaluationInitialDesignResults )
   {
+    if(!missing(name))
+    {
+      .Object@name = name
+    }
+
+    if(!missing(model))
+    {
+      .Object@model = model
+    }
+
+    if(!missing(modelEquations))
+    {
+      .Object@modelEquations = modelEquations
+    }
+
+    if(!missing(modelParameters))
+    {
+      .Object@modelParameters = modelParameters
+    }
+
+    if(!missing(modelError))
+    {
+      .Object@modelError = modelError
+    }
+
+    if(!missing(optimizer))
+    {
+      if ( optimizer == "MultiplicativeAlgorithm")
+      {
+        .Object@optimizer = MultiplicativeAlgorithm()
+
+      } else  if ( optimizer == "SimplexAlgorithm")
+      {
+        .Object@optimizer = SimplexAlgorithm()
+
+      } else  if ( optimizer == "PSOAlgorithm")
+      {
+        .Object@optimizer = PSOAlgorithm()
+
+      } else  if ( optimizer == "PGBOAlgorithm")
+      {
+        .Object@optimizer = PGBOAlgorithm()
+
+      }else  if ( optimizer == "FedorovWynnAlgorithm")
+      {
+        .Object@optimizer = FedorovWynnAlgorithm()
+      }
+    }
+
+    if(!missing(optimizerParameters))
+    {
+      .Object@optimizerParameters = optimizerParameters
+    }
+
+    if(!missing(outcomes))
+    {
+      .Object@outcomes = outcomes
+    }
+
+    if(!missing(designs))
+    {
+      .Object@designs = designs
+    }
+
+    if(!missing(fim))
+    {
+      if ( fim == "population")
+      {
+        .Object@fim = PopulationFim()
+      }
+      else if ( fim == "individual")
+      {
+        .Object@fim = IndividualFim()
+      }
+      else if ( fim == "Bayesian")
+      {
+        .Object@fim = BayesianFim()
+      }
+    }
+
+    if(!missing(odeSolverParameters))
+    {
+      .Object@odeSolverParameters = odeSolverParameters
+    }
+
+    # set the names of the designs
+    names(.Object@designs)= getNames( designs )
+
+    if(!missing(optimizationResults))
+    {
+      .Object@optimizationResults = optimizationResults
+    }
+
+    if(!missing(evaluationFIMResults))
+    {
+      .Object@evaluationFIMResults = evaluationFIMResults
+    }
+
+    if(!missing(evaluationInitialDesignResults))
+    {
+      .Object@evaluationInitialDesignResults = evaluationInitialDesignResults
+    }
+
     validObject(.Object)
     return (.Object )
   }
 )
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Show the process for the optimization.
-#'
-#' @name setShowProcess
-#' @rdname setShowProcess
-#' @aliases setShowProcess
-#' @param object A\code{Optimization} object.
-#' @param ifShow TRUE or FALSE
-#' @return Show process for the optimization.
-setGeneric("setShowProcess",
-           function(object, ifShow)
+# ======================================================================================================
+#' Set the designs.
+#' @name setDesigns
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @param designs A list of objects from the class \linkS4class{Design}.
+#' @return The object with the new designs.
+# ======================================================================================================
+
+setGeneric("setDesigns",
+           function( object, designs )
            {
-             standardGeneric("setShowProcess")
-           }
-
-)
-
-setMethod(f = "setShowProcess",
-          signature = "Optimization",
-          definition = function(object, ifShow)
-          {
-            object@showProcess <- ifShow
-            return(object)
-          }
-)
-# -------------------------------------------------------------------------------------------------------------------
-#' Set the optimization process.
-#'
-#' @name Optimize
-#' @rdname Optimize
-#' @aliases Optimize
-#' @param object An \code{Optimization} object.
-#' @param pfimProject An \code{PFIMProject} object.
-#' @param designs A list of \code{design} object.
-#' @param statistical_model A \code{StatisticalModel} object.
-#' @param cond_init A list giving the initial conditions.
-#' @param constraint A \code{Constraint} object.
-#' @param typeFim A \code{Fim} object : type of FIM, Population, Individual or Bayesian.
-#' @return A \code{design} object giving the optimal design.
-
-setGeneric("Optimize",
-           function(object,  pfimProject, designs, statistical_model, cond_init, constraint, typeFim)
-           {
-             standardGeneric("Optimize")
-           }
-
-)
-
-setMethod(
-  f = "Optimize",
-  signature = "Optimization",
-  definition = function( object, pfimProject, designs, statistical_model, cond_init, constraint, typeFim )
-  {
-
-  }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Prepare the FIMs for the optimization.
-#'
-#' @name PrepareFIMs
-#' @rdname PrepareFIMs
-#' @aliases PrepareFIMs
-#' @param object A \code{Optimization} object.
-#' @param statistical_model A \code{StatisticalModel} object.
-#' @param cond_init A list giving the initial conditions.
-#' @param constraint A \code{Constraint} object.
-#' @param typeFim : Type of FIM, Population, Individual or Bayesian.
-#' @return A list \code{result} of all the FIMs.
-
-setGeneric("PrepareFIMs",
-           function( object, statistical_model, cond_init, constraint, typeFim )
-           {
-             standardGeneric("PrepareFIMs")
-           }
-)
-setMethod(
-  f = "PrepareFIMs",
-  signature = "Optimization",
-  definition = function( object, statistical_model, cond_init, constraint, typeFim )
-  {
-
-    # constraint@PossibleArms :
-    if( length(constraint@PossibleArms) > 0 )
-    {
-      start <- Sys.time()
-      if(object@showProcess) cat("\n Evaluation FIMs\n")
-      FisherMatrices <- list()
-      Q <- 0
-      for (arm in constraint@PossibleArms)
-      {
-        Q <- Q+1
-
-        results = EvaluateStatisticalModel(arm, statistical_model, typeFim )
-
-        FisherMatrices[[Q]] = getMfisher( results$resultFim )
-        object@arms[[Q]] <- arm
-
-      }
-      end <- Sys.time()
-      if(object@showProcess) print(end-start)
-      object@FisherMatrices <- FisherMatrices
-      return(object)
-    }
-    else
-    {
-      start <- Sys.time()
-      if(object@showProcess) cat("\n Process of FIM evaluation :\n")
-
-      doses <- list()
-      armBase <- list()
-      objectiveProtocolNumber <- list()
-      fixedTimes <- list()
-      times <- list()
-      RespName <- list()
-
-      constraintNumber <- 0
-      totalNumberOfFIMs <- 1
-
-      if(length(constraint@samplingConstraints) > 0)
-      {
-
-        for(sampConstraint in constraint@samplingConstraints)
-        {
-          constraintNumber <- constraintNumber + 1
-
-          RespName[[constraintNumber]] <- getResponseName(sampConstraint)
-
-          for(adminConstraint in constraint@administrationConstraints){
-
-            if( RespName[[constraintNumber]] == getResponseName(adminConstraint))
-            {
-              doses[[constraintNumber]] <- getAllowedDoses(adminConstraint)
-            }else{
-              doses[[constraintNumber]] = 0.0
-            }
-          }
-
-          if ( class( typeFim)  %in% c( "PopulationFim" , "IndividualFim", "BayesianFim" ) )
-          {
-            armBase[[constraintNumber]] <- getallowedDiscretSamplingTimes( sampConstraint )
-
-            objectiveProtocolNumber[[constraintNumber]] <- getnumberOfSamplingTimes( sampConstraint )
-
-            fixedTimes[[ constraintNumber ]] <- getfixedTimes( sampConstraint )
-
-            object = Combinaison( object,
-                                  armBase[[constraintNumber]],
-                                  objectiveProtocolNumber[[constraintNumber]],
-                                  fixedTimes[[ constraintNumber ]], 1, c())
-
-            times[[constraintNumber]] = object@combinedTimes
-          }
-
-          totalNumberOfFIMs <- totalNumberOfFIMs * length(doses[[constraintNumber]]) * length(times[[constraintNumber]])
-
-        }
-      }
-      else
-      {
-        # no sampling constraints
-        for(adminConstraint in constraint@administrationConstraints)
-        {
-          constraintNumber <- constraintNumber + 1
-          RespName[[constraintNumber]] = getResponseName(adminConstraint)
-          doses[[constraintNumber]] <- getAllowedDoses(adminConstraint)
-
-          totalNumberOfFIMs <- totalNumberOfFIMs * length(doses[[constraintNumber]])
-        }
-      }
-
-      result = EvaluateFIMsAndDesigns( object, 1, RespName, doses, times, list(), list(),
-                                       statistical_model, cond_init, totalNumberOfFIMs, typeFim )
-
-
-
-      # ------------------------------------------------------------------------------
-      # part for Fedorov-Wynn algorithm
-      # ------------------------------------------------------------------------------
-
-      # administrationConstraints
-      administrationConstraints = constraint@administrationConstraints
-      allowedDoses = getAllowedDoses( administrationConstraints[[1]] )
-      numberOfAllowedDoses = length( allowedDoses )
-
-      samplingConstraints = getSamplingConstraints( constraint )
-      numberOfSamplingTimes = getnumberOfSamplingTimes( samplingConstraints[[1]] )
-
-      list = list()
-      combinedList = list()
-      combinedTimes2 = list()
-
-      for ( i in 1:length( times ) )
-      {
-        list[[i]] = do.call( rbind,times[[i]] )
-      }
-
-      #  if ( lengths(list) == 1 )
-      #  {
-      #   combinedTimes = as.matrix( do.call( rbind, replicate( numberOfAllowedDoses, unlist(list), simplify = FALSE ) ) )
-      #  }
-      #  else
-      # {
-      combinationElements = expand.grid(lapply(list, function(x) seq_len(nrow(x))))
-      combinedList = do.call( cbind, Map( function(x, y) x[y, ], list, combinationElements ) )
-      combinedTimes = as.matrix( do.call( rbind, replicate( numberOfAllowedDoses, combinedList, simplify = FALSE ) ) )
-      #}
-
-      lengthSamplingTimesForEachElementaryProtocol = lapply( object@initialElementaryProtocols, length )
-      totalNumberOfSamplingTimesForEachElementaryProtocol =
-        unlist( lengthSamplingTimesForEachElementaryProtocol ) *  getTotalNumberOfIndividuals( constraint )
-      total_cost = sum( totalNumberOfSamplingTimesForEachElementaryProtocol )
-
-      # in initFedo.C : Fisher matrices = vector of lower element fisher matrix + diagonal
-      # elements = [(1,1) ,(2,1:2),(3,1:3),etc ..]
-      # number of elements = n*(n+1)/2 ; n = dim Fisher matrix
-
-      fisherMatrices = result@FisherMatrices
-      nb_dimensions = dim(fisherMatrices[[1]])[[1]]
-      dimVectorTriangularInfWithDiagFisherMatrices = nb_dimensions*(nb_dimensions+1)/2
-      fisherMatrices = lapply( fisherMatrices, function( x ) x[ rev( lower.tri( t( x ), diag=TRUE ) ) ] )
-      fisherMatrices = matrix( unlist( fisherMatrices ), ncol = dimVectorTriangularInfWithDiagFisherMatrices, byrow = TRUE )
-
-      elementary_protocols = list()
-      elementary_protocols$nb_protocols = dim( combinedTimes )[1]
-      elementary_protocols$nb_times = dim( combinedTimes )[2]
-      elementary_protocols$nb_dimensions = nb_dimensions
-      elementary_protocols$total_cost = total_cost
-      elementary_protocols$samplingTimes = combinedTimes
-      elementary_protocols$fisherMatrices = fisherMatrices
-
-      result@initialElementaryProtocols = elementary_protocols
-
-      end <- Sys.time()
-      if(object@showProcess)
-        print(end-start)
-
-      return(result)
-    }
-  }
-)
-
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the matrix of all the combination of the elementary protocols.
-#'
-#' @name getElementaryProtocols
-#' @param object An \code{Optimization} object.
-#' @return A matrix giving  all the combination of the elementary protocols.
-
-setGeneric("getElementaryProtocols",
-           function(object)
-           {
-             standardGeneric("getElementaryProtocols")
-           }
-)
-
-setMethod( f="getElementaryProtocols",
-           signature="Optimization",
-           definition = function(object)
-           {
-             return(object@initialElementaryProtocols)
-           }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Create all the possible combinaison for each Design and each Arms.
-#'
-#' @name Combinaison
-#' @param object A \code{Optimization} object.
-#' @param times  A \code{SAmplingTimes} object.
-#' @param nTimesForEachVector the number of sampling times for each vector of sampling times.
-#' @param fixedTimes the fixed sampling times.
-#' @param n parameter n
-#' @param combin parameter combin
-#' @return All the possible combination for each Design and each Arms.
-
-setGeneric("Combinaison",
-           function(object, times, nTimesForEachVector, fixedTimes, n, combin)
-           {
-             standardGeneric("Combinaison")
-           }
-)
-setMethod(f = "Combinaison",
-          signature = "Optimization",
-          definition = function(object, times, nTimesForEachVector, fixedTimes, n, combin)
-          {
-
-            object@combinedTimes = list()
-
-            r<-combn( times[[n]], nTimesForEachVector[ n ])
-
-            for(i in 1:dim(r)[2] )
-            {
-              newCombin=c( combin, r[,i] )
-
-              if( n == length(times) )
-              {
-                if( all(fixedTimes %in% newCombin))
-                  object@combinedTimes[[length(object@combinedTimes)+1]] <- newCombin
-              }
-              else{
-                object = Combinaison( object, times, nTimesForEachVector, fixedTimes, n+1, newCombin )
-              }}
-
-
-            return(object)
-          }
-)
-
-# -------------------------------------------------------------------------------------------------------------------
-#' Evaluate the FIMs and the Designs.
-#'
-#' @name EvaluateFIMsAndDesigns
-#' @param object An \code{Optimization} object.
-#' @param responseNumber A numeric giving the number of responses.
-#' @param responseNames A character string giving the name of the response
-#' @param doses A vector of numeric values giving the doses.
-#' @param times A vector of numeric values giving the times doses.
-#' @param admin An \code{Administration} object giving the administration parameters.
-#' @param samp An \code{SamplingTimes} object giving the sampling times parameters.
-#' @param statistical_model  A \code{statisticalModel} object.
-#' @param cond_init cond_init
-#' @param totalNumberOfFIMs A numeric giving the total number of FIMs.
-#' @param typeFim A character strgin gving the type of the FIM.
-#' @return An \code{Optimization} object giving the results of the evaluation of the FIMs and the Designs.
-
-setGeneric("EvaluateFIMsAndDesigns",
-           function( object, responseNumber, responseNames, doses, times, admin, samp, statistical_model, cond_init,totalNumberOfFIMs, typeFim )
-           {
-             standardGeneric("EvaluateFIMsAndDesigns")
+             standardGeneric("setDesigns")
            })
 
-setMethod(
-  f = "EvaluateFIMsAndDesigns",
-  signature = "Optimization",
-  definition = function( object, responseNumber, responseNames, doses, times, admin, samp, statistical_model,cond_init, totalNumberOfFIMs, typeFim )
-  {
-
-    currentResponse <- responseNames[[ responseNumber ]]
-
-    Q <- length(object@FisherMatrices)
-
-    for(dose in doses[[ responseNumber ]])
-    {
-      admin[[ currentResponse ]] <- Administration( outcome = currentResponse, time_dose = c(0), amount_dose = dose )
-
-      if(length(times) > 0)
-      {
-        for(timeIndice in 1:length(times[[ responseNumber ]]))
-        {
-          samp[[ currentResponse ]] <- SamplingTimes( outcome = currentResponse, sample_time = times[[ responseNumber ]][[timeIndice]] )
-
-          if(responseNumber == length(responseNames))
+setMethod(f="setDesigns",
+          signature="Optimization",
+          definition = function( object, designs )
           {
-            Q <- length(object@FisherMatrices)
+            object@designs = designs
 
-            results = Evaluate(statistical_model, admin, samp , cond_init, typeFim )
+            return( object )
+          })
 
-            object@FisherMatrices[[ Q+1 ]] <- getMfisher( results$fim )
 
-            OneArm <- Arm(name = paste0("Arm ",(Q+1)))
+# ======================================================================================================
+#' Get the proportion of subjects.
+#' @name getProportionsOfSubjects
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @return A vector giving the proportion of subjects.
+# ======================================================================================================
 
-            for(adm in admin)
-              OneArm <- addAdministration( OneArm,  adm )
-            for(sam in samp)
-              OneArm <- addSampling( OneArm, sam )
-            object@arms[[ Q+1]] <- OneArm
-            if(object@showProcess)
+setGeneric("getProportionsOfSubjects",
+           function( object )
+           {
+             standardGeneric("getProportionsOfSubjects")
+           })
+
+setMethod(f="getProportionsOfSubjects",
+          signature="Optimization",
+          definition = function( object )
+          {
+            optimizerParameters = getOptimizerParameters( object )
+
+            return( optimizerParameters$proportionsOfSubjects )
+          })
+
+# ======================================================================================================
+#' Get the optimization results.
+#' @name getOptimizationResults
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @return An object from the class \linkS4class{OptimizationAlgorithm} giving the optimization results.
+# ======================================================================================================
+
+setGeneric("getOptimizationResults",
+           function( object )
+           {
+             standardGeneric("getOptimizationResults")
+           })
+
+setMethod(f="getOptimizationResults",
+          signature="Optimization",
+          definition = function( object )
+          {
+            return( object@optimizationResults )
+          })
+
+# ======================================================================================================
+#' Set the optimization results.
+#' @name setOptimizationResults
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @param value An object from the class \linkS4class{OptimizationAlgorithm} giving the optimization results.
+#' @return The object with the updated object from the class \linkS4class{OptimizationAlgorithm}.
+# ======================================================================================================
+
+setGeneric("setOptimizationResults",
+           function( object, value )
+           {
+             standardGeneric("setOptimizationResults")
+           })
+
+setMethod(f="setOptimizationResults",
+          signature="Optimization",
+          definition = function( object, value )
+          {
+            object@optimizationResults = value
+            return( object )
+          })
+
+# ======================================================================================================
+#' Get the results of the evaluation.
+#' @name getEvaluationFIMResults
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @return An object from the class \linkS4class{Evaluation} giving the evaluation results for the optimal design.
+# ======================================================================================================
+
+setGeneric("getEvaluationFIMResults",
+           function( object )
+           {
+             standardGeneric("getEvaluationFIMResults")
+           })
+
+setMethod(f="getEvaluationFIMResults",
+          signature="Optimization",
+          definition = function( object )
+          {
+            return( object@evaluationFIMResults )
+          })
+
+# ======================================================================================================
+#' Set the evaluation results.
+#' @name setEvaluationFIMResults
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @param value An object from the class \linkS4class{Evaluation} giving the evaluation results.
+#' @return The object with the updated object from the class \linkS4class{Evaluation}.
+# ======================================================================================================
+
+setGeneric("setEvaluationFIMResults",
+           function( object, value )
+           {
+             standardGeneric("setEvaluationFIMResults")
+           })
+
+setMethod(f="setEvaluationFIMResults",
+          signature="Optimization",
+          definition = function( object, value )
+          {
+            object@evaluationFIMResults = value
+            return( object )
+          })
+
+# ======================================================================================================
+#' Set the evaluation results of the initial design.
+#' @name setEvaluationInitialDesignResults
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @param value An object from the class \linkS4class{Evaluation} giving the evaluation results of the initial design.
+#' @return The object with the updated object from the class \linkS4class{Evaluation}.
+# ======================================================================================================
+
+setGeneric("setEvaluationInitialDesignResults",
+           function( object, value )
+           {
+             standardGeneric("setEvaluationInitialDesignResults")
+           })
+
+setMethod(f="setEvaluationInitialDesignResults",
+          signature="Optimization",
+          definition = function( object, value )
+          {
+            object@evaluationInitialDesignResults = value
+            return( object )
+          })
+
+# ======================================================================================================
+#' Get the evaluation results of the initial design.
+#' @name getEvaluationInitialDesignResults
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @return The object from the class \linkS4class{Evaluation} giving the results of the evaluation of the initial design.
+# ======================================================================================================
+
+setGeneric("getEvaluationInitialDesignResults",
+           function( object )
+           {
+             standardGeneric("getEvaluationInitialDesignResults")
+           })
+
+setMethod(f="getEvaluationInitialDesignResults",
+          signature="Optimization",
+          definition = function( object )
+          {
+            return( object@evaluationInitialDesignResults )
+          })
+
+# ======================================================================================================
+#' Get the elementary protocols.
+#' @name getElementaryProtocols
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @param fims A list of object from the class \linkS4class{Fim}.
+#' @return A list containing the results of the evaluation of the elementary protocols giving
+#' the numberOfTimes, nbOfDimensions, totalCost, samplingTimes and the fisherMatrices
+# ======================================================================================================
+
+setGeneric("getElementaryProtocols",
+           function( object, fims )
+           {
+             standardGeneric("getElementaryProtocols")
+           })
+
+setMethod(f="getElementaryProtocols",
+          signature="Optimization",
+          definition = function( object, fims )
+          {
+            # =======================================
+            # design ,arm and fims
+            # =======================================
+
+            designs = getDesigns( object )
+            design = designs[[1]]
+
+            arms = getArms( design )
+            arm = arms[[1]]
+
+            samplingTimes = getSamplingTimes( arm )
+            outcomes = unlist( lapply( samplingTimes, function(x) getOutcome(x) ) )
+
+            fisherMatrices = fims$listFims
+            fisherMatricesArms = fims$listArms
+
+            # =======================================
+            # samplings by outcomes
+            # =======================================
+
+            samplings = list()
+
+            for ( outcome in outcomes )
             {
-              percent <- (Q+1) / totalNumberOfFIMs * 100
-
-              cat(sprintf('\r %d / %d', Q+1,totalNumberOfFIMs))
-
-              if ((Q+1) == totalNumberOfFIMs)  cat('\n Evaluation of FIMs terminated. Total FIM number = ',totalNumberOfFIMs, "\n")
+              samplingTime = lapply( fisherMatricesArms, function(x) getSamplingTime(x, outcome) )
+              samplings[[outcome]] = lapply( samplingTime, function(x) getSamplings(x) )
+              samplings[[outcome]] = do.call( rbind, samplings[[outcome]] )
             }
-          }
-          else
-          {
-            object = EvaluateFIMsAndDesigns( object, responseNumber+1, responseNames, doses,
-                                             times, admin, samp, statistical_model, cond_init, totalNumberOfFIMs, typeFim )
-          }
-        }
-      }
-      else
-      {
-        samp[[ currentResponse ]] <- SamplingTimes( outcome = currentResponse, sample_time = c(0) )
 
-        if(responseNumber == length(responseNames))
-        {
-          Q <- length(object@FisherMatrices)
+            combinedTimes = do.call(cbind, samplings)
 
-          results = Evaluate(statistical_model, admin, samp , cond_init, typeFim )
+            # =======================================
+            # total cost
+            # =======================================
 
-          object@FisherMatrices[[ Q+1 ]] <-as.matrix( results$fim )
+            optimizerParameters = getOptimizerParameters( object )
+            initialSamplings = optimizerParameters$elementaryProtocols
+            totalNumberOfIndividuals = optimizerParameters$numberOfSubjects
+            totalCost = sum( lengths( initialSamplings ) * totalNumberOfIndividuals )
 
-          OneArm <- Arm(name = paste0("Arm ",(Q+1)))
-          for(adm in admin)
-            OneArm <- addAdministration( OneArm,  adm )
-          object@arms[[ Q+1]] <- OneArm
-          if(object@showProcess)
-          {
-            percent <- (Q+1) / totalNumberOfFIMs * 100
-            cat(sprintf('\r[%-100s] %d%%', paste(rep('=', percent ), collapse = ''), floor(percent)))
-            if ((Q+1) == totalNumberOfFIMs)  cat('\n Evaluation of FIMs terminated. Total FIM number = ',totalNumberOfFIMs, "\n")
-          }
-        }
-        else
-        {
-          object = EvaluateFIMsAndDesigns( object, responseNumber+1, responseNames, doses, times, admin, samp,
-                                           statistical_model, cond_init, totalNumberOfFIMs, typeFim )
-        }
-      }
-    }
-    return(object)
-  }
-)
+            # ====================================================================================
+            # reshape the fims
+            # in initFedo.C : Fisher matrices = vector of lower element fisher matrix + diagonal
+            # nota bene: initFedo.C implemented by Sylvie Retout in 2007 (see doc for references)
+            # elements = [(1,1) ,(2,1:2),(3,1:3),etc ..]
+            # number of elements = n*(n+1)/2 ; n = dim Fisher matrix
+            # ====================================================================================
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Get the optimal design.
-#'
-#' @name getOptimalDesign
-#' @param object An \code{Design} object.
-#' @return An \code{Design} object giving the optimal design.
+            dimFim = dim(fisherMatrices[[1]])[[1]]
+            dimVectorTriangularInfWithDiagFisherMatrices = dimFim*(dimFim+1)/2
+            fisherMatrices = lapply( fisherMatrices, function( x ) x[ rev( lower.tri( t( x ), diag=TRUE ) ) ] )
+            fisherMatrices = matrix( unlist( fisherMatrices ), ncol = dimVectorTriangularInfWithDiagFisherMatrices, byrow = TRUE )
 
-setGeneric("getOptimalDesign",
-           function(object)
+            # =======================================
+            # elementaryProtocols
+            # =======================================
+
+            elementaryProtocolsFW = list()
+            elementaryProtocolsFW$numberOfprotocols = dim( combinedTimes )[1]
+            elementaryProtocolsFW$numberOfTimes = dim( combinedTimes )[2]
+            elementaryProtocolsFW$nbOfDimensions = dimFim
+            elementaryProtocolsFW$totalCost = totalCost
+            elementaryProtocolsFW$samplingTimes = combinedTimes
+            elementaryProtocolsFW$fisherMatrices = fisherMatrices
+            return( elementaryProtocolsFW )
+
+          })
+
+# ======================================================================================================
+#' Generate the fim from the constraints
+#' @name generateFimsFromConstraints
+#' @param object An object from the class \linkS4class{Optimization}.
+#' @param fims A list of object from the class \linkS4class{Fim}.
+#' @return A list giving the arms with their fims.
+# ======================================================================================================
+
+setGeneric("generateFimsFromConstraints",
+           function( object, fims )
            {
-             standardGeneric("getOptimalDesign")
-           }
-)
+             standardGeneric("generateFimsFromConstraints")
+           })
 
-setMethod("getOptimalDesign",
-          "Optimization",
-          function(object)
+setMethod(f="generateFimsFromConstraints",
+          signature="Optimization",
+          definition = function( object )
           {
-            return(object@OptimalDesign)
-          }
+            modelEquations = getModelEquations( object )
+            modelParameters = getModelParameters( object )
+            modelError = getModelError( object )
+            outcomesForEvaluation = getOutcomes( object )
+            designs = getDesigns( object )
+            fim = getFim( object )
+            odeSolverParameters = getOdeSolverParameters( object )
+            fimEvaluation = setFimTypeToString( fim )
 
-)
+            # =======================================
+            # generate the sampling times
+            # =======================================
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Set an optimal design.
-#'
-#' @name setOptimalDesign<-
-#' @aliases setOptimalDesign
-#' @param object A \code{PFIM} object.
-#' @param value A \code{Design} object.
-#' @return The \code{PFIM} object with the optimal design.
+            samplingTimesCombinations = list()
+            numberOfSamplings = list()
+            indexAllCombinaisonsSamplings = list()
+            numberOfFims = 0
+            doses = list()
 
-setGeneric("setOptimalDesign<-",
-           function(object, value)
-           {
-             standardGeneric("setOptimalDesign<-")
-           }
-)
-setReplaceMethod( f="setOptimalDesign",
-                  signature="Optimization",
-                  definition = function(object, value)
+            designs = getDesigns( object )
+
+            for ( design in designs )
+            {
+              designName = getName( design )
+
+              arms = getArms( design )
+
+              for ( arm in arms )
+              {
+                armName = getName( arm )
+
+                samplingTimesConstraints = getSamplingTimesConstraints( arm )
+                administrationConstraints = getAdministrationsConstraints( arm )
+
+                outcomes = unlist( lapply( samplingTimesConstraints, function(x) getOutcome( x ) ) )
+                doses[[armName]] = getDose( administrationConstraints[[1]] )
+
+                for ( indiceDose in 1:length( doses[[armName]] ) )
+                {
+                  for ( outcome in outcomes )
                   {
-                    object@OptimalDesign <- value
-                    validObject(object)
-                    return(object)
+                    samplingTimeConstraint = getSamplingTimeConstraint( arm, outcome )
+
+                    samplings = getSamplings( samplingTimeConstraint )
+                    fixedTimes = getFixedTimes( samplingTimeConstraint )
+                    numberOfsamplingsOptimisable = getNumberOfsamplingsOptimisable( samplingTimeConstraint )
+
+                    combinations = t( combn( samplings, numberOfsamplingsOptimisable ) )
+
+                    n = length( samplings )
+
+                    if ( length( fixedTimes ) != 0 )
+                    {
+                      p = length( fixedTimes )
+                    }else
+                    {
+                      p = 0
+                    }
+
+                    numberOfSamplings[[outcome]] = 1:dim(combn(n-p,numberOfsamplingsOptimisable-p))[2]
+
+                    samplingTimesCombinationsTmp = list()
+
+                    if ( length( fixedTimes ) != 0 )
+                    {
+                      k = 1
+
+                      for ( i in 1:dim( combinations )[1] )
+                      {
+                        if (all( fixedTimes %in% combinations[i,]) == TRUE )
+                        {
+                          samplingTimesCombinationsTmp[[k]] = combinations[i,]
+                          k = k+1
+                        }
+                      }
+                    } else if ( length( fixedTimes ) == 0 )
+                    {
+                      for ( i in 1:dim( combinations )[1] )
+                      {
+                        samplingTimesCombinationsTmp[[i]] = combinations[i,]
+                      }
+                    }
+
+                    samplingTimesCombinations[[designName]][[armName]][[outcome]] = do.call( rbind, samplingTimesCombinationsTmp )
                   }
-)
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Show for an \code{Optimization} object.
-#'
-#' @rdname show
-#' @param object An \code{Optimization} object.
-#' @return The content of an \code{Optimization} object.
+                  indexAllCombinaisonsSamplings[[designName]][[armName]] = as.data.frame( do.call( expand.grid, numberOfSamplings ) )
+                  numberOfFims = numberOfFims + dim(  indexAllCombinaisonsSamplings[[designName]][[armName]] )[1]
+                  colnames( indexAllCombinaisonsSamplings[[designName]][[armName]] ) = outcomes
+                }
+              }
+            }
 
-setMethod("show",
-          "Optimization",
-          function(object)
+            # =======================================
+            # create list of arms with constraints
+            # =======================================
+
+            listArms = list()
+            listFims = list()
+
+            for ( design in designs )
+            {
+              designName = getName( design )
+
+              arms = getArms( design )
+
+              iter = 1
+
+              print(" Generate Fims ")
+
+              for ( arm in arms )
+              {
+                armName = getName( arm )
+
+                samplingTimesConstraints = getSamplingTimesConstraints( arm )
+
+                outcomes = unlist( lapply( samplingTimesConstraints, function(x) getOutcome( x ) ) )
+
+                administrations = getAdministrations( arm )
+
+                # ============
+                # set doses
+                # ============
+
+                for( dose in doses[[armName]] )
+                {
+                  administration = setDose( administrations[[1]],  dose )
+                  arm = setAdministrations( arm, list( administration ) )
+
+                  # ===================
+                  # set sampling times
+                  # ===================
+
+                  for ( i in 1:dim( indexAllCombinaisonsSamplings[[designName]][[armName]] )[1] )
+                  {
+                    for ( outcome in outcomes )
+                    {
+                      indexSamplingTimes = indexAllCombinaisonsSamplings[[designName]][[armName]][,outcome][i]
+
+                      samplingTimes = SamplingTimes( outcome,
+                                                     samplings = samplingTimesCombinations[[designName]][[armName]][[outcome]][indexSamplingTimes,] )
+
+                      arm = setSamplingTime( arm, samplingTimes )
+                    }
+
+                    design = setArm( design, arm )
+
+                    outcomesForEvaluation = getOutcomes( object )
+
+                    evaluationFIM = Evaluation( name = "",
+                                                modelEquations = modelEquations,
+                                                modelParameters = modelParameters,
+                                                modelError = modelError,
+                                                outcomes = outcomesForEvaluation,
+                                                designs = list( design ),
+                                                fim = fimEvaluation,
+                                                odeSolverParameters = odeSolverParameters )
+
+                    evaluationFIM =  run( evaluationFIM )
+
+                    designs = getDesigns( evaluationFIM )
+
+                    fim = getFim( designs[[1]] )
+
+                    fisherMatrix = getFisherMatrix( fim )
+
+                    listArms[[iter]] = arm
+                    listFims[[iter]] = fisherMatrix
+
+                    print( paste0( c( iter,"/", numberOfFims ),collapse="" ) )
+
+                    iter = iter + 1
+                  }
+                }
+              }
+            }
+            return( list( listArms = listArms, listFims = listFims ) )
+          })
+
+# ======================================================================================================
+# run
+# ======================================================================================================
+
+setMethod(f = "run",
+          signature = "Optimization",
+          definition = function( object )
           {
+            # ===============================================================================
+            # evaluate initial design (for comparison with the optimal design )
+            # ===============================================================================
 
-          }
-)
+            modelEquations = getModelEquations( object )
+            modelParameters = getModelParameters( object )
+            modelError = getModelError( object )
+            outcomes = getOutcomes( object )
+            designs = getDesigns( object )
 
-#####################################################################################################
-# END Class "Optimization"
-#####################################################################################################
+            # ===========================================
+            # get and set the fim
+            # ===========================================
+
+            fim = getFim( object )
+            fimEvaluation = setFimTypeToString( fim )
+
+            odeSolverParameters = getOdeSolverParameters( object )
+
+            # ===========================================================
+            # evaluate the initial design and set its evaluation results
+            # ===========================================================
+
+            evaluationFIMInitialDesign = Evaluation( name = "",
+                                                     modelEquations = modelEquations,
+                                                     modelParameters = modelParameters,
+                                                     modelError = modelError,
+                                                     outcomes = outcomes,
+                                                     designs = designs,
+                                                     fim = fimEvaluation,
+                                                     odeSolverParameters = odeSolverParameters )
+
+            evaluationFIMInitialDesignResults = run( evaluationFIMInitialDesign )
+
+            object = setEvaluationInitialDesignResults( object, evaluationFIMInitialDesignResults )
+
+            # ===========================================
+            # set parameters of the optimizer
+            # ===========================================
+
+            optimizationAlgo = getOptimizer( object )
+            optimizerParameters = getOptimizerParameters( object )
+            optimizationAlgo = setParameters( optimizationAlgo, optimizerParameters )
+
+            # ===========================================
+            # set the outcomes design
+            # ===========================================
+
+            model = getModel( object )
+            model = setOutcomes( model, outcomes )
+            object = setModel( object, model )
+
+            # ===========================================
+            # design optimization
+            # ===========================================
+
+            optimizationResults = optimize( optimizationAlgo, optimizerParameters, object )
+
+            # ===========================================
+            # evaluate the fim for the optimal design
+            # ===========================================
+
+            optimalDesign = getOptimalDesign( optimizationResults )
+
+            # ===========================================
+            # Evaluation parameters
+            # ===========================================
+
+            modelEquations = getModelEquations( object )
+            modelParameters = getModelParameters( object )
+            modelError = getModelError( object )
+            outcomes = getOutcomes( object )
+
+            # ===========================================
+            # get and set the fim
+            # ===========================================
+
+            fim = getFim( object )
+            fimEvaluation = setFimTypeToString( fim )
+
+            odeSolverParameters = getOdeSolverParameters( object )
+
+            # ===========================================
+            # evaluate the optimal design
+            # ===========================================
+
+            evaluationFIM = Evaluation( name = "",
+                                        modelEquations = modelEquations,
+                                        modelParameters = modelParameters,
+                                        modelError = modelError,
+                                        outcomes = outcomes,
+                                        designs = list( optimalDesign ),
+                                        fim = fimEvaluation,
+                                        odeSolverParameters = odeSolverParameters )
+
+            evaluationFIMResults = run( evaluationFIM )
+
+            # ===========================================
+            # set the optimization and evaluation results
+            # ===========================================
+
+            designs = getDesigns( evaluationFIMResults )
+            optimizationResults = setOptimalDesign( optimizationResults, designs[[1]] )
+
+            object = setOptimizationResults( object, optimizationResults )
+            object = setEvaluationFIMResults( object, evaluationFIMResults )
+
+            return( object )
+          })
+
+# ======================================================================================================
+# show
+# ======================================================================================================
+
+setMethod(f="show",
+          signature = "Optimization",
+          definition = function( object )
+          {
+            optimizationResults = getOptimizationResults( object )
+            evaluationFIMResults = getEvaluationFIMResults( object )
+
+            optimalDesign = getOptimalDesign( optimizationResults )
+
+            show( optimizationResults )
+
+            cat("\n")
+
+            cat( " ************************************************** ")
+            cat("\n")
+            cat( " Optimal Design ")
+            cat("\n")
+            cat( " ************************************************** ")
+
+            cat("\n\n")
+
+            show( optimalDesign )
+
+            cat("\n")
+
+            show( evaluationFIMResults )
+
+          })
+
+# ======================================================================================================
+# plotWeights
+# ======================================================================================================
+
+setMethod(f="plotWeights",
+          signature = "Optimization",
+          definition = function( object, threshold )
+          {
+            optimizationResults = getOptimizationResults( object )
+
+            plotWeights( optimizationResults, threshold )
+
+          })
+
+# ======================================================================================================
+# generateTables Optimization
+# ======================================================================================================
+
+setMethod(f="generateTables",
+          signature("Optimization"),
+          function( object, plotOptions )
+          {
+            # ===========================================
+            # get model and model error
+            # ===========================================
+
+            evaluationInitialDesign = getEvaluationInitialDesignResults( object )
+            evaluationFIMResults = getEvaluationFIMResults( object )
+
+            model = getModel( evaluationInitialDesign )
+
+            # ===========================================
+            # get design
+            # ===========================================
+
+            designs = getDesigns( evaluationInitialDesign )
+            designNames = getNames( designs )
+            designName = designNames[[1]]
+            initialDesign = designs[[designName]]
+
+            designs = getDesigns( evaluationFIMResults )
+            designNames = getNames( designs )
+            designName = designNames[[1]]
+            optimalDesign = designs[[designName]]
+
+            # ===========================================
+            # get fim
+            # ===========================================
+
+            fim = getFim( optimalDesign )
+
+            # ===========================================
+            # tables for model equations
+            # ===========================================
+
+            modelEquations = getEquations( model )
+            modelOutcomes = getOutcomes( evaluationInitialDesign )
+
+            tablesModelEquations = list( outcomes = modelOutcomes, equations = modelEquations )
+
+            # ===========================================
+            # tables for model error
+            # tables for model parameters
+            # ===========================================
+
+            tablesModelParameters = reportTablesModelParameters( model )
+            tablesModelError = reportTablesModelError( model )
+
+            # ===========================================
+            # tables for administration
+            # ===========================================
+
+            tablesAdministration = reportTablesAdministration( initialDesign  )
+
+            # ===========================================
+            # tables for sampling constraints
+            # ===========================================
+
+            tablesSamplingConstraints = reportTablesSamplingConstraints( initialDesign  )
+
+            # ===========================================
+            # tables for design
+            # ===========================================
+
+            tablesDesign = reportTablesDesign( optimalDesign  )
+
+            # ===========================================
+            # tables for FIM
+            # ===========================================
+
+            tablesFIM = reportTablesFIM( fim, evaluationFIMResults )
+
+            # ===========================================
+            # tables for plot design, SI, SE and RSE
+            # ===========================================
+
+            tablesPlot = reportTablesPlot( evaluationFIMResults, plotOptions )
+
+            # ===========================================
+            # tables for report
+            # ===========================================
+
+            reportTables = list( tablesModelEquations = tablesModelEquations,
+                                 tablesModelError = tablesModelError,
+                                 tablesModelParameters = tablesModelParameters,
+                                 tablesDesign = tablesDesign,
+                                 tablesAdministration = tablesAdministration,
+                                 tablesSamplingConstraints = tablesSamplingConstraints,
+                                 tablesFIM = tablesFIM,
+                                 tablesPlot = tablesPlot )
+
+            return( reportTables )
+
+          })
+# ======================================================================================================
+# Report
+# ======================================================================================================
+
+setMethod(f="Report",
+          signature("Optimization"),
+          function( object, outputPath, outputFile, plotOptions )
+          {
+            # ===========================================
+            # set parameters of the optimizer
+            # ===========================================
+
+            optimizationAlgo = getOptimizer( object )
+            optimizationResults = generateReportOptimization( optimizationAlgo, object,  outputPath, outputFile, plotOptions )
+          })
 
 
 
-
-
-
-
-
+##########################################################################################################
+# END Class Optimization
+##########################################################################################################
 
 
 

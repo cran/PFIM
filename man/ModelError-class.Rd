@@ -6,23 +6,5 @@
 \alias{ModelError}
 \title{Class "ModelError" representing a Model error.}
 \description{
-A class storing information concerning the model errors for the models in the \linkS4class{LibraryOfModels}.
+...
 }
-\section{Objects from the class}{
-
-Objects form the class \code{ModelError} can be created by calls of the form \code{ModelError(...)} where
-(...) are the parameters for the \code{ModelError} objects.
-}
-
-\section{Slots for Administration objects}{
-
-\describe{
-\item{\code{equation}:}{Expression giving the equations of the model.}
-\item{\code{derivates}:}{Expression giving the derivatives of the model.}
-\item{\code{sigma_inter, sigma_slope}:}{Numerics giving the parameters for the residual variance error model.}
-\item{\code{c_error}:}{A numeric taking the values 0 or 1.
-The ModelError is Proportional when sigma_inter = 0 and c_error = 1.
-The ModelError isProportionalC: When sigma_inter = 0 and c_error != 1.}
-}
-}
-

@@ -6,21 +6,6 @@
 \alias{PopulationFim}
 \title{Class "PopulationFim"}
 \description{
-Class "PopulationFim" representing the population Fisher information matrix
-
-A class storing information regarding the population Fisher computation matrix
-(computation method: first order linearisation (FO))
+A class storing information regarding the population Fisher matrix.
+The class \code{PopulationFim} inherits from the class \code{Fim}.
 }
-\section{Objects from the class \code{PopulationFim}}{
-
-Objects form the class \code{PopulationFim} can be created by calls of the form \code{PopulationFim(...)} where
-(...) are the parameters for the \code{PopulationFim} objects.
-}
-
-\section{Slots for \code{PopulationFim} objects}{
-
- \describe{
-   \item{\code{mfisher}:}{A matrix giving the Fisher Information matrix.}
- }
-}
-

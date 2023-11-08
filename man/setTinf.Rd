@@ -4,12 +4,12 @@
 \alias{setTinf}
 \title{Set the infusion duration.}
 \usage{
-setTinf(object, value)
+setTinf(object, Tinf)
 }
 \arguments{
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}
 
-\item{value}{A numeric value for the infusion duration Tinf.}
+\item{Tinf}{A numeric value for the infusion duration Tinf.}
 }
 \value{
 The object \code{Administration} with its new value of the infusion duration Tinf.

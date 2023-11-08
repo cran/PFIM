@@ -4,12 +4,9 @@
 \name{Arm-class}
 \alias{Arm-class}
 \alias{Arm}
-\alias{[,Arm-method}
-\alias{[<-,Arm-method}
 \title{Class "Arm"}
 \description{
-The class "\code{Arm} combines the treatment (the class \linkS4class{Administration}) and the sampling schedule
-(the class \linkS4class{SamplingTimes}).
+The class \code{Arm} combines the treatment and the sampling schedule.
 }
 \section{Objects from the class}{
 
@@ -19,12 +16,13 @@ Objects form the class \code{Arm} can be created by calls of the form \code{Arm(
 \section{Slots for the \code{Arm} objects}{
 
 \describe{
-\item{\code{arm_size}:}{An integer the number of subjects in the arm. By default set to 1.}
-\item{\code{administrations}:}{A list of \linkS4class{Administration} objects.}
-\item{\code{cond_init}:}{A list of the initial conditions.}
-\item{\code{samplings}:}{A list of \linkS4class{SamplingTimes} objects.}
-\item{\code{constraints}:}{A list of \linkS4class{SamplingConstraint} objects.}
-\item{\code{sampling_constraints}:}{A list of objects from \linkS4class{SamplingConstraint} class.}
+\item{\code{name}:}{A string giving the name of the arm.}
+\item{\code{size}:}{An integer the number of subjects in the arm. By default set to 1.}
+\item{\code{administrations}:}{A list of the administrations.}
+\item{\code{initialConditions}:}{A list of the initial conditions.}
+\item{\code{samplingTimes}:}{A list of the sampling times.}
+\item{\code{administrationsConstraints}:}{A list of the administrations constraints.}
+\item{\code{samplingTimesConstraints}:}{A list of the sampling times constraints.}
 }
 }
 

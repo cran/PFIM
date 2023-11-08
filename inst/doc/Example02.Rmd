@@ -44,183 +44,307 @@ knitr::opts_chunk$set(collapse = TRUE,
 comment = "#>",echo = FALSE, warning = FALSE, message = FALSE,
 cache = FALSE, tidy = FALSE, size = "small")
 devtools::load_all()
+library(stringr) 
 ```
 
 # Overview
 
-In this example, we simulate an 1-compartment model with linear elimination for IV infusion over 1 hour (inspired by [@Sukeishi2021]). One hundred and fifty (150) subjects receive a 400mg loading dose on the first day, followed by 4 daily doses of 200mg. Blood samples are taken at the end of the $1^{st}$ infusion (H1), H20, H44, H66 and H120. By evaluating this design, we will then select 4 sampling times on intervals (0,48) and (72,120) for an optimal design using PSO (Particle Swarm Optimization) algorithm.
+In this example, we simulate an 1-compartment model with linear elimination for IV infusion over 1 hour (inspired by [@Sukeishi2021]). One hundred and fifty (150) subjects receive a 400mg loading dose on the first day, followed by 4 daily doses of 200mg. Blood samples are taken at the end of the $1^{st}$ infusion (H1), H20, H44, H66 and H120. By evaluating this design, we will then select 4 sampling times on intervals (0,48) and (72,120) for an optimal design using PSO (Particle Swarm Optimization) algorithm. The same optimization problem will also be run with PGBO (Population Based Genetic Optimization) and Simplex algorithm.
 
 Reports of the design evaluation and optimization are available at https://github.com/iame-researchCenter/PFIM
 
 # Design evaluation 
 
-### Create two PFIM projects:
-#### `MyProject_evaluation`: project for the design evaluation named `eval_PK_Sukeishi-2021-GS441524`
-#### `MyProject_optimization`: project for the design optimization named `opti_PK_Sukeishi-2021-GS441524`
-```{r, echo = TRUE, comment=''}  
-MyProject_evaluation = PFIMProject( name = "eval_PK_Sukeishi-2021-GS441524" )
-MyProject_optimization = PFIMProject( name = "opti_PK_Sukeishi-2021-GS441524" )
 
-```
-
-### Create the statistical model
-```{r, echo = TRUE, comment=''} 
-MyStatisticalModel = StatisticalModel()
-```
 
 ### Get the PK model `Linear1InfusionSingleDose_ClV` from the library of models
 ```{r, echo = TRUE, comment=''} 
-MyPKModel = getModel( PFIMLibraryOfModels, "Linear1InfusionSingleDose_ClV" )
-```
+modelEquations = list(
 
-### Assign the PK model the statistical model
-```{r, echo = TRUE, comment=''} 
-MyStatisticalModel = defineModelEquations( MyStatisticalModel, MyPKModel )
+  outcomes = list( "RespPK"),
+  modelFromLibrary = list("PKModel" = "Linear1InfusionSingleDose_ClV")
+)
+
 ```
 
 ### Set mu and omega for each parameter
 ```{r, echo = TRUE, comment=''} 
-pV = ModelParameter( "V", mu = 50, omega = sqrt( .26 ), distribution = LogNormalDistribution() )
-pCl = ModelParameter( "Cl", mu = 5, omega = sqrt( .34 ), distribution = LogNormalDistribution() )
+modelParameters = list(
+  ModelParameter( name = "V",    distribution = LogNormal( mu = 50, omega = sqrt( .26 ) ) ),
+  ModelParameter( name = "Cl",   distribution = LogNormal( mu = 5, omega = sqrt( .34 ) ) )
+  )
 ```
 
-### Assign the model parameters to the statistical model
+
+### Create the error model to the response PK `RespPK` 
 ```{r, echo = TRUE, comment=''} 
-MyStatisticalModel = defineParameter( MyStatisticalModel, pV )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pCl )
+errorModelRespPK = Combined1( outcome = "RespPK", sigmaInter = 0.5, sigmaSlope = sqrt( 0.15 ) )
+modelError = list( errorModelRespPK )
 ```
 
-### Create and add the error model to the response PK `RespPK` and create and add the response PK to the statistical model
+
+### Create the administration parameters of the response PK
 ```{r, echo = TRUE, comment=''} 
-errorModelresponsePK = Combined1( sigma_inter = 0.5, sigma_slope = sqrt( 0.15 ) )
-
-responsePK = Response( "RespPK", errorModelresponsePK )
-
-MyStatisticalModel = addResponse( MyStatisticalModel, responsePK )
+administrationRespPK = Administration( outcome = "RespPK",
+                                       Tinf = rep( 1, 5 ),
+                                       timeDose = seq( 0, 96, 24 ),
+                                       dose = c( 400, rep( 200, 4 ) ) )
 ```
 
-### Assign the statistical model to the PFIM projects  
+### Create the sampling times for the response PK `RespPK`
 ```{r, echo = TRUE, comment=''} 
-MyProject_evaluation = defineStatisticalModel( MyProject_evaluation, MyStatisticalModel )
-MyProject_optimization = defineStatisticalModel( MyProject_optimization, MyStatisticalModel )
-```
+samplingTimesRespPK = SamplingTimes( outcome = "RespPK",
+                                     samplings = c( 1,12,24,44,72,120 ) )
 
-### Create a design called `Design`
-```{r, echo = TRUE, comment=''} 
-MyDesign = Design( "Design" )
-```
-
-### Create an arm called `Bras test` of size 150
-```{r, echo = TRUE, comment=''} 
-brasTest = Arm( name = "Bras test", arm_size = 150 )
-```
-
-### For each arm create and add the sampling times for the response PK `RespPK`
-```{r, echo = TRUE, comment=''} 
-brasTest = addSampling( brasTest, SamplingTimes( outcome = "RespPK", sample_time = c( 1,12,24,44,72,120 ) ) )
 ``` 
 
-### For the arm `brasTest` create and add the administration parameters of the response PK
+### Create an arm called `arm1` of size 150 with administration `administrationRespPK` and samplings `samplingTimesRespPK`
 ```{r, echo = TRUE, comment=''} 
-administration_brasTest = Administration( outcome = "RespPK", Tinf = rep( 1, 5 ), time_dose = seq( 0, 96, 24 ) , amount_dose = c( 400, rep( 200, 4 ) ) )
+arm1 = Arm( name = "arm1",
+            size = 150,
+            administrations = list( administrationRespPK ) ,
+            samplingTimes   = list( samplingTimesRespPK ) )
 
-brasTest = addAdministration( brasTest, administration_brasTest )
+
 ```
 
-### Add the arm `brasTest` to the design `MyDesign`
+
+### Add the arm `arm1` to the design `design1`
 ```{r, echo = TRUE, comment=''} 
-MyDesign = addArm( MyDesign, brasTest )
+design1 = Design( name = "design1",
+                  arms = list( arm1 ) )
+
 ```
 
-### Add the design `MyDesign` to the PFIM project `MyProject`
-```{r, echo = TRUE, comment=''} 
-MyProject_evaluation = addDesign( MyProject_evaluation, MyDesign )
-```
 
 ### Evaluate the population, individual and Bayesian FIMs
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-evaluationPop = EvaluatePopulationFIM( MyProject_evaluation )
-evaluationInd = EvaluateIndividualFIM( MyProject_evaluation )
-evaluationBay = EvaluateBayesianFIM( MyProject_evaluation )
+evaluationPop = Evaluation( name = "",
+                            modelEquations = modelEquations,
+                            modelParameters = modelParameters,
+                            modelError = modelError,
+                            outcomes = list( "RespPK" ),
+                            designs = list( design1 ),
+                            fim = "population",
+                            odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
+
+evaluationFIMPop = run( evaluationPop )
+
+evaluationInd = Evaluation( name = "",
+                            modelEquations = modelEquations,
+                            modelParameters = modelParameters,
+                            modelError = modelError,
+                            outcomes = list( "RespPK" ),
+                            designs = list( design1 ),
+                            fim = "individual",
+                            odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
+
+evaluationFIMInd = run( evaluationInd )
+
+evaluationBay = Evaluation( name = "",
+                            modelEquations = modelEquations,
+                            modelParameters = modelParameters,
+                            modelError = modelError,
+                            outcomes = list( "RespPK" ),
+                            designs = list( design1 ),
+                            fim = "Bayesian",
+                            odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
+
+evaluationFIMBay = run( evaluationBay )
+
 ```
 
 ### Display the results of the design evaluation
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-show( evaluationPop )
-show( evaluationInd )
-show( evaluationBay )
+show( evaluationFIMPop )
+show( evaluationFIMInd )
+show( evaluationFIMBay )
 ```
 
 ### Create and save the report for the design evaluation
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-# set the path and name of the report to save the report
-outputPath = "....."
 
 plotOptions = list( unitTime=c("hour"), unitResponses= c("mcg/mL","DI%") )
 
-reportPFIMProject( evaluationPop,
-                   outputPath = outputPath, plotOptions = plotOptions )
+outputFile = "Example02_EvaluationPopFIM.html"
+Report( evaluationFIMPop, outputPath, outputFile, plotOptions )
 
-reportPFIMProject( evaluationInd,
-                   outputPath = outputPath, plotOptions = plotOptions )
+outputFile = "Example02_EvaluationIndFIM.html"
+Report( evaluationFIMInd, outputPath, outputFile, plotOptions )
 
-reportPFIMProject( evaluationBay,
-                   outputPath = outputPath, plotOptions = plotOptions )
+outputFile = "Example02_EvaluationBayFIM.html"
+Report( evaluationFIMBay, outputPath, outputFile, plotOptions )
 ```
 
 # Design optimization
 
-### Create and add the design `MyDesign2` to the project `MyProject_optimization`
+### Create an sampling times
+We create sampling times that will be used in the initial design for comparison during the optimization process. As PSO does not optimize the dose regimens, we keep the same administration.
 ```{r, echo = TRUE, comment=''} 
-MyDesign2 = Design( name = "MyDesign2")
-MyProject_optimization = addDesign( MyProject_optimization, MyDesign2 )
+samplingTimesRespPK = SamplingTimes( outcome = "RespPK", samplings = c( 1, 48, 72, 120  ) )
 ```
+
 
 ### Define design constraints
+We define sampling times constraints that aim to select 4 sampling times: 2 within the interval [1,48], and 2 within [72, 120], with at least a delay of 5 between two points. 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-samplingBoundsConstraintRespPK = SamplingConstraint( response = "RespPK", continuousSamplingTimes = list( c( 1,48 ), c( 72,120 ) ) )
-samplingMinimalDelayConstraintRespPK = SamplingConstraint( response = "RespPK", min_delay = 5 )
 
-Constr1 = DesignConstraint()
+samplingConstraintsRespPK  = SamplingTimeConstraints( outcome = "RespPK",
+                                                      initialSamplings = c( 1, 48, 72, 120 ),
+                                                      numberOfTimesByWindows = c(2,2),
+                                                      samplingsWindows = list( c(1,48), c(72,120) ),
+                                                      minSampling = 5
+                                                      )
 
-Constr1 = addSamplingConstraint( Constr1, samplingBoundsConstraintRespPK )
-Constr1 = addSamplingConstraint( Constr1, samplingMinimalDelayConstraintRespPK )
-brasTest2 = addSamplingConstraints( brasTest2, Constr1 )
 ```
 
-### Add the arm to the design
+### Create the constraint arm and the associated design
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-MyDesign2 = addArm( MyDesign2, brasTest2 )
+arm2 = Arm( name = "arm2",
+            size = 150,
+            administrations = list( administrationRespPK ) ,
+            samplingTimes   = list( samplingTimesRespPK ),
+            samplingTimesConstraints = list( samplingConstraintsRespPK ) 
+            )
+
+design2 = Design( name = "design2", arms = list( arm2 ), numberOfArms = 150 )
+
 ```
 
-### Add the design to the project
-```{r, echo = TRUE, eval = FALSE, comment=''} 
-MyProject_optimization = addDesign( MyProject_optimization, MyDesign2 )
-```
+
 
 ### Set the the parameters of the PSO algorithm and run the algorithm for the design optimization with a population FIM
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-psoOptimizer = PSOAlgorithm( maxIteration = 100, populationSize = 10, personalLearningCoefficient = 2.05, globalLearningCoefficient = 2.05, showProcess = TRUE )
+optimization = Optimization( name = "",
+
+                             modelEquations = modelEquations,
+                             modelParameters = modelParameters,
+                             modelError = modelError,
+
+                             optimizer = "PSOAlgorithm",
+
+                             optimizerParameters = list(
+                               maxIteration = 100,
+                               populationSize = 10,
+                               personalLearningCoefficient = 2.05,
+                               globalLearningCoefficient = 2.05,
+                               showProcess = T  ),
+
+                             designs = list( design2 ),
+
+                             fim = "population",
+
+                             outcomes = list( "RespPK") )
+
+
 ```
 
 ### Run the PSO algorithm for the optimization with a population FIM
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-optimization_populationFIM = OptimizeDesign( MyProject_optimization, psoOptimizer, PopulationFim() )
+optimizationPSO = run( optimization )
 ```
 
 ### Display the results of the design optimization
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-show( optimization_populationFIM )
+show( optimizationPSO )
+
 ```
 
 ### Create and save the report for the design optimization
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-# set the path to save the report
-outputPath = "....."
 
-plotOptions = list( unitTime=c("hour"), unitResponses= c("mcg/mL","DI%") )
+outputFile = "Example02_OptimizationPSOPopFIM.html"
+Report( optimizationPSO, outputPath, outputFile, plotOptions )
+```
 
-reportPFIMProject( optimization_populationFIM, outputPath = outputPath, plotOptions = plotOptions  )
+### Set the the parameters of the PGBO algorithm and run the algorithm for the design optimization with a population FIM
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+optimizationPGBO= Optimization( name = "",
+                                   modelEquations = modelEquations,
+                                   modelParameters = modelParameters,
+                                   modelError = modelError,
+                                   
+                                   optimizer = "PGBOAlgorithm",
+                                   
+                                   optimizerParameters = list(
+                                     N = 30,
+                                     muteEffect = 1,
+                                     maxIteration = 300,
+                                     purgeIteration = 10,
+                                     seed = 42,
+                                     showProcess = TRUE  ),
+                                   
+                                   designs = list( design2 ),
+
+                             fim = "population",
+
+                             outcomes = list( "RespPK") )
+
+```
+
+### Run the PGBO algorithm for the optimization with a population FIM
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+optimizationPGBO = run( optimizationPGBO )
+```
+
+### Display the results of the design optimization
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+show( optimizationPGBO )
+
+```
+
+### Create and save the report for the design optimization
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+
+outputFile = "Example02_OptimizationPGBOPopFIM.html"
+Report( optimizationPGBO, outputPath, outputFile, plotOptions )
+```
+
+
+### Set the the parameters of the Simplex algorithm and run the algorithm for the design optimization with a population FIM
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+optimizationSimplex= Optimization( name = "",
+                                modelEquations = modelEquations,
+                                modelParameters = modelParameters,
+                                modelError = modelError,
+                                
+                                optimizer = "SimplexAlgorithm",
+                                
+                                optimizerParameters = list( pctInitialSimplexBuilding = 20,
+                                                                 maxIteration = 100,
+                                                                 tolerance = 1e-6,
+                                                                 showProcess = TRUE  ),
+                                
+                                designs = list( design2 ),
+                                
+                                fim = "population",
+                                
+                                outcomes = list( "RespPK") )
+
+```
+
+### Run the Simplex algorithm for the optimization with a population FIM
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+optimizationSimplex = run( optimizationSimplex )
+```
+
+### Display the results of the design optimization
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+show( optimizationSimplex )
+
+```
+
+### Create and save the report for the design optimization
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+
+outputFile = "Example02_OptimizationSimplexPopFIM.html"
+Report( optimizationSimplex, outputPath, outputFile, plotOptions )
+```
+
+
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+show( optimizationMultPopFIM )
+
 ```
 
 # References

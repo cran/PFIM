@@ -2,16 +2,16 @@
 % Please edit documentation in R/ModelError.R
 \name{getSigmaInter}
 \alias{getSigmaInter}
-\title{Get the\code{sigma_inter} of a \code{ModelError} object.}
+\title{Get the parameter sigma inter.}
 \usage{
 getSigmaInter(object)
 }
 \arguments{
-\item{object}{A \code{ModelError} object.}
+\item{object}{An object from the class \linkS4class{ModelError}.}
 }
 \value{
-A numeric \code{sigma_inter} giving the \code{sigma_inter}.
+A numeric giving the parameter sigma inter.
 }
 \description{
-Get the\code{sigma_inter} of a \code{ModelError} object.
+Get the parameter sigma inter.
 }

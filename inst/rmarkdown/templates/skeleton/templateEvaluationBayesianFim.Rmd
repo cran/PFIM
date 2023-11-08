@@ -1,0 +1,167 @@
+---
+title: "`r projectName `"
+fig: no crop
+geometry: left=1mm, right=1mm, top=1mm, bottom=1mm, asymmetric
+indent: TRUE
+output:
+  html_document:
+    df_print: paged
+    fig_caption: yes
+  word_document: default
+  pdf_document: default
+header-includes: 
+    - \usepackage{placeins}
+    - \usepackage{indentfirst}
+    - \usepackage{setspace}\doublespacing
+    - \usepackage{lineno}
+    - \linenumbers
+author: "`r 'PFIM 6.0' `"
+date: "`r paste( 'Date:' , Sys.Date())`"
+---
+
+```{r setup, include=FALSE}
+options(kableExtra.latex.load_packages = FALSE)
+options(kableExtra.auto_format = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
+output = generateTables( evaluationObject, plotOptions )
+```
+
+# Model outputs 
+
+```{r modelOutputs, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelEquations$outcomes
+```
+
+# Model equations
+
+```{r modelEquations, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelEquations$equations
+```
+
+# Model error
+
+```{r modelError, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelError
+```
+
+# Model parameters
+
+```{r modelParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelParameters
+```
+
+# Initial design 
+
+```{r initialDesignParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesDesign
+```
+
+# Administration parameters
+
+```{r administrationParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesAdministration
+```
+
+# Fisher information matrix
+
+## Fixed effects
+
+```{r FIMFixedEffectsTable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesFIM$FIMFixedEffectsTable 
+```
+
+# Correlation matrix
+
+## Fixed effects
+
+```{r correlationMatrixFixedEffectsTable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesFIM$correlationMatrixFixedEffectsTable 
+```
+
+# Determinant, condition numbers and D-criterion of the FIM
+
+```{r criteriaFimTable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesFIM$criteriaFimTable 
+```
+
+# Values for SE and RSE
+
+```{r SEandRSETable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesFIM$SEandRSETable 
+```
+
+# Graphs for the responses
+
+```{r plotOutcomesEvaluation, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
+
+plotOutcomesEvaluation = tablesEvaluationFIMIntialDesignResults$tablesPlot$plotOutcomesEvaluation
+
+designNames = names( plotOutcomesEvaluation )
+
+for ( designName in designNames )
+{
+  armNames = names( plotOutcomesEvaluation[[ designName ]] )
+  
+  for ( armName in armNames )
+  { 
+    outcomes = names( plotOutcomesEvaluation[[ designName ]][[armName]] )
+    
+    for ( outcome in outcomes )
+    {
+      print( plotOutcomesEvaluation[[designName]][[armName]][[outcome]] )
+    }
+  }
+}
+```
+
+# Graphs for the sensitivity indices
+
+```{r plotOutcomesGradient, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+plotOutcomesGradient = tablesEvaluationFIMIntialDesignResults$tablesPlot$plotOutcomesGradient
+
+designNames = names( plotOutcomesGradient )
+
+for ( designName in designNames )
+{
+  armNames = names( plotOutcomesGradient[[ designName ]] )
+  
+  for ( armName in armNames )
+  { 
+    outcomes = names( plotOutcomesGradient[[ designName ]][[armName]] )
+    
+    for ( outcome in outcomes )
+    {
+      parameterNames = names( plotOutcomesGradient[[ designName ]][[armName]][[outcome]] )
+      
+      for ( parameterName in parameterNames )
+      {
+        print( plotOutcomesGradient[[designName]][[armName]][[outcome]][[parameterName]] )
+      }
+    }
+  }
+}
+
+```
+
+# Graphs for the SE, RSE and shrinkage
+
+```{r plotSEandRSE, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+
+plotShrinkage = tablesEvaluationFIMIntialDesignResults$tablesPlot$plotShrinkage
+plotSE = tablesEvaluationFIMIntialDesignResults$tablesPlot$plotSE
+plotRSE = tablesEvaluationFIMIntialDesignResults$tablesPlot$plotRSE
+
+designNames = names( plotSE )
+
+for ( designName in designNames )
+{
+  print( plotSE[[designName]] )
+  print( plotRSE[[designName]] )
+  print( plotShrinkage[[designName]] )
+}
+
+```
+
+
+
+

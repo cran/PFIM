@@ -1,17 +1,12 @@
 Package: PFIM
 Type: Package
 Title: Population Fisher Information Matrix
-Version: 5.0
-Date: 2022-05-23
+Version: 6.0
+Date: 2023-11-27
 Authors@R: c(person(given = "France",
            family = "Mentré",
            role = c("aut"),
-           email = "france.mentre@inserm.fr",
-           comment = c(ORCID = "0000-0002-7045-1275")),
-    person(given = "Hervé",
-           family = "Le Nagard",
-           role = c("aut"),
-           email = "herve.lenagard@inserm.fr"),
+           email = "france.mentre@inserm.fr"),
     person(given = "Romain",
            family = "Leroux",
            role = c("aut","cre"),
@@ -20,30 +15,13 @@ Authors@R: c(person(given = "France",
            family = "Seurat",
            role = c("aut"),
            email = "jeremy.seurat@inserm.fr"),
-    person(given = "Tran Bach",
-           family = "Nguyen",
-           role = c("ctb")),
-    person(given = "Caroline",
-           family = "Bazzoli",
-           role = c("ctb")),        
+    person(given = "Lucie",
+           family = "Fayette",
+           role = c("aut"),
+           email = "lucie.fayette@inserm.fr"),      
     person(given = "Emmanuelle",
            family = "Comets",
            role = c("ctb")),  
-    person(given = "Anne",
-           family = "Dubois",
-           role = c("ctb")),       
-    person(given = "Cyrielle",
-           family = "Dumont",
-           role = c("ctb")),  
-    person(given = "Giulia",
-           family = "Lestini",
-           role = c("ctb")),            
-    person(given = "Thi Huyen Tram",
-           family = "Nguyen",
-           role = c("ctb")),            
-    person(given = "Thu Thuy",
-           family = "Nguyen",
-           role = c("ctb")),                      
     person(given = "Sylvie",
            family = "Retout",
            role = c("ctb")))       
@@ -58,44 +36,37 @@ Description: Evaluate or optimize designs for nonlinear mixed effects models usi
 Depends: R (>= 4.0.0)
 License: GPL (>= 2)
 Encoding: UTF-8
-Imports: methods, rmarkdown, stats, scales, deSolve, kableExtra,
-        gtable, Deriv, grid, knitr, markdown, Matrix, ggplot2, ggbreak,
-        pracma, Rcpp, filesstrings
+Imports: inline, utils, methods, deSolve, Deriv, devtools, scales,
+        ggplot2, Matrix, pracma, stringr, Rcpp, knitr, rmarkdown,
+        kableExtra
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
-Suggests: testthat, inline, utils, devtools, htmltools
-RoxygenNote: 7.1.2
-Collate: 'Constraint.R' 'Administration.R' 'AdministrationConstraint.R'
-        'Arm.R' 'Fim.R' 'IndividualFim.R' 'BayesianFim.R'
-        'ModelError.R' 'Combined1.R' 'Combined1c.R' 'Combined2c.R'
-        'Combined2.R' 'Constant.R' 'ContinuousConstraint.R'
-        'Optimization.R' 'Design.R' 'DesignConstraint.R'
-        'DiscreteConstraint.R' 'Distribution.R'
-        'FedorovWynnAlgorithm.R' 'ModelEquations.R' 'Model.R'
-        'PKModel.R' 'PDModel.R' 'LibraryOfModels.R'
-        'ModelODEquations.R' 'ModelInfusionODEquations.R'
-        'ModelInfusionEquations.R' 'FillLibraryOfModels.R'
-        'StandardDistribution.R' 'LogNormalDistribution.R'
-        'ModelParameter.R' 'ModelVariable.R'
-        'MultiplicativeAlgorithm.R' 'NormalDistribution.R'
-        'PFIM-package.R' 'StatisticalModel.R' 'PFIMProject.R'
-        'PGBOAlgorithm.R' 'PKPDModel.R' 'PSOAlgorithm.R'
-        'PopulationFim.R' 'Proportional.R' 'ProportionalC.R'
-        'ReportAndPlots.R' 'Response.R' 'SamplingConstraint.R'
-        'SamplingTimes.R' 'SimplexAlgorithm.R' 'globals.R'
-Packaged: 2022-06-23 17:09:40 UTC; ADMIN Romain LEROUX
-Author: France Mentré [aut] (<https://orcid.org/0000-0002-7045-1275>),
-  Hervé Le Nagard [aut],
+Collate: 'GenericMethods.R' 'Administration.R'
+        'AdministrationConstraints.R' 'Arm.R' 'Fim.R' 'BayesianFim.R'
+        'ModelError.R' 'Combined1.R' 'Constant.R' 'Design.R'
+        'Distribution.R' 'ModelParameter.R' 'LibraryOfPDModels.R'
+        'LibraryOfPKModels.R' 'LibraryOfModels.R'
+        'LibraryOfPKPDModels.R' 'Model.R' 'PFIMProject.R'
+        'Evaluation.R' 'OptimizationAlgorithm.R'
+        'FedorovWynnAlgorithm.R' 'IndividualFim.R' 'LogNormal.R'
+        'ModelODE.R' 'ModelAnalytic.R' 'ModelAnalyticBolus.R'
+        'ModelAnalyticSteadyState.R' 'ModelAnalyticBolusSteadyState.R'
+        'ModelInfusion.R' 'ModelAnalyticInfusion.R'
+        'ModelAnalyticInfusionSteadyState.R' 'ModelBolus.R'
+        'ModelODEBolus.R' 'ModelODEDoseInEquations.R'
+        'ModelODEDoseNotInEquations.R' 'ModelODEInfusion.R'
+        'ModelODEInfusionDoseInEquations.R' 'MultiplicativeAlgorithm.R'
+        'Normal.R' 'Optimization.R' 'PFIM-package.R' 'PGBOAlgorithm.R'
+        'PSOAlgorithm.R' 'PlotEvaluation.R' 'PopulationFim.R'
+        'Proportional.R' 'SamplingTimeConstraints.R' 'SamplingTimes.R'
+        'SimplexAlgorithm.R' 'globals.R'
+Packaged: 2023-11-07 23:43:31 UTC; Romai
+Author: France Mentré [aut],
   Romain Leroux [aut, cre],
   Jérémy Seurat [aut],
-  Tran Bach Nguyen [ctb],
-  Caroline Bazzoli [ctb],
+  Lucie Fayette [aut],
   Emmanuelle Comets [ctb],
-  Anne Dubois [ctb],
-  Cyrielle Dumont [ctb],
-  Giulia Lestini [ctb],
-  Thi Huyen Tram Nguyen [ctb],
-  Thu Thuy Nguyen [ctb],
   Sylvie Retout [ctb]
 Maintainer: Romain Leroux <romain.leroux@inserm.fr>
 Repository: CRAN
-Date/Publication: 2022-06-24 08:10:05 UTC
+Date/Publication: 2023-11-08 00:00:06 UTC

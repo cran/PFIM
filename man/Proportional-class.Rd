@@ -12,7 +12,7 @@ to the formula  g(sigma_inter, sigma_slope, c_error, f(x, theta)) =  sigma_slope
 \section{Objects from the Class \linkS4class{Proportional}}{
 
 Objects are typically created by calls to \code{Proportional} and contain the following slots
-that are heritated from the class \linkS4class{Combined1}:
+that are inherited from the class \linkS4class{Combined1}:
 }
 
 \section{Slots for the \code{Proportional} objects}{

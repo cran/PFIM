@@ -6,8 +6,8 @@
 \alias{PGBOAlgorithm}
 \title{Class "PGBOAlgorithm"}
 \description{
-The Class "PGBOAlgorithm" implements the PGBO algortihm : Population Genetics Based Optimizer,
-developped by Hervé Le Nagard [1].
+The class "PGBOAlgorithm" implements the PGBO algorithm: Population Genetics Based Optimizer,
+developed by Hervé Le Nagard [1].
 }
 \section{Objects from the Class \code{PGBOAlgorithm}}{
 
@@ -20,11 +20,11 @@ Objects form the Class \code{PGBOAlgorithm} can be created by calls of the form 
  \describe{
    \item{\code{N}:}{A numeric giving the population size.}
    \item{\code{muteEffect}:}{A numeric giving the mutation effect.}
-   \item{\code{max_iteration}:}{A numeric giving the maximum of iterations.}
-   \item{\code{iteration_fin}:}{A numeric giving the last iteration.}
+   \item{\code{maxIteration}:}{A numeric giving the maximum number of iterations.}
+   \item{\code{seed}:}{A numeric giving the seed.}
    \item{\code{showProcess}:}{A boolean to show or not the process.}
-   \item{\code{OptimalDesign}:}{A \code{Design} object giving the optimal design.}
-   \item{\code{resultsPGBO}:}{A list giving the optimal D-criterion computed during the process.}
+   \item{\code{optimalDesign}:}{A \code{Design} object giving the optimal design.}
+   \item{\code{iterationAndCriteria}:}{A list giving the optimal criteria at each iteration.}
  }
 }
 

@@ -1,4 +1,3 @@
-#####################################################################################################################################
 #' Class "Design"
 #'
 #' @description The class \code{Design} defines information concerning the parametrization of the designs.
@@ -6,767 +5,1122 @@
 #' @name Design-class
 #' @aliases Design
 #' @docType class
-#' @include Optimization.R
+#' @include GenericMethods.R
 #' @include Fim.R
-#' @exportClass Design
+#' @export
 #'
-#' @section Objects from the class Design:
-#' Objects form the class \code{Design} can be created by calls of the form \code{Design(...)} where
-#' (...) are the parameters for the \code{Design} objects.
+#' @section Objects from the class:
+#' Objects form the class \code{Design} can be created by calls of the form \code{Design(...)} where (...) are the parameters for the \code{Design} objects.
 #'
 #'@section Slots for the \code{Design} objects:
 #' \describe{
-#' \item{\code{isOptimalDesign}:}{A Boolean for testing if the Design is optimal (isOptimalDesign=TRUE) or not.}
-#' \item{\code{name}:}{A character string giving the name of the design - optional.}
-#' \item{\code{total_size}:}{A numeric giving the total number of subjects in the design - optional.}
-#' \item{\code{arms}:}{List of objects from the class \linkS4class{Arm}.}
-#' \item{\code{number_samples}:}{A numeric giving the raint on the number of samples for one subject - optional.
-#' Default to the set of possible number of sampling points present in the sampling windows
-#' defining the different arms or the design spaces.}
-#' \item{\code{arms}:}{A list of arm objects from the class \linkS4class{Arm}.}
-#' \item{\code{amountOfArm}:}{A numeric giving the number of arms in the study.}
-#' \item{\code{optimizationResult}:}{An optimization object from the class \linkS4class{Optimization} giving the results from the optimizsation process.}
-#' \item{\code{fimOfDesign}:}{A character string giving the Fisher Information Matrix of the design (Population, Individual or Bayesian).}
-#' \item{\code{concentration}:}{A list giving the result of the evaluaton for the responses.}
-#' \item{\code{sensitivityindices}:}{A list giving the result of the sensitivity indices for the responses.}
+#' \item{\code{name}:}{A string giving the name of the design.}
+#' \item{\code{size}:}{An integer giving the number of subjects in the design.}
+#' \item{\code{arms}:}{A list of the arms.}
+#' \item{\code{outcomesEvaluation}:}{A list of the results of the design evaluation for the outcomes.}
+#' \item{\code{outcomesGradient}:}{A list of the results of the design evaluation for the sensitivity indices.}
+#' \item{\code{numberOfArms}:}{A numeric giving the number of arms in the design.}
+#' \item{\code{fim}:}{An object of the class \code{Fim} containing the Fisher Information Matrix of the design.}
 #' }
-#'
-#####################################################################################################################################
 
-Design <- setClass(
-  Class = "Design",
-  representation = representation(
-    isOptimalDesign = "logical",
-    name = "character",
-    total_size = "numeric",
-    number_samples  = "vector",
-    arms = "list",
-    amountOfArm = "numeric",
-    optimizationResult = "Optimization",
-    fimOfDesign = "Fim",
-    concentration = "list",
-    sensitivityindices = "list"
-  ),
-  prototype = prototype(
-    isOptimalDesign = FALSE,
-    name =  paste("Design_",  ceiling( runif(1) * 100000 ), sep="" ),
-    total_size = 0,
-    arms = list(),
-    amountOfArm = 0,
-    optimizationResult = Optimization(),
-    fimOfDesign = Fim()
-  )
-)
+Design = setClass("Design",
+                  representation = representation(
+                    name = "character",
+                    size = "numeric",
+                    arms = "list",
+                    outcomesEvaluation = "list",
+                    outcomesGradient = "list",
+                    numberOfArms = "numeric",
+                    fim = "Fim" ) )
 
-# Initialize method
 setMethod(
-  f = "initialize",
-  signature = "Design",
-  definition = function (.Object, name, total_size, number_samples, amountOfArm, arms, fimOfDesign,
-                         concentration, sensitivityindices )
+  f="initialize",
+  signature="Design",
+  definition= function (.Object, name, size, arms, outcomesEvaluation, outcomesGradient, numberOfArms, fim )
   {
     if(!missing(name))
-      .Object@name<-name
-
-    if(!missing(total_size))
-      .Object@total_size<-total_size
-
-    if(!missing(number_samples))
-      .Object@number_samples<-number_samples
-
-    if(!missing(amountOfArm))
-      .Object@amountOfArm<-amountOfArm
-
+    {
+      .Object@name = name
+    }
+    if(!missing(size))
+    {
+      .Object@size = size
+    }
     if(!missing(arms))
-      .Object@arms<-arms
-
-    if(!missing(fimOfDesign))
-      .Object@fimOfDesign<-fimOfDesign
-
-    if(!missing(concentration))
-      .Object@concentration<-concentration
-
-    if(!missing(sensitivityindices))
-      .Object@sensitivityindices<-sensitivityindices
-
+    {
+      .Object@arms = unlist(arms)
+    }
+    if(!missing(outcomesEvaluation))
+    {
+      .Object@outcomesEvaluation = outcomesEvaluation
+    }
+    if(!missing(outcomesGradient))
+    {
+      .Object@outcomesGradient = outcomesGradient
+    }
+    if(!missing(fim))
+    {
+      .Object@fim = fim
+    }
+    if(!missing(numberOfArms))
+    {
+      .Object@numberOfArms = numberOfArms
+    }
+    validObject(.Object)
     return (.Object )
   }
 )
 
-##########################################################################################################
+# ======================================================================================================
+# getName
+# ======================================================================================================
 
-#' Get the results of the optimization process.
-#'
-#' @name getOptimizationResult
-#' @param object \code{Design} object.
-#' @return A \code{Optimization} object giving the results of the optimization process.
-
-setGeneric("getOptimizationResult",
-           function(object)
-           {
-             standardGeneric("getOptimizationResult")
-           }
-)
-
-setMethod("getOptimizationResult",
-          "Design",
-          function(object)
-          {
-
-            return(object@optimizationResult)
-          }
-)
-
-##########################################################################################################
-
-#' Modify an arm of a design.
-#'
-#' @name modifyArm
-#' @param object A \code{Design} object.
-#' @param name A character string giving the name of the \code{Arm} object to be modified in the \code{Design} object.
-#' @param arm An \code{Arm} object.
-#' @return The \code{Design} object with the modified arm.
-
-setGeneric("modifyArm",
-           function(object, name, arm)
-           {
-             standardGeneric("modifyArm")
-           }
-)
-
-setMethod("modifyArm",
-          "Design",
-          function(object, name, arm)
-          {
-
-            if ( name %in% names( object@arms ) )
-            {
-              object@arms[[ name ]] <- arm
-            }
-            return(object)
-          }
-)
-
-##########################################################################################################
-
-#' Get the name of the design.
-#'
-#' @name getNameDesign
-#' @param object \code{Design} object.
-#' @return A character string \code{name} giving the name of design.
-#
-
-setGeneric("getNameDesign",
-           function(object)
-           {
-             standardGeneric("getNameDesign")
-           }
-)
-
-setMethod("getNameDesign",
-          "Design",
-          function(object)
-          {
-            return(object@name)
-          }
-)
-
-##########################################################################################################
-
-#' Set the name of the design.
-#'
-#' @name setNameDesign
-#' @param object \code{Design} object.
-#' @param name A character string \code{name} giving the new name of design.
-#' @return The \code{Design} object with its new name.
-
-setGeneric("setNameDesign",
-           function(object, name)
-           {
-             standardGeneric("setNameDesign")
-           }
-)
-
-setMethod("setNameDesign",
-          "Design",
-          function(object, name)
-          {
-            object@name = name
-            return( object )
-
-          }
-)
-
-##########################################################################################################
-
-#' Get the total size of a design.
-#'
-#' @name getTotalSize
-#' @param object \code{Design} object.
-#' @return A numeric \code{total_size} giving the size of a design.
-
-setGeneric("getTotalSize",
-           function(object)
-           {
-             standardGeneric("getTotalSize")
-           }
-)
-
-setMethod("getTotalSize",
-          "Design",
-          function(object)
-          {
-            return(object@total_size)
-          }
-)
-
-##########################################################################################################
-
-#' Set the total size of a Design.
-#'
-#' @name setTotalSize<-
-#' @param object A \code{Design} object.
-#' @param value A numeric giving the new value of the size of the design.
-#' @return The \code{Design} object with the new size.
-
-setGeneric("setTotalSize<-",
-           function(object, value)
-           {
-             standardGeneric("setTotalSize<-")
-           }
-)
-
-setReplaceMethod( f="setTotalSize",
-                  signature="Design",
-                  definition = function(object, value)
-                  {
-                    object@total_size <- value
-                    validObject(object)
-                    return(object)
-                  }
-)
-
-##########################################################################################################
-
-#' Get the number of sampled in a Design.
-#'
-#' @name getNumberSamples
-#' @param object \code{Design} object.
-#' @return A numeric \code{number_samples} giving the number of sample of the design.
-
-setGeneric("getNumberSamples",
-           function(object)
-           {
-             standardGeneric("getNumberSamples")
-           }
-)
-
-setMethod("getNumberSamples",
-          "Design",
-          function(object)
-          {
-            return(object@number_samples)
-          }
-)
-
-##########################################################################################################
-
-#' Set the number of Sample in a Design.
-#'
-#' @name setNumberSamples<-
-#' @param object A \code{Design} object.
-#' @param value A numeric giving the new value of samples.
-#' @return The \code{Design} object with the new number of samples.
-
-setGeneric("setNumberSamples<-",
-           function(object, value)
-           {
-             standardGeneric("setNumberSamples<-")
-           }
-)
-
-setReplaceMethod( f="setNumberSamples",
-                  signature="Design",
-                  definition = function(object, value)
-                  {
-                    object@number_samples <- value
-                    validObject(object)
-                    return(object)
-                  }
-)
-
-##########################################################################################################
-
-#' Get the amount of arms in a Design.
-#'
-#' @name getAmountOfArms
-#' @param object A \code{Design} object.
-#' @return A numeric \code{amountOfArm} giving the number of arms in the design.
-
-setGeneric("getAmountOfArms",
-           function(object)
-           {
-             standardGeneric("getAmountOfArms")
-           }
-)
-
-setMethod("getAmountOfArms",
-          "Design",
-          function(object)
-          {
-            return(length(object@arms))
-          }
-)
-
-##########################################################################################################
-
-#' Set the amount of arms in a Design.
-#'
-#' @name setAmountOfArms
-#' @param object A \code{Design} object.
-#' @param value A numeric giving the new value of the amount of arms in the design.
-#' @return The \code{Design} object with the new vamue of amount of arms.
-
-setGeneric("setAmountOfArms",
-           function(object, value)
-           {
-             standardGeneric("setAmountOfArms")
-           }
-)
-
-setMethod(f="setAmountOfArms",
+setMethod(f="getName",
           signature="Design",
-          definition = function(object, value)
-          {
-            object@amountOfArm <- value
-            validObject(object)
-            return(object)
-          }
-)
-
-##########################################################################################################
-
-#' Get the Fisher Information Matrix of a design.
-#'
-#' @name getFimOfDesign
-#' @param object A \code{Design} object.
-#' @return A \code{Fim} object giving the Fisher Information Matrix of a design.
-
-setGeneric("getFimOfDesign",
-           function(object)
-           {
-             standardGeneric("getFimOfDesign")
-           }
-)
-
-setMethod("getFimOfDesign",
-          signature = "Design",
           definition = function(object)
           {
-            return(object@fimOfDesign)
+            return(object@name)
+          })
+
+# ======================================================================================================
+# setName
+# ======================================================================================================
+
+setMethod(f="setName",
+          signature="Design",
+          definition = function(object, name)
+          {
+            object@name = name
+            return(object)
+          })
+
+# ======================================================================================================
+# getSize
+# ======================================================================================================
+
+setMethod(f="getSize",
+          signature="Design",
+          definition = function(object)
+          {
+            return(object@size)
           }
 )
 
-##########################################################################################################
+# ======================================================================================================
+# setSize
+# ======================================================================================================
 
-#' Get the arms of a design.
-#'
-#' @name getArms
-#' @param object A \code{Design} object.
-#' @return A list \code{arms} of the arms of a design.
-
-setGeneric("getArms",
-           function(object)
-           {
-             standardGeneric("getArms")
-           }
+setMethod(f="setSize",
+          signature="Design",
+          definition = function(object,size)
+          {
+            object@size = size
+            return(object)
+          }
 )
+# ======================================================================================================
+# getArms
+# ======================================================================================================
 
-setMethod("getArms",
-          "Design",
-          function(object)
+setMethod(f="getArms",
+          signature="Design",
+          definition = function(object)
           {
             return(object@arms)
           }
 )
 
-##########################################################################################################
+# ======================================================================================================
+# setArms
+# ======================================================================================================
 
-#' Set the arms of a design.
-#'
-#' @name setArms
-#' @param object A \code{Design} object.
-#' @param value A \code{Arm} object.
-#' @return The design \code{Design} with the new arm.
-
-setGeneric("setArms",
-           function(object, value)
-           {
-             standardGeneric("setArms")
-           }
-)
-
-setMethod( f="setArms",
-           signature="Design",
-           definition = function(object, value)
-           {
-             for(arm in value){
-               object@arms[[ getNameArm(arm) ]] <- arm
-               object@total_size = object@total_size + getArmSize(arm)
-               object@amountOfArm = object@amountOfArm + 1
-             }
-             validObject(object)
-             return(object)
-           }
-)
-
-##########################################################################################################
-
-#' Add an arm to a design.
-#' @name addArm
-#' @param object A \code{Design} object.
-#' @param arm An \code{Arm} object.
-#' @return The \code{Design} object with the new arm.
-
-setGeneric("addArm",
-           function(object, arm)
-           {
-             standardGeneric("addArm")
-           }
-)
-
-setMethod( f="addArm",
-           signature="Design",
-           definition = function(object, arm)
-           {
-             if(length(object@arms[[ getNameArm( arm ) ]]) == 0)
-             {
-               object@arms[[ getNameArm( arm ) ]] <- arm
-               object@total_size = object@total_size + getArmSize(arm)
-               object@amountOfArm = object@amountOfArm + 1
-             }
-             else
-               cat("You have already used this name for an arm.\n")
-
-             validObject(object)
-             return(object)
-           })
-
-##########################################################################################################
-
-#' Add arms to a design.
-#' @name addArms
-#' @param object A \code{Design} object.
-#' @param listOfArms A list of \code{Arm} object.
-#' @return The \code{Design} object with the new arms.
-
-setGeneric("addArms",
-           function(object, listOfArms)
-           {
-             standardGeneric("addArms")
-           }
-)
-
-setMethod( f="addArms",
-           signature="Design",
-           definition = function(object, listOfArms)
-           {
-             for ( i in 1:length( listOfArms) ){
-
-               arm = listOfArms[[i]]
-
-               if(length(object@arms[[ getNameArm( arm ) ]]) == 0)
-               {
-                 object@arms[[ getNameArm( arm ) ]] <- arm
-                 object@total_size = object@total_size + getArmSize(arm)
-                 object@amountOfArm = object@amountOfArm + 1
-               }
-               else
-                 cat("You have already used this name for an arm.\n")
-
-               validObject(object)
-             }
-             return(object)
-           })
-
-##########################################################################################################
-
-#' Get the evaluated concentration and sensitivity indices of a design.
-#'
-#' @name getEvaluationDesign
-#' @param object A \code{Design} object.
-#' @return The object \code{Design} evaluated for each of its arm.
-
-setGeneric("getEvaluationDesign",
-           function(object )
-           {
-             standardGeneric("getEvaluationDesign")
-           }
-)
-
-setMethod(f="getEvaluationDesign",
-          signature=  "Design",
-          definition=function( object )
+setMethod(f="setArms",
+          signature="Design",
+          definition = function(object,arms)
           {
-            evaluationResponse = list()
-            sensitivityIndicesResponse = list()
+            object@arms = arms
+            return(object)
+          }
+)
 
-            nameDesign = getNameDesign( object )
-
-            arms = getArms( object )
-
-            for (arm in arms)
-            {
-              nameArm = getNameArm( arm )
-              evaluationResponse[[nameArm]] = object@concentration[[ nameArm ]]
-              sensitivityIndicesResponse[[nameArm]] = object@sensitivityindices[[ nameArm ]]
-
-            }
-
-            return( list( evaluationResponse = evaluationResponse,
-                          sensitivityIndicesResponse = sensitivityIndicesResponse ) )
-          })
-
-##########################################################################################################
-#' Evaluate Design for each arm.
+# ======================================================================================================
+#' Get the results of the evaluation of the outcomes.
 #'
-#' @name EvaluateDesignForEachArm
-#' @param object A \code{Design} object.
-#' @param statistical_model A \code{statisticalModel} object.
-#' @param fim A \code{fim} object.
-#' @return The object \code{Design} evaluated for each of its arm.
+#' @name getOutcomesEvaluation
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @return The list \code{outcomesEvaluation} containing the results of the design evaluation for the outcomes.
+# ======================================================================================================
 
-setGeneric("EvaluateDesignForEachArm",
-           function(object, statistical_model, fim )
+setGeneric("getOutcomesEvaluation",
+           function(object)
            {
-             standardGeneric("EvaluateDesignForEachArm")
+             standardGeneric("getOutcomesEvaluation")
            }
 )
 
-setMethod(f="EvaluateDesignForEachArm",
-          signature=  "Design",
-          definition=function(object, statistical_model, fim )
+setMethod(f="getOutcomesEvaluation",
+          signature="Design",
+          definition = function(object)
           {
-            MF_i_total = NA
-            first = T
+            return( object@outcomesEvaluation )
+          }
+)
 
-            classFim = class( fim )
-            arms = getArms( object )
+# ======================================================================================================
+#' Set the results of the evaluation of the outcomes.
+#'
+#' @name setOutcomesEvaluation
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param outcomesEvaluation A list containing the evaluation of the outcomes.
+#' @return An object \code{Design} with the list \code{outcomesEvaluation} updated.
+# ======================================================================================================
 
-            if ( length( arms )==0 ) {  }
-            else
-            {
-              for ( arm in arms )
-              {
-                results = EvaluateStatisticalModel( arm, statistical_model, fim )
-                nameArm = getNameArm( arm )
+setGeneric("setOutcomesEvaluation",
+           function( object, outcomesEvaluation )
+           {
+             standardGeneric("setOutcomesEvaluation")
+           }
+)
 
-                object@concentration[[ nameArm ]] = results$concentrationModel
-                object@sensitivityindices[[ nameArm ]] = results$sensitivityIndicesModel
+setMethod(f="setOutcomesEvaluation",
+          signature="Design",
+          definition = function(object,outcomesEvaluation)
+          {
+            object@outcomesEvaluation = outcomesEvaluation
+            return(object)
+          }
+)
 
-                resultFIM = results$resultFim
+# ======================================================================================================
+#' Get the results of the evaluation of the outcome gradients.
+#'
+#' @name getOutcomesGradient
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @return  The list \code{outcomesGradient} containing the results of the design evaluation for the outcome gradients.
+# ======================================================================================================
 
-                MF_i = getMfisher( resultFIM )
+setGeneric("getOutcomesGradient",
+           function(object)
+           {
+             standardGeneric("getOutcomesGradient")
+           }
+)
 
-                if ( first )
-                {
-                  first = F
-                  MF_i_total = MF_i
-                }
-                else
-                  MF_i_total = MF_i_total + MF_i
-              }
-            }
+setMethod(f="getOutcomesGradient",
+          signature="Design",
+          definition = function(object)
+          {
+            return(object@outcomesGradient)
+          }
+)
 
-            if(object@isOptimalDesign)
-              fim@isOptimizationResult <- TRUE
+# ======================================================================================================
+#' Set the results of the evaluation of the outcomes.
+#'
+#' @name setOutcomesGradient
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param outcomesGradient A list containing the evaluation of the outcome gradients.
+#' @return An object \code{Design} with the list \code{outcomesGradient} updated.
+# ======================================================================================================
 
-            resultFIM@mfisher = as.matrix(MF_i_total)
-            object@fimOfDesign <- resultFIM
+setGeneric("setOutcomesGradient",
+           function(object,outcomesGradient)
+           {
+             standardGeneric("setOutcomesGradient")
+           }
+)
 
+setMethod(f="setOutcomesGradient",
+          signature="Design",
+          definition = function(object,outcomesGradient)
+          {
+            object@outcomesGradient = outcomesGradient
+            return(object)
+          }
+)
+
+setMethod(f="getFim",
+          signature="Design",
+          definition = function(object)
+          {
+            return( object@fim )
+          }
+)
+
+# ======================================================================================================
+#' Set the fim of the design.
+#'
+#' @name setFim
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param fim An object \code{fim} from the class \linkS4class{Fim}.
+#' @return An object \code{Design} with the \code{fim} updated.
+# ======================================================================================================
+
+setGeneric("setFim",
+           function(object,fim)
+           {
+             standardGeneric("setFim")
+           }
+)
+
+setMethod(f="setFim",
+          signature="Design",
+          definition = function(object,fim)
+          {
+            object@fim = fim
             return( object )
           }
 )
 
-##########################################################################################################
-
-#' Show the data of an arm for a design.
+# ======================================================================================================
+#' Get the number of arms in a design.
 #'
-#' @name showArmData
-#' @rdname showArmData
-#' @aliases showArmData
-#' @param object A \code{Design} object.
-#' @return Return a character string giving the the data summary of an arm for a design.
+#' @name getNumberOfArms
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @return A numeric \code{numberOfArms} giving the number of arms in the design.
+# ======================================================================================================
 
-setGeneric("showArmData",
-           function(object)
-           {
-             standardGeneric("showArmData")
-           }
-)
+setGeneric(
+  "getNumberOfArms",
+  function(object) {
+    standardGeneric("getNumberOfArms")
+  })
 
-setMethod(f = "showArmData",
-          "Design",
-          function(object)
-          {
-            armData = summaryArmData(object)
-            print(armData)
-            cat("\n Total size of design : ", getTotalSize(object),"\n")
-          }
-)
-
-##########################################################################################################
-
-#' Gives a summary of all the parameters of an arm for a design.
-#'
-#' @name summaryArmData
-#' @param object A \code{Design} object.
-#' @return Display a summary of all the parameters of the arms for a design.
-
-setGeneric("summaryArmData",
-           function( object )
-           {
-             standardGeneric("summaryArmData")
-           }
-)
-
-setMethod("summaryArmData",
+setMethod("getNumberOfArms",
           "Design",
           function( object )
           {
-            dataArm = list()
-            dataRespPK = list()
-            dataRespPD = list()
+            return( object@numberOfArms )
+          }
+)
+
+# ======================================================================================================
+#' Set the number of arms in a design.
+#'
+#' @name setNumberOfArms
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param numberOfArms A numeric \code{numberOfArms} giving the new number of arms in the design.
+#' @return An object \code{Design} with the \code{numberOfArms} updated.
+# ======================================================================================================
+
+setGeneric(
+  "setNumberOfArms",
+  function( object , numberOfArms ) {
+    standardGeneric("setNumberOfArms")
+  })
+
+setMethod("setNumberOfArms",
+          "Design",
+          function( object, numberOfArms )
+          {
+            object@numberOfArms = numberOfArms
+            return( object )
+          }
+)
+
+# ======================================================================================================
+#' Set the arms in a design.
+#'
+#' @name setArm
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param arm A list of object \code{Arm} giving the arms of the design.
+#' @return An object \code{Design} with the list \code{Arm} updated.
+# ======================================================================================================
+
+setGeneric("setArm",
+           function( object, arm )
+           {
+             standardGeneric("setArm")
+           }
+)
+
+setMethod(f="setArm",
+          signature = "Design",
+          definition = function( object, arm )
+          {
+            arms = getArms( object )
+
+            armsNames = lapply( arms, function (x) getName(x))
+
+            armName = getName( arm )
+
+            indexName = which( armsNames == armName )
+
+            object@arms[[indexName]] = arm
+
+            return( object )
+          })
+
+# ======================================================================================================
+#' Evaluate an design
+#'
+#' @name EvaluateDesign
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param model An object \code{model} from the class \linkS4class{Model}.
+#' @param fim An object \code{fim} from the class \linkS4class{Fim}.
+#' @return The object \code{Design} with its slot \code{fim}, \code{evaluationOutcomes}, \code{outcomesGradient} updated.
+# ======================================================================================================
+
+setGeneric("EvaluateDesign",
+           function( object, model, fim )
+           {
+             standardGeneric("EvaluateDesign")
+           }
+)
+
+setMethod(f="EvaluateDesign",
+          signature = "Design",
+          definition = function( object, model, fim )
+          {
+            fisherMatrix = list()
+            evaluationOutcomes =  list()
+            outcomesGradient =  list()
 
             arms = getArms( object )
 
-            roundSamplingTimes = 2
+            # =====================
+            # evaluate all arms
+            # =====================
 
-            for( arm in arms )
+            for ( arm in arms )
             {
-              armSize = getArmSize( arm )
-              armSize = round( armSize, roundSamplingTimes )
+              armName = getName( arm )
+              evaluateArm = EvaluateArm( arm, model, fim )
+              evaluationOutcomes[[armName]] = evaluateArm$evaluationOutcomes
+              outcomesGradient[[armName]] = evaluateArm$outcomesGradient
+              fisherMatrix[[armName]] = getFisherMatrix( evaluateArm$fim )
+            }
 
-              nameArm = getNameArm( arm )
+            # =====================
+            # set Fim parameters
+            # =====================
 
-              admin = getAdministration( arm )
-              samplings = getSamplings( arm )
+            fisherMatrix = Reduce( "+", fisherMatrix )
+            fim = setFisherMatrix( fim, fisherMatrix )
+            fim = setFixedEffects( fim )
+            fim = setVarianceEffects( fim )
 
-              namesResponses = names( samplings )
-              namesRespPK = namesResponses[grep("RespPK",namesResponses)]
-              namesRespPD = namesResponses[grep("RespPD",namesResponses)]
+            # =====================
+            # set the shrinkage
+            # =====================
 
-              for ( nameResponsePK in namesRespPK )
+            shrinkage = getShrinkage( evaluateArm$fim )
+            fim = setShrinkage( fim, shrinkage )
+
+            # =====================
+            # set Fim
+            # =====================
+
+            object = setFim( object, fim )
+
+            # ===========================
+            # set responses and gradients
+            # ===========================
+
+            object = setOutcomesEvaluation( object, evaluationOutcomes )
+            object = setOutcomesGradient( object, outcomesGradient )
+
+            return( object )
+          })
+
+# ======================================================================================================
+#' Plot the evaluation of the outcomes.
+#'
+#' @name plotOutcomesEvaluation
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param initialDesign An object \code{design} from the class \linkS4class{Design}.
+#' @param model An object \code{model} from the class \linkS4class{Model}.
+#' @param plotOptions A list containing the plot options.
+#' @return A list containing the plots the evaluation of the outcomes.
+# ======================================================================================================
+
+setGeneric(
+  "plotOutcomesEvaluation",
+  function( object, initialDesign, model, plotOptions ) {
+    standardGeneric("plotOutcomesEvaluation")
+  })
+
+setMethod(f="plotOutcomesEvaluation",
+          signature("Design"),
+          function( object, initialDesign, model, plotOptions ){
+
+            # ===============================================================
+            # evaluated design and initial design for initial sampling times
+            # ===============================================================
+
+            maxYAxis = list()
+            minYAxis = list()
+
+            initialDesignName = getName( initialDesign )
+            designName = getName( object )
+
+            evaluationInitialDesign = getOutcomesEvaluation( initialDesign )
+            evaluationDesign = getOutcomesEvaluation( object )
+
+            arms = getArms( object )
+
+            outcomes = getOutcomes( model )
+            outcomesNames = names( outcomes )
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              for ( outcomeName in outcomesNames )
               {
+                maxYAxis[[designName]][[armName]][[outcomeName]] = max( evaluationDesign[[armName]][[outcomeName]][,outcomeName] )
+                minYAxis[[designName]][[armName]][[outcomeName]] = 0
+              }
+            }
 
-                timeDosesData = getTimeDose( admin[[nameResponsePK]] )
-                dosesData = getAmountDose(  admin[[nameResponsePK]]  )
-                tau = getTau( admin[[nameResponsePK]] )
-                Tinf = getTinf( admin[[nameResponsePK]] )
-                samplingTimes = getSampleTime( samplings[[nameResponsePK]] )
+            # ================================
+            # plot options
+            # ================================
 
-                if ( tau !=0 )
+            plotOptions = getPlotOptions( plotOptions, outcomesNames )
+            unitXAxis = plotOptions$unitXAxis
+            unitYAxis = plotOptions$unitYAxis
+
+            # ================================
+            # ggplot
+            # ================================
+
+            plotOutcome = list()
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              for ( outcomeName in outcomesNames )
+              {
+                evaluationDesignPlot = evaluationDesign[[armName]][[outcomeName]]
+
+                evaluationInitialDesignPlot = evaluationInitialDesign[[armName]][[outcomeName]]
+                evaluationInitialDesignPlot$time = round( evaluationInitialDesignPlot$time, 2 )
+
+                plotOutcome[[armName]][[outcomeName]] = ggplot() +
+
+                  geom_line( evaluationDesignPlot,
+                             mapping = aes_string( x = "time", y = outcomeName ) ) +
+
+                  geom_point( evaluationInitialDesignPlot,
+                              mapping = aes_string( x = "time", y = outcomeName ), color = "red" ) +
+
+                  theme( legend.position = "none",plot.title = element_text(hjust = 0.5),
+                         axis.title.x.top = element_text(color = "red"),
+                         axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ) ) +
+
+                  labs(y = paste0( outcomeName," ", "(",unitYAxis[[outcomeName]],") \n"),
+                       x = paste0( paste0("Time"," ", "(",unitXAxis,")"),
+                                   "\n \n Design: ",  sub("_", " ",designName),
+                                   "      Arm: ",  armName)) +
+
+                  coord_cartesian( ylim = c( minYAxis[[designName]][[armName]][[outcomeName]] ,
+                                             maxYAxis[[designName]][[armName]][[outcomeName]] ) ) +
+
+                  scale_x_continuous(breaks = scales::pretty_breaks( n = 10 ),
+                                     sec.axis = sec_axis(~ . * 1,
+                                                         breaks = evaluationInitialDesignPlot$time,
+                                                         name = c( "Sampling times" ) ) ) +
+
+                  scale_y_continuous( breaks = scales::pretty_breaks( n = 10 ) )
+              }
+            }
+            return( plotOutcome )
+          })
+
+# ======================================================================================================
+#' Plot the evaluation of the outcome gradients.
+#'
+#' @name plotOutcomesGradient
+#' @param object An object \code{design} from the class \linkS4class{Design}.
+#' @param initialDesign An object \code{design} from the class \linkS4class{Design}.
+#' @param model An object \code{model} from the class \linkS4class{Model}.
+#' @param plotOptions A list containing the plot options.
+#' @return A list containing the plots the evaluation of the outcome gradients..
+# ======================================================================================================
+
+setGeneric(
+  "plotOutcomesGradient",
+  function( object, initialDesign, model, plotOptions ) {
+    standardGeneric("plotOutcomesGradient")
+  })
+
+setMethod(f="plotOutcomesGradient",
+          signature("Design"),
+          function( object, initialDesign, model, plotOptions ){
+
+            # ==============================================================
+            # evaluated design and initial design for initial sampling times
+            # ==============================================================
+
+            maxYAxis = list()
+            minYAxis = list()
+
+            parametersNames = getNames( getParameters( model ) )
+
+            initialDesignName = getName( initialDesign )
+            designName = getName( object )
+
+            gradientInitialDesign = getOutcomesGradient( initialDesign )
+            gradientDesign = getOutcomesGradient( object )
+
+            arms = getArms( object )
+
+            outcomes = getOutcomes( model )
+            outcomesNames = names( outcomes )
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              for ( outcomeName in outcomesNames )
+              {
+                maxYAxis[[designName]][[armName]][[outcomeName]] = max( gradientDesign[[armName]][[outcomeName]][,parametersNames] )
+                minYAxis[[designName]][[armName]][[outcomeName]] = min( gradientDesign[[armName]][[outcomeName]][,parametersNames] )
+              }
+            }
+
+            # ========================
+            # plot options
+            # ========================
+
+            plotOptions = getPlotOptions( plotOptions, outcomesNames )
+            unitXAxis = plotOptions$unitXAxis
+            unitYAxis = plotOptions$unitYAxis
+
+            # ========================
+            # ggplot
+            # ========================
+
+            plotOutcome = list()
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              for ( outcomeName in outcomesNames )
+              {
+                gradientDesignPlot = gradientDesign[[armName]][[outcomeName]]
+                gradientInitialDesignPlot = as.data.frame( gradientInitialDesign[[armName]][[outcomeName]] )
+                gradientInitialDesignPlot$time = round( gradientInitialDesignPlot$time, 2 )
+
+                for ( parameterName in parametersNames)
                 {
-                  n = max( samplingTimes )%/%tau
-                  timeDosesData =  c(0:n)*tau
-                  dosesData = rep( dosesData, n )
+                  plotOutcome[[armName]][[outcomeName]][[parameterName]] = ggplot() +
+
+                    geom_line( gradientDesignPlot,
+                               mapping = aes_string( x = "time", y = parameterName ) ) +
+
+                    geom_point( gradientInitialDesignPlot,
+                                mapping = aes_string( x = "time", y = parameterName ), color = "red" ) +
+
+                    theme( legend.position = "none",plot.title = element_text(hjust = 0.5),
+                           axis.title.x.top = element_text(color = "red"),
+                           axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ) ) +
+
+                    labs( y = paste("df/d", parameterName, sep=""),
+                          x = paste0(paste0("Time"," ", "(",unitXAxis,")"),
+                                     "\n \n Design: ",  sub("_", " ",designName ),
+                                     "      Arm: ",  armName,
+                                     "      Outcome: ",  outcomeName,
+                                     "      Parameter: ",  parameterName ) )+
+
+                    coord_cartesian( ylim = c( minYAxis[[designName]][[armName]][[outcomeName]] ,
+                                               maxYAxis[[designName]][[armName]][[outcomeName]]) ) +
+
+                    scale_x_continuous(breaks = scales::pretty_breaks( n = 10 ),
+                                       sec.axis = sec_axis(~ . * 1,
+                                                           breaks = gradientInitialDesignPlot$time,
+                                                           name = c( "Sampling times" ) ) ) +
+
+                    scale_y_continuous( breaks = scales::pretty_breaks( n = 10 ) )
+                }
+              }
+            }
+
+            return( plotOutcome )
+          })
+
+# ======================================================================================================
+# show
+# ======================================================================================================
+
+setMethod(f="show",
+          signature="Design",
+          definition = function(object)
+          {
+            designName = getName(object)
+
+            arms = getArms( object )
+
+            optimalDesignSamplingTimes = list()
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              armSize = getSize( arm )
+              armSize = round( armSize, 2 )
+
+              samplingTimes = getSamplingTimes(arm)
+              outcomes = lapply( samplingTimes, function(x) getOutcome(x) )
+
+              administrations = getAdministrations( arm )
+
+              for (outcome in outcomes )
+              {
+                samplingTime = getSamplingTime(arm,outcome)
+                samplings = getSamplings( samplingTime )
+                samplings = sort( round( samplings,2 ) )
+                samplings = paste0("(",toString(samplings),")")
+
+                administration = getAdministration( arm , outcome )
+
+                if ( length( administration ) == 0 )
+                {
+                  dose = "-"
+                }else{
+                  dose = toString( getDose( administration ) )
                 }
 
-                if ( unique( Tinf ) == 0 )
+                optimalDesignSamplingTimes[[designName]][[armName]][[outcome]] = data.frame( c( designName, armName, armSize,
+                                                                                                outcome, dose, samplings ) )
+              }
+            }
+
+            dataFramOptimalDesign = t(data.frame(optimalDesignSamplingTimes))
+            rownames(dataFramOptimalDesign) = NULL
+            colnames(dataFramOptimalDesign) = c("Design","Arm","Arm size","Response","Dose", "Sampling times")
+
+            print( dataFramOptimalDesign )
+          }
+)
+
+# ======================================================================================================
+#' Generate table for the report.
+#'
+#' @name reportTablesSamplingConstraints
+#' @param object An object \code{design} from the class \linkS4class{Design}.
+#' @return A table of the sampling constraints parameters for the report.
+# ======================================================================================================
+
+setGeneric(
+  "reportTablesSamplingConstraints",
+  function(object) {
+    standardGeneric("reportTablesSamplingConstraints")
+  })
+
+setMethod("reportTablesSamplingConstraints",
+          signature("Design"),
+          function( object )
+          {
+            listSamplingConstraints = list()
+
+            designName = getName( object )
+
+            arms = getArms( object )
+
+            k=1
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              samplingTimesConstraints = getSamplingTimesConstraints( arm )
+
+              administrationsConstraints = getAdministrationsConstraints( arm )
+
+              if ( length( administrationsConstraints ) != 0 )
+              {
+                doses = getDose( administrationsConstraints[[1]] )
+                doses = toString( doses )
+
+              }else
+              {
+                doses = "-"
+              }
+
+              for( samplingTimesConstraint in samplingTimesConstraints )
+              {
+                initialSamplings = getSamplings( samplingTimesConstraint )
+                fixedTimes = getFixedTimes( samplingTimesConstraint )
+                numberOfsamplingsOptimisable = getNumberOfsamplingsOptimisable( samplingTimesConstraint )
+                samplingsWindows = getSamplingsWindows( samplingTimesConstraint )
+                numberOfTimesByWindows = getNumberOfTimesByWindows( samplingTimesConstraint )
+                minSampling = getMinSampling( samplingTimesConstraint )
+                outcome = getOutcome( samplingTimesConstraint )
+
+                initialSamplings = paste0( "(",toString( initialSamplings ),")" )
+
+                if ( length( fixedTimes ) == 0 )
                 {
-                  Tinf="-"
+                  fixedTimes = "-"
+                }else{
+                  fixedTimes = toString( fixedTimes )
+                }
+
+                if ( length( numberOfsamplingsOptimisable ) == 0 )
+                {
+                  numberOfsamplingsOptimisable = "-"
+                }else{
+                  numberOfsamplingsOptimisable = toString( numberOfsamplingsOptimisable )
+                }
+
+                if ( length( samplingsWindows ) == 0 )
+                {
+                  samplingsWindows = "-"
+                }else{
+                  samplingsWindows = paste0( unlist( lapply( samplingsWindows, function(x) paste0("(",toString(x),")" )  ) ), collapse = ", " )
+                }
+
+                if ( length( numberOfTimesByWindows ) == 0 )
+                {
+                  numberOfTimesByWindows = "-"
+                }else{
+                  numberOfTimesByWindows = paste0( unlist( lapply( numberOfTimesByWindows, function(x) toString(x) ) ), collapse = ", " )
+                }
+
+                if ( length( minSampling ) == 0 )
+                {
+                  minSampling = "-"
+                }else{
+                  minSampling = paste0( unlist( lapply( minSampling, function(x) toString(x) ) ), collapse = ", " )
+                }
+
+                doses = toString( doses )
+                listSamplingConstraints[[k]] = c( designName, armName, outcome, doses,
+                                                  initialSamplings, fixedTimes, numberOfsamplingsOptimisable,
+                                                  samplingsWindows, numberOfTimesByWindows, minSampling )
+                k=k+1
+              }
+            }
+
+            listSamplingConstraints = do.call( rbind, listSamplingConstraints )
+
+            listSamplingConstraints = as.data.frame( listSamplingConstraints )
+
+            colnames( listSamplingConstraints ) = c("Design","Arm","Outcome","Doses",
+                                                    "Initial sampling times","Fixed times", "Number of samplings optimisable",
+                                                    "Sampling windows", "Number of sampling times by windows", "Minimal sampling size")
+
+            rownames( listSamplingConstraints ) = NULL
+
+            return( listSamplingConstraints )
+          })
+
+# ======================================================================================================
+#' Generate table for the report.
+#'
+#' @name reportTablesAdministration
+#' @param object An object \code{design} from the class \linkS4class{Design}.
+#' @return A table of the administration parameters for the report.
+# ======================================================================================================
+
+setGeneric(
+  "reportTablesAdministration",
+  function(object) {
+    standardGeneric("reportTablesAdministration")
+  })
+
+setMethod("reportTablesAdministration",
+          signature("Design"),
+          function( object )
+          {
+            administrationTmp = list()
+            k=1
+
+            designName = getName( object )
+
+            arms = getArms( object )
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              administrations = getAdministrations( arm )
+
+              for( administration in administrations )
+              {
+                outcome = getOutcome( administration )
+                tau = getTau( administration )
+                Tinf = getTinf( administration )
+                timeDoses = getTimeDose( administration )
+                doses = getDose( administration )
+
+                if ( length( Tinf ) == 0 )
+                {
+                  Tinf = "-"
                 }else{
                   Tinf = toString( Tinf )
                 }
 
                 if ( tau == 0 )
                 {
-                  tau="-"
+                  tau = "-"
                 }else{
                   tau = toString( tau )
                 }
 
-                timeDosesData = toString( timeDosesData )
-                dosesData = toString( dosesData )
+                timeDoses = toString( timeDoses )
+                doses = toString( doses )
 
-                samplingTimes = sort(samplingTimes)
-                samplingTimes = paste0( "(", toString(samplingTimes), ")")
-
-                data = data.frame( I( c( nameArm, nameResponsePK, tau,
-                                         Tinf, timeDosesData, dosesData, samplingTimes, armSize ) ) )
-
-                dataRespPK[[nameResponsePK]] = t(data)
-                rownames( dataRespPK[[nameResponsePK]] )=NULL
+                administrationTmp[[k]] = c( designName, armName, outcome, tau, Tinf, timeDoses, doses )
+                k=k+1
               }
-
-              for ( nameResponsePD in namesRespPD )
-              {
-                samplingTimes = sort(getSampleTime(samplings[[nameResponsePD]]))
-                samplingTimes = paste0( "(", toString( samplingTimes ), ")")
-                data = data.frame(I(c(nameArm, nameResponsePD, " ", " ", " ", " ", samplingTimes, armSize )))
-
-                dataRespPD[[nameResponsePD]] =  t(data)
-                rownames( dataRespPD[[nameResponsePD]] )=NULL
-              }
-
-              dataArm[[nameArm]]  = rbind( do.call( rbind, dataRespPK  ),
-                                           do.call( rbind, dataRespPD ) )
-
             }
 
-            dataArm <- as.data.frame( do.call( rbind,dataArm ) )
+            administrationTmp = do.call( rbind, administrationTmp )
+            colnames( administrationTmp ) = c("Design","Arm","Response","${\\tau}$","${T_{inf}}$","Time dose","Dose")
+            rownames( administrationTmp ) = NULL
 
-            colnames(dataArm) =  c( "Arm_name", "Response", "tau", "Tinf", "Time_dose", "Amount_dose" ,"Sampling_times", "Number_of_subjects")
-            rownames(dataArm) =  NULL
+            administrationTable = knitr::kable( administrationTmp ) %>%
+              kable_styling( font_size = 12,
+                             latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                             full_width = T)
 
-            return(dataArm)
+            return( administrationTable )
+
           })
 
-##########################################################################################################
-
-#' Show a design.
+# ======================================================================================================
+#' Generate table for the report.
 #'
-#' @rdname show
-#' @param object A \code{Design} object.
-#' @return Return the FIM of the design and the data summary of the arm in the design.
+#' @name reportTablesDesign
+#' @param object An object \code{design} from the class \linkS4class{Design}.
+#' @return A table of the design parameters for the report.
+# ======================================================================================================
 
-setMethod(f = "show",
+setGeneric(
+  "reportTablesDesign",
+  function(object) {
+    standardGeneric("reportTablesDesign")
+  })
+
+setMethod("reportTablesDesign",
+          signature("Design"),
+          function( object )
+          {
+            designName = getName(object)
+
+            arms = getArms( object )
+
+            optimalDesignSamplingTimes = list()
+
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+
+              armSize = getSize( arm )
+              armSize = round( armSize, 2 )
+
+              samplingTimes = getSamplingTimes(arm)
+              outcomes = lapply( samplingTimes, function(x) getOutcome(x) )
+
+              administrations = getAdministrations( arm )
+
+              outcomesWithAdministration = unlist( lapply( administrations,function(x) getOutcome(x) ) )
+
+              for (outcome in outcomes )
+              {
+                samplingTime = getSamplingTime(arm,outcome)
+                samplings = getSamplings( samplingTime )
+                samplings = round(samplings,2)
+                samplings = paste0("(",toString(samplings),")")
+
+                if ( outcome %in% outcomesWithAdministration )
+                {
+                  administration = getAdministration( arm , outcome )
+
+                  dose = getDose( administration )
+                  dose = toString( dose )
+
+                }else{
+                  dose = "-"
+                }
+                optimalDesignSamplingTimes[[designName]][[armName]][[outcome]] = data.frame( c( designName, armName, armSize,  outcome, dose, samplings ) )
+              }
+            }
+
+            dataFramOptimalDesign = t(data.frame(optimalDesignSamplingTimes))
+            rownames(dataFramOptimalDesign) = NULL
+            colnames(dataFramOptimalDesign) = c("Design name","Arms name","Number of subjects","Outcome", "Dose", "Sampling times")
+
+            designTable = knitr::kable( dataFramOptimalDesign ) %>%
+              kable_styling( font_size = 12,
+                             latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                             full_width = T)
+
+            return( designTable )
+          })
+
+# ==========================================================
+#' Check the validity of he sampling times constraints
+#'
+#' @name checkValiditySamplingConstraint
+#' @param object An object from the class \linkS4class{Design}.
+#' @return An error message if a constraint is not valid.
+# ==========================================================
+
+setGeneric("checkValiditySamplingConstraint",
+           function( object  )
+           {
+             standardGeneric("checkValiditySamplingConstraint")
+           }
+)
+
+setMethod(f="checkValiditySamplingConstraint",
           signature = "Design",
-          definition = function(object)
+          definition = function( object )
           {
+            arms = getArms( object )
 
-            cat("\n\n**************************** ",object@name," ******************************* \n\n")
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+              samplingTimesConstraints = getSamplingTimesConstraints( arm )
+              outcomes = unlist( lapply( samplingTimesConstraints, function(x) getOutcome( x ) ) )
 
-            print( summaryArmData(object) )
+              # =================================
+              # get samplings window constraints
+              # =================================
 
-          }
-)
+              samplingsWindow = lapply( samplingTimesConstraints, function(x) getSamplingsWindows(x) )
+              names( samplingsWindow ) = outcomes
 
-##########################################################################################################
+              # =======================================
+              # get numberOfTimesByWindows constraints
+              # =======================================
 
-#' summary
+              numberOfTimesByWindows = lapply( samplingTimesConstraints, function(x) getNumberOfTimesByWindows(x) )
+              names( numberOfTimesByWindows ) = outcomes
+
+              # =======================================
+              # get minimal time step for each windows
+              # =======================================
+
+              minSampling = lapply( samplingTimesConstraints, function(x) getMinSampling(x) )
+              names( minSampling ) = outcomes
+
+              inputRandomSpaced = list()
+              samplingTimesArms = list()
+
+              for ( outcome in outcomes )
+              {
+                intervalsConstraints = list()
+
+                # ==================================
+                # get samplingTimes and samplings
+                # ==================================
+
+                samplingTimes = getSamplingTime( arm, outcome )
+                samplings = getSamplings( samplingTimes )
+
+                minSamplingAndNumberOfTimesByWindows = as.data.frame( list( minSampling[[outcome]], numberOfTimesByWindows[[outcome]] ) )
+                tmp = t( as.data.frame(samplingsWindow[[outcome]] ) )
+                inputRandomSpaced[[outcome]] = as.data.frame( do.call( "cbind", list( tmp, minSamplingAndNumberOfTimesByWindows ) ) )
+
+                colnames( inputRandomSpaced[[outcome]] ) = c("min","max","delta","n")
+                rownames( inputRandomSpaced[[outcome]] ) = NULL
+
+                if ( sum( numberOfTimesByWindows[[outcome]] ) != length( samplings ) )
+                {
+                  print ( " ==================================================================================================== ")
+                  print( paste0( " The sampling times constraint is not possible for arm ", armName, " and outcome ", outcome ) )
+                  print ( " ==================================================================================================== ")
+
+                  stop()
+                }
+
+                for( iter in 1:length( inputRandomSpaced[[outcome]]$n ) )
+                {
+                  min = inputRandomSpaced[[outcome]]$min[iter]
+                  max = inputRandomSpaced[[outcome]]$max[iter]
+                  delta = inputRandomSpaced[[outcome]]$delta[iter]
+                  n = inputRandomSpaced[[outcome]]$n[iter]
+
+                  distance = max-min-(n-1)*delta
+
+                  if ( distance < 0 )
+                  {
+                    print ( " ==================================================================================================== ")
+                    print( paste0( " The sampling times constraint is not possible for arm ", armName, " and outcome ", outcome ) )
+                    print ( " ==================================================================================================== ")
+
+                    stop()
+                  }
+                }
+              }
+            }
+          })
+
+# ===============================================================================
+#' Set the sampling times constraint for optimization with PSO, PGBO and Simplex
 #'
-#' @rdname summary
-#' @param object A \code{Design} object.
-#' @return Return a list giving the name, the number of individuals, the total size of the design, the
-#' the summary of all the parameters of the arms for a design and the amount of arm in the design.
+#' @name setSamplingConstraintForOptimization
+#' @param object An object from the class \linkS4class{Design}.
+#' @return The arms with the sampling times constraints.
+# ===============================================================================
 
-setMethod("summary",
-          "Design",
-          function(object)
-          {
-            return(list(name = object@name,
-                        numberOfIndividuals = object@total_size,
-                        arms = summaryArmData(object),
-                        amountOfArms = object@amountOfArm))
-          }
-
+setGeneric("setSamplingConstraintForOptimization",
+           function( object )
+           {
+             standardGeneric("setSamplingConstraintForOptimization")
+           }
 )
+
+setMethod(f="setSamplingConstraintForOptimization",
+          signature = "Design",
+          definition = function( object  )
+          {
+            arms = getArms( object )
+
+            for ( arm in arms )
+            {
+              # =============================
+              # get the outcomes
+              # =============================
+
+              samplingTimes = getSamplingTimes( arm )
+              outcomes = lapply(samplingTimes, function(x) getOutcome(x))
+
+              # ======================================================
+              # set the sampling time constraints for missing outcomes
+              # ie from its sampling times
+              # ======================================================
+
+              samplingTimesConstraints = getSamplingTimesConstraints( arm )
+
+              outcomesSamplingTimesConstraints = lapply( samplingTimesConstraints, function(x) getOutcome(x) )
+              indexOutcomeNotInSamplingTimesConstraints = which( !( outcomes %in% outcomesSamplingTimesConstraints ) )
+              outcomesSamplingNotInTimesConstraints = outcomes[indexOutcomeNotInSamplingTimesConstraints]
+
+              if ( length( outcomesSamplingNotInTimesConstraints ) !=0 )
+              {
+                for (  outcomeSamplingNotInTimesConstraints in outcomesSamplingNotInTimesConstraints )
+                {
+                  samplingTime = getSamplingTime( arm, outcomeSamplingNotInTimesConstraints )
+
+                  samplings = getSamplings( samplingTime )
+
+                  newSamplingTimeConstraints  = SamplingTimeConstraints( outcome = outcomeSamplingNotInTimesConstraints,
+                                                                         initialSamplings = samplings,
+                                                                         samplingsWindows = list( c( min( samplings ),max( samplings ) ) ),
+                                                                         numberOfTimesByWindows = length( samplings ),
+                                                                         minSampling = 0 )
+
+                  samplingTimesConstraints = append( samplingTimesConstraints, newSamplingTimeConstraints )
+                }
+              }
+              arm = setSamplingTimesConstraints( arm, samplingTimesConstraints )
+              object = setArm( object, arm )
+            }
+            return( object )
+          })
 
 ##########################################################################################################
 # END Class "Design"
 ##########################################################################################################
-
 
 
 

@@ -1,21 +1,21 @@
-##########################################################################################################
 #' Class "PGBOAlgorithm"
 #'
 #' @description
-#' The Class "PGBOAlgorithm" implements the PGBO algortihm : Population Genetics Based Optimizer,
-#' developped by Hervé Le Nagard [1].
+#' The class "PGBOAlgorithm" implements the PGBO algorithm: Population Genetics Based Optimizer,
+#' developed by Hervé Le Nagard [1].
 #'
 #' @references [1] Rebecca Bauer, France Mentré, Halima Kaddouri, Jacques Le Bras, Hervé Le Nagard,
 #' Benefits of a new Metropolis-Hasting based algorithm, in non-linear regression for estimation of ex vivo antimalarial sensitivity in patients infected with two strains,
 #' Computers in Biology and Medicine, Volume 55, 2014, Pages 16-25, ISSN 0010-4825
 #'
 #' @name PGBOAlgorithm-class
+#' @aliases PGBOAlgorithm
 #'
 #' @docType class
-#' @include Optimization.R
+#' @include OptimizationAlgorithm.R
 #' @include Design.R
-#'
-#' @exportClass PGBOAlgorithm
+#' @include GenericMethods.R
+#' @export
 
 #' @section Objects from the Class \code{PGBOAlgorithm}:
 #' Objects form the Class \code{PGBOAlgorithm} can be created by calls of the form \code{PGBOAlgorithm(...)} where
@@ -25,26 +25,25 @@
 #'  \describe{
 #'    \item{\code{N}:}{A numeric giving the population size.}
 #'    \item{\code{muteEffect}:}{A numeric giving the mutation effect.}
-#'    \item{\code{max_iteration}:}{A numeric giving the maximum of iterations.}
-#'    \item{\code{iteration_fin}:}{A numeric giving the last iteration.}
+#'    \item{\code{maxIteration}:}{A numeric giving the maximum number of iterations.}
+#'    \item{\code{seed}:}{A numeric giving the seed.}
 #'    \item{\code{showProcess}:}{A boolean to show or not the process.}
-#'    \item{\code{OptimalDesign}:}{A \code{Design} object giving the optimal design.}
-#'    \item{\code{resultsPGBO}:}{A list giving the optimal D-criterion computed during the process.}
+#'    \item{\code{optimalDesign}:}{A \code{Design} object giving the optimal design.}
+#'    \item{\code{iterationAndCriteria}:}{A list giving the optimal criteria at each iteration.}
 #'  }
-##########################################################################################################
 
-PGBOAlgorithm<-setClass(
+PGBOAlgorithm = setClass(
   Class = "PGBOAlgorithm",
-  contains = "Optimization",
+  contains = "OptimizationAlgorithm",
   representation = representation(
-    N = "numeric", # population size
-    muteEffect = "numeric", # mutation effect
+    N = "numeric",
+    muteEffect = "numeric",
     maxIteration = "numeric",
-    iteration_fin = "numeric",
+    purgeIteration = "numeric",
     seed = "numeric",
     showProcess = "logical",
-    OptimalDesign = "Design",
-    resultsOptimization = "list"
+    optimalDesign = "Design",
+    iterationAndCriteria = "list"
   ),
   prototype = prototype(
     showProcess = F
@@ -58,237 +57,568 @@ setMethod(
                          N,
                          muteEffect,
                          maxIteration,
+                         purgeIteration,
                          seed,
-                         showProcess )
+                         showProcess,
+                         optimalDesign,
+                         iterationAndCriteria )
   {
+    # ===================
     # values by default
-    .Object@N <- 50
-    .Object@muteEffect <- 0.2
-    .Object@maxIteration <- 10e4
-    .Object@seed <- -1
+    # ===================
+
+    .Object@N = 50
+    .Object@muteEffect = 0.2
+    .Object@maxIteration = 10e4
+    .Object@purgeIteration = 1000
+    .Object@seed = -1
 
     if ( !missing( N ) )
-      .Object@N <- N
+    {
+      .Object@N = N
+    }
 
     if ( !missing( muteEffect ) )
-      .Object@muteEffect <- muteEffect
-
+    {
+      .Object@muteEffect = muteEffect
+    }
     if ( !missing( maxIteration ) )
-      .Object@maxIteration <- maxIteration
+    {
+      .Object@maxIteration = maxIteration
+    }
+
+    if ( !missing( purgeIteration ) )
+    {
+      .Object@purgeIteration = purgeIteration
+    }
 
     if ( !missing( seed ) )
-      .Object@seed <- seed
+    {
+      .Object@seed = seed
+    }
 
     if ( !missing( showProcess ) )
-      .Object@showProcess <- showProcess
+    {
+      .Object@showProcess = showProcess
+    }
+
+    if ( !missing( optimalDesign ) )
+    {
+      .Object@optimalDesign = optimalDesign
+    }
+
+    if ( !missing( iterationAndCriteria ) )
+    {
+      .Object@iterationAndCriteria = iterationAndCriteria
+    }
 
     validObject( .Object )
     return ( .Object )
   }
 )
 
-results = data.frame()
+# ======================================================================================================
+# setParameters
+# ======================================================================================================
 
-# -------------------------------------------------------------------------------------------------------------------
-#' Optimization with the PGBO Algorithm.
-#'
-#' @rdname Optimize
-#' @param object A \code{PGBOAlgorithm} object.
-#' @param pfimProject A \code{PFIMProject} object.
-#' @param designs A list \code{Design} objects.
-#' @param statistical_model A \code{StatisticalModel} object.
-#' @param typeFim A \code{Fim} object.
-#' @return The \code{PGBOAlgorithm} object with:
-#' \itemize{
-#' \item \code{{resultsOptimization}:}{A dataframe giving the results for each iteration.}
-#' \item \code{{OptimalDesign}:}{A  \code{Design} object giving the optimal design.}
-#' \item \code{{iteration_fin }:}{A numeric of the final iteration of the process.}
-#'}
+setMethod("setParameters",
+          "PGBOAlgorithm",
+          function( object, parameters ) {
+            object@N = parameters$N
+            object@name = "PGBOAlgorithm"
+            object@muteEffect = parameters$muteEffect
+            object@maxIteration = parameters$maxIteration
+            object@purgeIteration = parameters$purgeIteration
+            object@showProcess = parameters$showProcess
+            return( object )
+          })
 
-setMethod( f = "Optimize",
-           signature = "PGBOAlgorithm",
-           definition = function( object, pfimProject, designs, statistical_model, constraint, typeFim )
+# ======================================================================================================
+# optimize
+# ======================================================================================================
 
-           {
-             if( object@seed != -1 )
-               set.seed( object@seed )
+setMethod(f = "optimize",
+          signature = "PGBOAlgorithm",
+          definition = function( object, optimizationObject )
+          {
+            if( object@seed != -1 )
+            {
+              set.seed( object@seed )
+            }
 
-             callNextMethod( object, statistical_model , constraint, typeFim )
+            results = list()
 
-             designA = designs[[1]]
+            # ==============================
+            # designs
+            # ==============================
 
-             best = designA
+            designs = getDesigns( optimizationObject )
+            design = designs[[1]]
 
-             evaluatedDesign = EvaluateDesignForEachArm( designA, statistical_model, typeFim )
+            # ==============================================
+            # check validity of the samplingTimesConstraints
+            # ==============================================
 
-             d = 1 / getDcriterion( getFimOfDesign( evaluatedDesign ) )
+            checkValiditySamplingConstraint( design )
 
-             fitBase = 0.03
+            # ===============================================
+            # in case of partial sampling constraints
+            # set the new arms with the sampling constraints
+            # ===============================================
 
-             theta = -log10( fitBase ) / d
+            design = setSamplingConstraintForOptimization( design )
+            arms = getArms( design )
 
-             fitA = 10**( -theta * d )
-             fitBest = fitA
+            # ===============================================
+            # get arm outcomes
+            # ===============================================
 
-             N2<- 2 * object@N
+            outcomes = list()
 
-             for ( iteration in 1: object@maxIteration )
-             {
-               if (object@showProcess == TRUE)
-               {
-                 print( paste0( " PGBO iter = ",iteration ) )
-               }
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+              outcomes[[armName]] = unlist( lapply( getSamplingTimesConstraints( arm ), function( x ) getOutcome( x ) ) )
+            }
 
-               if ( iteration ==1 | iteration == object@maxIteration)
-               {
-                 results = rbind( c( iteration , d ) , results)
-               }
+            # ==========================================
+            # set size for checking the constraints
+            # ==========================================
 
-               found = FALSE
+            numberOfArms = length( arms )
+            numberOutcomesArmsInConstraints = sum( lengths( outcomes ) )
 
-               while ( !found )
-               {
-                 numberOfTheArm = 1 + floor( getAmountOfArms( designA ) * runif( 1 ) )
+            # ==============================
+            # initialize best design
+            # ==============================
 
-                 arms = getArms( designA )
+            designA = design
+            best = design
 
-                 arm = arms[[ numberOfTheArm ]]
+            # ==============================
+            # get pgbo parameters
+            # ==============================
 
-                 numberOfTheResponse = 1 + floor( getNumberOfSamplings( arm ) * runif( 1 ) )
+            optimizationParameters = getOptimizerParameters( optimizationObject )
+            N = optimizationParameters$N
+            muteEffect = optimizationParameters$muteEffect
+            maxIteration = optimizationParameters$maxIteration
+            purgeIteration = optimizationParameters$purgeIteration
+            showProcess = optimizationParameters$showProcess
 
-                 samplingTimes = getSampleTime( getSamplings( arm )[[ numberOfTheResponse ]] )
+            # ==================================
+            # get parameters for the evaluation
+            # ==================================
 
-                 # geometric mean for mutation effect
-                 object@muteEffect =  0.05 * exp( mean( log( samplingTimes ) ) )
+            modelEquations = getModelEquations( optimizationObject )
+            modelParameters = getModelParameters( optimizationObject )
+            modelError = getModelError( optimizationObject )
+            outcomesForEvaluation = getOutcomes( optimizationObject )
+            designs = getDesigns( optimizationObject )
+            odeSolverParameters = getOdeSolverParameters( optimizationObject )
 
-                 if ( runif( 1 ) < 0.8 )
-                 {
-                   numberOfTheSampleTimesToChanged = 1 + floor( length( samplingTimes ) * runif( 1 ) )
+            # =====================
+            # fim
+            # =====================
 
+            fimOptimization = getFim( optimizationObject )
 
-                   samplingTimes[ numberOfTheSampleTimesToChanged ] = samplingTimes[ numberOfTheSampleTimesToChanged ] + rcauchy( 1 ) * object@muteEffect
+            if ( is( fimOptimization, "PopulationFim" ) )
+            {
+              fimEvaluation = "population"
+            }
+            else if ( is( fimOptimization, "IndividualFim" ) )
+            {
+              fimEvaluation = "individual"
+            }
+            else if ( is( fimOptimization, "BayesianFim" ) )
+            {
+              fimEvaluation = "Bayesian"
+            }
 
+            # =============================================================
+            # Generate the initial solution
+            # =============================================================
 
-                 }else{
+            samplingInitialSolution = list()
 
-                   for ( i in 1:length(samplingTimes))
-                   {
-                     samplingTimes[ i ] = samplingTimes[ i ] + rnorm( 1 ) * object@muteEffect
-                   }
-                 }
+            for ( arm in arms )
+            {
+              armName = getName( arm )
 
-                 # constraint to add
-                 found = TRUE
-                 responseName = getResponseNameByIndice( arm, numberOfTheResponse )
+              # ===============================
+              # Sampling constraints
+              # ===============================
 
-                 samplingConstraints = getSamplingConstraintsInArm( arm, responseName )
+              samplingTimesArms = list()
 
-                 for ( samplingConstraint in samplingConstraints )
-                 {
-                   if ( isLessThanDelay( samplingConstraint, samplingTimes ) == TRUE )
-                   {
+              samplingTimesConstraints = getSamplingTimesConstraints( arm )
 
-                     found = FALSE
-                     break
-                   }
+              for ( samplingTimesConstraint in samplingTimesConstraints )
+              {
+                samplingsFromSamplingConstraint = generateSamplingsFromSamplingConstraints( samplingTimesConstraint )
 
-                   for ( time in samplingTimes )
-                   {
-                     if ( isTimeInBetweenBounds( samplingConstraint, time ) == FALSE )
-                     {
-                       found = FALSE
-                       break
-                     }
-                   }
-                 }
+                outcome = names( samplingsFromSamplingConstraint )
 
-               }# end while
-               # evaluate design with new samplingTimes
+                # ======================================
+                # set initial position
+                # ======================================
 
-               arm <- modifySamplingTimes( arm, responseName, samplingTimes )
+                samplingInitialSolution[[ armName ]][[ outcome ]] = samplingsFromSamplingConstraint[[outcome]]
 
-               designB <- modifyArm( designA, getNameArm( arm ), arm )
+                samplings = samplingInitialSolution[[ armName ]][[ outcome ]]
+                samplingTimes = getSamplingTime( arm, outcome )
+                samplingTimes = setSamplings( samplingTimes, samplings )
+                arm = setSamplingTime( arm, samplingTimes )
+              }
+              design = setArm( design, arm )
+            }
 
-               evaluatedDesign = EvaluateDesignForEachArm( designB, statistical_model, typeFim )
+            evaluationFIM = Evaluation( name = "",
+                                        modelEquations = modelEquations,
+                                        modelParameters = modelParameters,
+                                        modelError = modelError,
+                                        outcomes = outcomesForEvaluation,
+                                        designs = list( design ),
+                                        fim = fimEvaluation,
+                                        odeSolverParameters = odeSolverParameters )
 
-               d = 1 / getDcriterion( getFimOfDesign( evaluatedDesign ) )
+            evaluationFIM =  run( evaluationFIM )
 
-               fitB = 10**( -theta * d )
+            # ==========================================
+            # get criteria
+            # ==========================================
 
-               if ( !is.nan(fitB) && fitB > 0 )
-               {
-                 if ( fitA == fitB )
-                 {
-                   proba = 1 / object@N
-                 }
-                 else
-                 {
-                   f = fitA / fitB
-                   proba = 1 - f**2
-                   proba = proba / (1 - f^N2)
-                   if ( is.nan(proba) )
-                     proba<-0
-                 }
+            designs = getDesigns( evaluationFIM )
+            fim = getFim( designs[[1]] )
+            Dcriterion = getDcriterion( fim )
+            d = 1/Dcriterion
 
-                 if (runif(1) < proba)
-                 {
-                   fitA<-fitB
-                   designA = designB
+            if ( is.finite(d) == FALSE )
+            {
+              d = 10e6
+            }
 
-                   if ( fitBest < 1/d )
-                   {
-                     fitBest = 1/d
-                     best = designA
-                     best@isOptimalDesign = TRUE
+            # ==========================================
+            # set the PGBO parameters
+            # ==========================================
 
-                     if ( object@showProcess == TRUE ){
-                       print( paste0('1/D criteria = ',1/d))
-                     }
-                     results = rbind( c( iteration , d ) , results)
-                   }
-                 }
-               }
+            fitBase = 0.03
+            theta = -log10( fitBase ) / d
+            fitA = 10**( -theta * d )
+            fitBest = fitA
 
-               if ( iteration%%1000 == 0 )
-               {
-                 d =  - log10( fitA ) / theta
-                 theta = -log10( fitBase ) / d
-                 fitA = fitBase
-               }
+            # ==========================================
+            # Run PGBO
+            # ==========================================
 
-             }
+            arms = getArms( designA )
 
-             colnames( results ) = c("Iteration","Criteria")
+            samplingTimesArms = list()
 
-             # set armSize to 1 for individual and bayesian Fim
+            for ( iteration in 1:maxIteration )
+            {
+              # ==========================================
+              # Boolean checking constraints in for while
+              # ==========================================
 
-             arms = getArms( best )
+              foundSamplingWithConstraints = FALSE
 
-               for ( arm in arms)
-               {
-                 if ( class( typeFim ) %in% c( "IndividualFim", "BayesianFim" ) )
-                 {
-                 arm = setArmSize( arm, 1 )
-                 }
-                 nameArm = getNameArm( arm )
-                 best = modifyArm( best, nameArm, arm)
-             }
+              while ( foundSamplingWithConstraints == FALSE )
+              {
+                # ==========================================
+                # select arm
+                # ==========================================
 
-             object@resultsOptimization <- results
-             object@OptimalDesign <- best
-             object@OptimalDesign@name = paste0("Design optimized from",constraint@name)
-             object@iteration_fin <- iteration
+                indexArm = sample( numberOfArms, 1 )
+                arm = arms[[indexArm]]
+                armName = getName( arm )
 
-             return(object)
+                # ==========================================
+                # sampling constraints
+                # ==========================================
 
-           })
+                samplingTimesConstraints = getSamplingTimesConstraints( arm )
 
-##########################################################################################################
-# END Class "PGBOAlgorithm"
-##########################################################################################################
+                # ==========================================
+                # select outcome
+                # get samplings
+                # ==========================================
 
+                numberOfOutcome = length( outcomes[[armName]] )
+                indexOutcome = sample( numberOfOutcome, 1 )
+                outcome = outcomes[[armName]][indexOutcome]
 
+                samplingTimes = getSamplingTimes( arm )
+                samplingTimes = getSamplingTime( arm, outcome )
+                samplings = getSamplings( samplingTimes )
 
+                # ==========================================
+                # sampling time mutation
+                # ==========================================
 
+                indexSamplings = sample( numberOfOutcome, 1 )
 
+                if ( runif( 1 ) < 0.8 )
+                {
+                  samplings[indexSamplings] = samplings[indexSamplings] + rcauchy(1)*muteEffect
+                }else{
+                  samplings = samplings + rnorm( length( samplings ) )*muteEffect
+                }
+
+                samplings = sort( samplings )
+
+                # ==========================================
+                # check sampling time constraints
+                # ==========================================
+
+                samplingTimesConstraints = getSamplingTimeConstraint( arm, outcome )
+
+                samplingTimeConstraintsForContinuousOptimization =
+                  checkSamplingTimeConstraintsForContinuousOptimization( samplingTimesConstraints, arm, samplings, outcome )
+
+                if( all( unlist( samplingTimeConstraintsForContinuousOptimization ) ) == TRUE )
+                {
+                  # ===========================================
+                  # check constraints and set the new sampling
+                  # ===========================================
+
+                  samplingTime = getSamplingTime( arm, outcome )
+                  samplingTime = setSamplings( samplingTime, samplings )
+                  samplingTimesArms[[armName]][[outcome]] = samplingTime
+                }
+
+                # ==============================================================================
+                # check if all constraints TRUE and number of constraints = nb Arm * nb Response
+                # ==============================================================================
+
+                if ( length( unlist( samplingTimesArms ) ) == numberOutcomesArmsInConstraints )
+                {
+                  foundSamplingWithConstraints = TRUE
+                }
+              } # end while
+
+              # ==========================================
+              # set new sampling times
+              # ==========================================
+
+              for ( arm in arms )
+              {
+                armName = getName( arm )
+
+                for ( outcome in outcomes[[armName]]  )
+                {
+                  arm = setSamplingTime( arm, samplingTimesArms[[armName]][[outcome]] )
+                }
+                designA = setArm( designA, arm )
+              }
+
+              # ==========================================
+              # Evaluation
+              # ==========================================
+
+              designB = designA
+
+              evaluationFIM = Evaluation( name = "",
+                                          modelEquations = modelEquations,
+                                          modelParameters = modelParameters,
+                                          modelError = modelError,
+                                          outcomes = outcomesForEvaluation,
+                                          designs = list( designB ),
+                                          fim = fimEvaluation,
+                                          odeSolverParameters = odeSolverParameters )
+
+              evaluationFIM =  run( evaluationFIM )
+
+              # ==========================================
+              # get criteria
+              # ==========================================
+
+              designs = getDesigns( evaluationFIM )
+
+              fim = getFim( designs[[1]] )
+
+              d = 1/getDcriterion( fim )
+
+              if ( is.finite(d) == FALSE )
+              {
+                d = 10e6
+              }
+
+              fitB = 10**( -theta * d )
+
+              # ==========================================
+              # Update
+              # ==========================================
+
+              if ( !is.nan(fitB) && fitB > 0 )
+              {
+                if ( fitA == fitB )
+                {
+                  proba = 1/N
+                }
+                else
+                {
+                  f = fitA/fitB
+                  proba = 1 - f**2
+                  proba = proba / (1 - f**( 2*N ) )
+
+                  if ( is.nan(proba) )
+                  {
+                    proba = 0
+                  }
+                }
+
+                if (runif(1) < proba)
+                {
+                  fitA = fitB
+                  designA = designB
+
+                  if ( fitBest < 1/d )
+                  {
+                    fitBest = 1/d
+                    best = designA
+
+                    if ( showProcess == TRUE )
+                    {
+                      # ==========================================
+                      # iteration and Dcriteria
+                      # ==========================================
+
+                      print( paste0('Iteration = ',iteration))
+                      print( paste0('Criterion = ',1/d))
+                    }
+                  }
+                }
+              }
+
+              # ==========================================
+              # Purge
+              # ==========================================
+
+              if ( iteration%%purgeIteration == 0 )
+              {
+                d =  - log10( fitA ) / theta
+                theta = -log10( fitBase ) / d
+                fitA = fitBase
+              }
+
+              results[[iteration]] = c( iteration , 1/d )
+
+            }# end iteration
+
+            # ==========================================
+            # Outputs
+            # ==========================================
+
+            # ==========================================
+            # set the fim for the optimal design
+            # ==========================================
+
+            evaluationFIM = Evaluation( name = "",
+                                        modelEquations = modelEquations,
+                                        modelParameters = modelParameters,
+                                        modelError = modelError,
+                                        outcomes = outcomesForEvaluation,
+                                        designs = list( best ),
+                                        fim = fimEvaluation,
+                                        odeSolverParameters = odeSolverParameters )
+
+            evaluationFIM =  run( evaluationFIM )
+
+            designs = getDesigns( evaluationFIM )
+            fim = getFim( designs[[1]] )
+
+            best = setFim( best, fim )
+
+            # ==========================================
+            # Iteration & Criteria
+            # ==========================================
+
+            results = as.data.frame( do.call( rbind, results ) )
+            colnames( results ) = c("Iteration","Criterion")
+
+            object = setIterationAndCriteria( object, results )
+
+            # ==========================================
+            # set optimal design
+            # ==========================================
+
+            object = setOptimalDesign( object, best )
+
+            return( object )
+          })
+
+# ======================================================================================================
+# show
+# ======================================================================================================
+
+setMethod(f="show",
+          signature = "PGBOAlgorithm",
+          definition = function( object )
+          {
+            cat("\n\n")
+            cat( " ************************************************* ")
+            cat("\n")
+            cat( " Criterion ")
+            cat("\n")
+            cat( " ************************************************* ")
+
+            cat("\n")
+
+            iterationAndCriteria = getIterationAndCriteria( object )
+
+            rownames( iterationAndCriteria )=NULL
+
+            print( iterationAndCriteria )
+          })
+
+# ======================================================================================================
+# generateReportOptimization
+# ======================================================================================================
+
+setMethod(
+  "generateReportOptimization",
+  signature = "PGBOAlgorithm",
+  definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
+  {
+    # ===================================================
+    # projectName and outputs tables
+    # ===================================================
+
+    projectName = getName( optimizationObject )
+
+    evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
+    fimType = is( getFim( evaluationFIMResults ) )[1]
+
+    evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
+
+    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
+
+    tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
+
+    # ========================================
+    # markdown template
+    # ========================================
+
+    path = system.file(package = "PFIM")
+    path = paste0( path, "/rmarkdown/templates/skeleton/" )
+    nameInputFile = paste0( path, "template_PGBOAlgorithm.rmd" )
+
+    rmarkdown::render( input = nameInputFile,
+                       output_file = outputFile,
+                       output_dir = outputPath,
+                       params = list(
+                         object = "object",
+                         plotOptions = "plotOptions",
+                         projectName = "projectName",
+                         fimType = "fimType",
+                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
+                         tablesOptimizationObject = "tablesOptimizationObject" ) )
+
+  })
+
+##############################################################################
+# END Class PGBOAlgorithm
+##############################################################################
 

@@ -1,114 +1,86 @@
-#####################################################################################################################################
-##' Class "Combined1"
-##'
-#' @description The class  \code{Combined1} defines the the residual error variance according
-#' to the formula g(sigma_inter, sigma_slope, c_error, f(x, theta)) = sigma_inter + sigma_slope*f(x,theta)).
+#' Class "Combined1"
+#'
+#' @description The class \code{Combined1} defines the the residual error variance according
+#' to the formula g(sigmaInter, sigmaSlope, cError, f(x, theta)) = sigmaInter + sigmaSlope*f(x,theta)).
+#' The class \code{Combined1} inherits from the class \code{ModelError}.
 #'
 #' @name Combined1-class
 #' @aliases Combined1
 #' @docType class
 #' @include ModelError.R
-#' @exportClass Combined1
+#' @export
 #'
 #' @section Objects from the class:
-#' Combined1 objects are typically created by calls to \code{Combined1} and contain the following slots that are herited from
-#' the class \linkS4class{Combined1c}:
+#' Combined1 objects are typically created by calls to \code{Combined1} and contain the following slots that are inherited from
+#' the class \linkS4class{ModelError}:
 #'
 #' \describe{
-#' \item{\code{.Object}:}{An object of the Class \linkS4class{Combined1}}
-#' \item{\code{sigma_inter}:}{A numeric value giving the sigma inter of the error model.}
-#' \item{\code{sigma_slope}:}{A numeric value giving the sigma slope of the error model.}
+#' \item{\code{outcome}:}{A string giving the name of the outcome.}
+#' \item{\code{equation}:}{An symbolic expression of the model error.}
+#' \item{\code{derivatives}:}{A list containing the derivatives of the model error expression.}
+#' \item{\code{sigmaInter}:}{A numeric value giving the sigma inter of the error model.}
+#' \item{\code{sigmaSlope}:}{A numeric value giving the sigma slope of the error model.}
+#' \item{\code{cError}:}{A numeric value giving the exponant c of the error model.}
 #' }
-#'
-#####################################################################################################################################
 
-Combined1<-setClass(
-  Class="Combined1",
-  contains = "ModelError",
-  prototype = prototype(
-    c_error = 1
-  ),
-  validity=function(object)
-  {
-    return(TRUE)
-  }
-)
+Combined1 = setClass(Class = "Combined1",
+                     contains = "ModelError",
+                      representation = representation
+                     (
+                       outcome="character",
+                       equation = "expression",
+                       derivatives = "list",
+                       sigmaInter = "numeric",
+                       sigmaSlope = "numeric",
+                       cError = "numeric"
+                     ),
+                     prototype = prototype( cError = 1,
+                                            equation =  expression(sigmaInter + sigmaSlope * evaluationOutcome )
+                     ))
 
-# Initialize method
 setMethod(
   f="initialize",
   signature="Combined1",
-  definition= function (.Object, sigma_inter, sigma_slope )
+  definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )
   {
-    # Object validation
+    if(!missing(outcome))
+    {
+      .Object@outcome = outcome
+    }
+    if(!missing(equation))
+    {
+      .Object@equation = equation
+    }
+    if(!missing(derivatives))
+    {
+      .Object@derivatives = derivatives
+    }
+    if(!missing(sigmaInter))
+    {
+      .Object@sigmaInter = sigmaInter
+    }
+    if(!missing(sigmaSlope))
+    {
+      .Object@sigmaSlope = sigmaSlope
+    }
+    if( !missing( cError ) )
+    {
+      .Object@cError = cError
+    }
+
     validObject(.Object)
-    .Object = callNextMethod(.Object, sigma_inter = sigma_inter, sigma_slope = sigma_slope, c_error = 1, expression( sigma_inter + sigma_slope * f_x_i_theta ) )
     return (.Object )
   }
 )
 
 ##########################################################################################################
-
-#' Get the names of the variances.
-#'
-#' @rdname getSigmaNames
-#' @param object An object \code{Combined1} from the class \code{Combined1}.
-#' @return The character string \code{sigmaNames} giving the names of the variances.
-
-setMethod("getSigmaNames",
-          "Combined1",
-          function(object)
-          {
-            sigmaNames <- c( )
-            if(object@sigma_inter != 0)
-              sigmaNames <- c( sigmaNames, "\u03c3_inter")
-            if(object@sigma_slope != 0)
-              sigmaNames <- c( sigmaNames, "\u03c3_slope" )
-            return(sigmaNames)
-          }
-)
-
+# End class Combined1
 ##########################################################################################################
 
-#' Get the values of the variances \code{sigma_inter} and \code{sigma_slope}.
-#'
-#' @rdname getSigmaValues
-#' @param object An object \code{Combined1} from the class \code{Combined1}.
-#' @return A numeric vector giving the values of the variances \code{sigma_inter} and \code{sigma_slope}.
 
-setMethod("getSigmaValues",
-          "Combined1",
-          function(object)
-          {
-            sigmaValues <- c( )
-            if(object@sigma_inter != 0)
-              sigmaValues <- c( sigmaValues, object@sigma_inter)
-            if(object@sigma_slope != 0)
-              sigmaValues <- c( sigmaValues, object@sigma_slope )
-            return(sigmaValues)
-          }
 
-)
 
-##########################################################################################################
 
-#' Show the model errors
-#'
-#' @rdname show
-#' @param object An object \code{Combined1} from the class \linkS4class{Combined1}
-#' @return Display the model errors
 
-setMethod(f="show",
-          signature=  "Combined1",
-          definition=function(object)
-          {
-            eq <- gsub("f_x_i_theta", "f", toString(object@equation))
-            cat(" Error model combined 1 equation : ", eq, "\n")
-            callNextMethod(object)
 
-          }
-)
 
-###########################################################################
-# End Class Combined1
-###########################################################################

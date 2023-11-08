@@ -87,7 +87,7 @@ output = knitrFIM(object)
 output$correlationRandomEffects 
 ``` 
 
-## Determinant, condition numbers and D-criteria of the FIM
+## Determinant, condition numbers and D-criterion of the FIM
 ```{r Determinant, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
 output = knitrFIM(object)
 output$criteriaFim

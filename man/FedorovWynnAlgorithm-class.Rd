@@ -17,7 +17,7 @@ where (...) are the parameters for the \code{FedorovWynnAlgorithm} objects.
 \section{Slots for \code{FedorovWynnAlgorithm} objects}{
 
 \describe{
-\item{\code{initialElementaryProtocols}:}{A list of vector for the intial elementary protocols.}
+\item{\code{elementaryProtocols}:}{A list of vector for the initial elementary protocols.}
 \item{\code{numberOfSubjects}:}{A vector for the number of subjects.}
 \item{\code{proportionsOfSubjects}:}{A vector for the number of subjects.}
 \item{\code{OptimalDesign}:}{A object Design giving the optimal Design.}

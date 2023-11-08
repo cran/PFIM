@@ -6,26 +6,23 @@
 \alias{SimplexAlgorithm}
 \title{Class "SimplexAlgorithm"}
 \description{
-The Class "SimplexAlgorithm" implements the Nelder-Mead method (also downhill simplex method, amoeba method) [1].
+Class "SimplexAlgorithm" implements the Multiplicative algorithm.
 }
-\section{Objects from the class}{
+\section{Objects from the class \code{SimplexAlgorithm}}{
 
 Objects form the class \code{SimplexAlgorithm} can be created by calls of the form \code{SimplexAlgorithm(...)} where
 (...) are the parameters for the \code{SimplexAlgorithm} objects.
 }
 
-\section{Slots for \code{SimplexAlgorithm} objects}{
+\section{Slots for \code{SamplingTimes} objects}{
 
  \describe{
-   \item{\code{pct_initial_simplex_building}:}{A numeric giving the percentage of initial vertices for the simplex algorithm.}
-   \item{\code{max_iteration}:}{A numeric giving the maximum of iterations.}
-   \item{\code{tolerance}:}{A numeric giving the tolerance criteria for stopping the algorithm.}
+   \item{\code{pctInitialSimplexBuilding}:}{A numeric giving the percentage of the initial simplex.}
+   \item{\code{maxIteration}:}{A numeric giving the number of maximum iteration.}
+   \item{\code{tolerance}:}{A numeric giving the tolerance threshold.}
    \item{\code{showProcess}:}{A boolean to show or not the process.}
-   \item{\code{OptimalDesign}:}{A \code{Design} object giving the optimal design.}
+   \item{\code{optimalDesign}:}{A \code{Design} object giving the optimal design.}
+   \item{\code{iterationAndCriteria}:}{A list giving the optimal criteria at each iteration.}
  }
 }
 
-\references{
-[1]
-Nelder JA, Mead R (1965) A Simplex Method for Function Minimization. Comput J 7: 308-313.
-}

@@ -18,14 +18,11 @@ Objects form the class \code{Administration} can be created by calls of the form
 \section{Slots for \code{Administration} objects}{
 
  \describe{
-   \item{\code{outcome}:}{A character string giving the name for the reponse of the model.}
-   \item{\code{time_dose}:}{A numeric vector giving the times when doses are given. By default set to 0.}
-   \item{\code{amount_dose}:}{A numeric vector giving the amount of doses.}
-   \item{\code{tau}:}{A numeric giving the frequency.}
+   \item{\code{outcome}:}{A character string giving the name for the response of the model.}
+   \item{\code{timeDose}:}{A numeric vector giving the times when doses are given.}
+   \item{\code{dose}:}{A numeric vector giving the amount of doses.}
    \item{\code{Tinf}:}{A numeric vector giving the infusion duration Tinf (Tinf can be null).}
-   \item{\code{allowed_time}:}{Constraint object containing the constraints on allowed times.}
-   \item{\code{allowed_dose}:}{Constraint object containing the constraints on allowed dose.}
-   \item{\code{allowed_tinf}:}{Constraint object containing the constraints on Tinf.}
+   \item{\code{tau}:}{A numeric giving the frequency.}
  }
 }
 

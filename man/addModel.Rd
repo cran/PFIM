@@ -2,18 +2,18 @@
 % Please edit documentation in R/LibraryOfModels.R
 \name{addModel}
 \alias{addModel}
-\title{Add a \code{Model} object in the \code{LibraryOfModels}.}
+\title{Add a model to a library of models.}
 \usage{
 addModel(object, model)
 }
 \arguments{
-\item{object}{A \code{LibraryOfModels} object.}
+\item{object}{An object from the class \linkS4class{LibraryOfModels}.}
 
-\item{model}{The model to add in the library (PK, PD or PKPD model).}
+\item{model}{An object from the class \linkS4class{Model}.}
 }
 \value{
-The \code{LibraryOfModels} object with the loaded library of models.
+The library of models with the added model.
 }
 \description{
-Add a \code{Model} object in the \code{LibraryOfModels}.
+Add a model to a library of models.
 }

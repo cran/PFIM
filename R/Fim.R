@@ -1,485 +1,634 @@
-##################################################################################
-##' Class "Fim" representing the Fisher information matrix,
-##' a parent class used by three classes PopulationFim, IndividualFim and BayesianFim.
-##'
-##' @description
-##' A class storing information regarding the Fisher computation matrix.
-##' Type of the Fisher information: population ("PopulationFIM"), individual ("IndividualFIM") or Bayesian ("BayesianFIM").
-##' The computation method for population and Bayesian matrix is first order linearisation (FO).
-##  adaptive Gaussian quadrature (AGQ) or Markov Chain Monte Carlo (MCMC))
-##'
-##' @name Fim-class
-##' @aliases Fim
-##' @docType class
-##' @exportClass Fim
-##'
+#' Class "Fim"
+#'
+#' @description
+#' A class storing information regarding the Fisher matrix.
+#' Type of the Fisher information: population ("PopulationFIM"), individual ("IndividualFIM") or Bayesian ("BayesianFIM").
+#'
+#' @name Fim-class
+#' @aliases Fim
+#' @docType class
+#' @include GenericMethods.R
+#' @export
+#'
 #' @section Objects from the class:
 #' Objects form the class \code{Fim} can be created by calls of the form \code{Fim(...)} where
 #' (...) are the parameters for the \code{Fim} objects.
 #'
 #'@section Slots for \code{Fim} objects:
-##' \describe{
-##' \item{\code{isOptimizationResult}:}{A Boolean giving TRUE for an optimization result and FALSE an evaluation result.}
-##' \item{\code{mfisher}:}{A matrix of numeric giving the Fisher information.}
-##' \item{\code{omega}:}{A matrix of numeric giving the variances.}
-##' \item{\code{mu}:}{A matrix of numeric giving the means.}
-##' \item{\code{fim_comput_method}:}{Name of the method used to approximate the population matrix : character strings, 'FO' }
-##' }
+#' \describe{
+#' \item{\code{fisherMatrix}:}{A matrix giving the Fisher matrix.}
+#' \item{\code{fixedEffects}:}{A matrix giving the fixed effects of the Fisher matrix.}
+#' \item{\code{varianceEffects}:}{A matrix giving the variance effects of the Fisher matrix.}
+#' \item{\code{shrinkage}:}{A vector giving the shrinkage value of the parameters.}
+#' }
 
-Fim<-setClass(
+Fim = setClass(
   Class="Fim",
   representation=representation(
-    isOptimizationResult = "logical",
-    mfisher="matrix", # the Fisher information matrix
-    omega="matrix",
-    mu="vector",
-    parametersIndicesMuFIM ="vector",
-    parametersIndicesOmegaFIM ="vector"
-  ),
-  prototype=prototype(
-    isOptimizationResult = FALSE
- )
-  ,
-  validity=function(object)
-  {
-    return(TRUE)
-  }
-)
-
+    fisherMatrix = "matrix",
+    fixedEffects = "matrix",
+    varianceEffects = "matrix",
+    shrinkage = "vector"
+  ))
 
 # Initialize method
 setMethod(
   f="initialize",
   signature="Fim",
-  definition= function (.Object, mfisher, omega, mu, parametersIndicesMuFIM, parametersIndicesOmegaFIM)
+  definition= function ( .Object, fisherMatrix, fixedEffects,  varianceEffects, shrinkage )
   {
-    if(!missing(mfisher))
-      .Object@mfisher<-mfisher
+    if(!missing(fisherMatrix))
+    {
+      .Object@fisherMatrix = fisherMatrix
+    }
 
-    if(!missing(omega))
-      .Object@omega<-omega
+    if(!missing(fixedEffects))
+    {
+      .Object@fixedEffects = fixedEffects
+    }
 
-    if(!missing(mu))
-      .Object@mu<-mu
+    if(!missing(varianceEffects))
+    {
+      .Object@varianceEffects = varianceEffects
+    }
 
-    if(!missing(parametersIndicesMuFIM))
-      .Object@parametersIndicesMuFIM<-parametersIndicesMuFIM
-
-    if(!missing(parametersIndicesOmegaFIM))
-      .Object@parametersIndicesOmegaFIM<-parametersIndicesOmegaFIM
+    if(!missing(shrinkage))
+    {
+      .Object@shrinkage = shrinkage
+    }
 
     validObject(.Object)
     return (.Object )
   }
 )
 
-
-##########################################################################################################
-
-#' Get the Fisher Information Matrix.
-#' @name getMfisher
-#' @param object A \code{Fim} object.
-#' @return A matrix of numeric \code{mfisher} giving the Fisher Information Matrix.
+# ======================================================================================================
+#' Evaluate the Fisher matrix ( population, individual and Bayesian )
 #'
-setGeneric("getMfisher",
+#' @name EvaluateFisherMatrix
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param model An object from the class \linkS4class{Model}.
+#' @param arm An object from the class \linkS4class{Arm}.
+#' @param modelEvaluation A list containing the evaluation results.
+#' @param modelVariance A list containing the model variance.
+#' @return An object from the class \linkS4class{Fim} containing the Fisher matrix.
+# ======================================================================================================
+
+setGeneric("EvaluateFisherMatrix",
+           function( object, model, arm, modelEvaluation, modelVariance )
+           {
+             standardGeneric( "EvaluateFisherMatrix" )
+           })
+
+# ======================================================================================================
+#' Evaluate the variance of the Fisher information matrix.
+#'
+#' @name EvaluateVarianceFIM
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param model An object from the class \linkS4class{Model}.
+#' @param arm An object from the class \linkS4class{Arm}.
+#' @param modelEvaluation A list containing the evaluation results.
+#' @param modelVariance A list containing the model variance.
+#' @return A list containing the matrices of the variance of the FIM.
+# ======================================================================================================
+
+setGeneric("EvaluateVarianceFIM",
+           function( object, model, arm, modelEvaluation, modelVariance )
+           {
+             standardGeneric( "EvaluateVarianceFIM" )
+           })
+
+# ======================================================================================================
+#' Get the FIM.
+#'
+#' @name getFisherMatrix
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A matrix giving the FIM.
+# ======================================================================================================
+
+setGeneric("getFisherMatrix",
            function(object)
            {
-             standardGeneric("getMfisher")
-           }
-)
-setMethod("getMfisher",
+             standardGeneric("getFisherMatrix")
+           })
+
+setMethod("getFisherMatrix",
           "Fim",
           function(object)
           {
-            return(object@mfisher)
-          }
-)
+            return(object@fisherMatrix)
+          })
 
-
-############################################################################################
-
-#' FinalizeFIMForOneElementaryDesign
+# ======================================================================================================
+#' Set the FIM.
 #'
-#' @param object A \code{Fim} object.
-#' @param arm A \code{Arm} object.
-#' @return A matrix of numeric \code{mfisher} giving the Fisher Information Matrix.
-#'
-#' @rdname FinalizeFIMForOneElementaryDesign
-#'
-#' @docType methods
+#' @name setFisherMatrix
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param value A matrix giving the FIM.
+#' @return The object from the class \linkS4class{Fim} with the FIM updated.
+# ======================================================================================================
 
-setGeneric("FinalizeFIMForOneElementaryDesign",
-           function(object, arm)
-           {
-             standardGeneric("FinalizeFIMForOneElementaryDesign")
-           }
-)
-
-setMethod(
-  f ="FinalizeFIMForOneElementaryDesign",
-  signature = "Fim",
-  definition = function(object, arm)
-  {
-    return(object)
-  }
-)
-
-##########################################################################################################
-
-#' Set a matrix value for the Fisher Information Matrix.
-#' @name setMfisher<-
-#' @param object A \code{Fim} object.
-#' @param value A matrix of numerical values.
-#' @return The \code{Fim} object with the Fisher Information Matrix with the new values.
-
-setGeneric("setMfisher<-",
+setGeneric("setFisherMatrix",
            function(object, value)
            {
-             standardGeneric("setMfisher<-")
-           }
-)
-setReplaceMethod( f="setMfisher",
-                  signature="Fim",
-                  definition = function(object, value)
-                  {
-                    object@mfisher <- as(value,"matrix")
-                    return(object)
-                  }
-)
+             standardGeneric("setFisherMatrix")
+           })
 
-##########################################################################################################
+setMethod("setFisherMatrix",
+          "Fim",
+          function(object, value)
+          {
+            object@fisherMatrix = value
+            return(object)
+          })
 
-#' Set the Omega matrix.
-#' @name setOmega
-#' @param object A \code{Fim} object.
-#' @param omega A matrix omega giving the new values of the variances.
-#' @return The \code{Fim} object with the Omega matrix with the new values.
-
-setGeneric( "setOmega",
-            function( object, omega )
-            {
-              standardGeneric("setOmega")
-            }
-)
-
-setMethod(
-  f ="setOmega",
-  signature = "Fim",
-  definition = function ( object, omega )
-  {
-    object@omega = omega
-    return( object )
-  }
-)
-
-
-##########################################################################################################
-
-#' Set the mu vector.
-#' @name setMu
-#' @param object A \code{Fim} object.
-#' @param mu A vector mu of the new values of mu.
-#' @return The \code{Fim} object with the mu vector with the new values.
-
-setGeneric( "setMu",
-            function( object, mu )
-            {
-              standardGeneric("setMu")
-            }
-)
-
-setMethod(
-  f ="setMu",
-  signature = "Fim",
-  definition = function ( object, mu )
-  {
-    object@mu = mu
-    return( object )
-  }
-)
-
-##########################################################################################################
-
-#' Get the description of FIM.
+# ======================================================================================================
+#' Get the matrix of fixed effects.
 #'
-#' @param object A \code{Fim} object.
-#'
-#' @return A character string that tells you that is a Fisher information matrix.
-#'
-#' @rdname getDescription
-#'
-#' @docType methods
+#' @name getFixedEffects
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return The matrix of the fixed effects.
+# ======================================================================================================
 
-
-setGeneric("getDescription",
-           function( object )
+setGeneric("getFixedEffects",
+           function(object)
            {
-             standardGeneric("getDescription")
-           }
-)
+             standardGeneric("getFixedEffects")
+           })
 
-##########################################################################################################
+setMethod("getFixedEffects",
+          "Fim",
+          function(object)
+          {
+            fisherMatrix = getFisherMatrix( object )
 
-#' Get the Determinant of a Fisher Information Matrix.
+            colnames( object@fixedEffects ) = colnames(fisherMatrix)[1:dim(object@fixedEffects)[1]]
+            rownames( object@fixedEffects ) = colnames( object@fixedEffects )
+
+            return( object@fixedEffects)
+          })
+
+# ======================================================================================================
+#' Set the fixed effects.
+#'
+#' @name setFixedEffects
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return Update the matrix of the fixed effects.
+# ======================================================================================================
+
+setGeneric("setFixedEffects",
+           function(object)
+           {
+             standardGeneric("setFixedEffects")
+           })
+
+setMethod(
+  "setFixedEffects",
+  "Fim",
+  definition = function ( object )
+  {
+    mu = "\u03bc_"
+    fisherMatrix = getFisherMatrix( object )
+    colnamesFim = colnames( fisherMatrix )
+    indexMu = which( grepl( mu, colnamesFim ) == TRUE )
+    object@fixedEffects = as.matrix(fisherMatrix[indexMu,indexMu])
+
+    return( object )
+  })
+
+# ======================================================================================================
+#' Get the matrix of the variance effects.
+#'
+#' @name getVarianceEffects
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return The matrix of the variance effects.
+# ======================================================================================================
+
+setGeneric("getVarianceEffects",
+           function(object)
+           {
+             standardGeneric("getVarianceEffects")
+           })
+
+setMethod("getVarianceEffects",
+          "Fim",
+          function(object)
+          {
+            return(object@varianceEffects)
+          })
+
+# ======================================================================================================
+#' Set the matrix of the variance effects.
+#'
+#' @name setVarianceEffects
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return Update the matrix of the variance effects.
+# ======================================================================================================
+
+setGeneric("setVarianceEffects",
+           function(object)
+           {
+             standardGeneric("setVarianceEffects")
+           })
+
+setMethod(
+  "setVarianceEffects",
+  "Fim",
+  definition = function ( object )
+  {
+    omega = "\u03c9\u00B2_"
+    sigma = "\u03c3_"
+
+    fisherMatrix = getFisherMatrix( object )
+    colnamesFim = colnames( fisherMatrix )
+
+    indexOmega = which( grepl( omega, colnamesFim ) == TRUE )
+    indexSigma = which( grepl( sigma, colnamesFim ) == TRUE )
+
+    indexOmegaSigma = c( indexOmega, indexSigma )
+
+    if ( length( indexOmegaSigma ) !=0 )
+    {
+      # ==============================
+      # population & individual fim
+      # ==============================
+
+      object@varianceEffects = as.matrix( fisherMatrix[ indexOmegaSigma, indexOmegaSigma ] )
+
+    }else{
+      # ==============================
+      # Bayesian fim
+      # ==============================
+
+      object@varianceEffects = as.matrix(NA)
+    }
+
+    return( object )
+  })
+
+# ======================================================================================================
+#' Get the determinant of the fim.
+#'
 #' @name getDeterminant
-#' @param object \code{Fim} object.
-#' @return A numeric \code{Det} giving the determinant of a Fisher Information Matrix.
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A numeric giving the determinant of the fim.
+# ======================================================================================================
 
 setGeneric("getDeterminant",
            function(object)
            {
              standardGeneric("getDeterminant")
-           }
-)
+           })
 
 setMethod(
-  f ="getDeterminant",
+  "getDeterminant",
   signature = "Fim",
-  definition = function (object)
+  definition = function ( object )
   {
-    Det<-det(object@mfisher)
-    return(Det)
-  }
-)
+    fisherMatrix = getFisherMatrix( object )
+    determinant = det( fisherMatrix )
+    return(determinant)
+  })
 
-##########################################################################################################
-
-#' Get the D-criterion for a \code{Fim} object.
+# ======================================================================================================
+#' Get the D criterion of the fim.
+#'
 #' @name getDcriterion
-#' @param object A \code{Fim} object.
-#' @return A numeric \code{Dcriterion} giving the D-criterion of a Fisher Information Matrix.
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return  A numeric giving the D criterion of the fim.
+# ======================================================================================================
 
 setGeneric("getDcriterion",
            function(object)
            {
              standardGeneric("getDcriterion")
-           }
-)
+           })
 
 setMethod(
-  f = "getDcriterion",
+  "getDcriterion",
   signature = "Fim",
   definition = function(object)
   {
-    Dcriterion <- det(object@mfisher)^ (1/dim(object@mfisher)[1])
+    fisherMatrix = getFisherMatrix( object )
+    Dcriterion = det(fisherMatrix)**(1/dim(fisherMatrix)[1])
     return(Dcriterion)
-  }
-)
+  })
 
-##########################################################################################################
+# ======================================================================================================
+#' Get the correlation matrix.
+#'
+#' @name getCorrelationMatrix
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return The correlation matrix of the fim.
+# ======================================================================================================
 
-#' Get the Standard Errors for a \code{Fim} object..
+setGeneric("getCorrelationMatrix",
+           function(object)
+           {
+             standardGeneric("getCorrelationMatrix")
+           })
+
+setMethod(
+  "getCorrelationMatrix",
+  signature = "Fim",
+  definition = function (object)
+  {
+    # ==============================
+    # correlation Matrix
+    # ==============================
+
+    fisherMatrix = getFisherMatrix( object )
+    colnamesFim = colnames( fisherMatrix )
+
+    if ( rcond( fisherMatrix ) <= .Machine$double.eps )
+    {
+      correlationMatrix = cov2cor( pinv( fisherMatrix ) )
+      colnames( correlationMatrix ) = colnames( fisherMatrix )
+      rownames( correlationMatrix ) = rownames( fisherMatrix )
+    }else{
+      correlationMatrix = cov2cor(solve( fisherMatrix ) )
+    }
+
+    # ==============================
+    # fixed effects
+    # ==============================
+
+    mu = "\u03bc_"
+    indexMu = which( grepl( mu, colnamesFim ) == TRUE )
+    fixedEffects = correlationMatrix[indexMu,indexMu]
+    fixedEffects = as.matrix( fixedEffects )
+    colnames( fixedEffects ) = colnamesFim[indexMu]
+    rownames( fixedEffects ) = colnames( fixedEffects )
+
+    # ==============================
+    # variance effects
+    # ==============================
+
+    omega = "\u03c9\u00B2_"
+    sigma = "\u03c3_"
+
+    indexOmega = which( grepl( omega, colnamesFim ) == TRUE )
+    indexSigma = which( grepl( sigma, colnamesFim ) == TRUE )
+
+    indexOmegaSigma = c( indexOmega, indexSigma )
+
+    if ( length( indexOmegaSigma ) !=0 )
+    {
+      varianceEffects = correlationMatrix[indexOmegaSigma,indexOmegaSigma]
+    }else{
+      varianceEffects = NULL
+    }
+
+    return( list( correlationMatrix = correlationMatrix, fixedEffects = fixedEffects, varianceEffects = varianceEffects ) )
+  })
+
+# ======================================================================================================
+#' Get the SE.
+#'
 #' @name getSE
-#' @param object A \code{Fim} object.
-#' @return A vector of numerical values giving the Standard Errors from the Fisher Information Matrix.
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A vector giving the SE.
+# ======================================================================================================
 
 setGeneric("getSE",
            function(object)
            {
              standardGeneric("getSE")
-           }
-)
+           })
 
 setMethod(
-  f ="getSE",
+  "getSE",
   signature = "Fim",
   definition = function (object)
   {
-    SE<-sqrt(diag(solve(object@mfisher)))
+    fisherMatrix = getFisherMatrix( object )
+    fisherMatrixTmp = fisherMatrix
+
+    if ( rcond( fisherMatrixTmp ) <= .Machine$double.eps )
+    {
+      SE = sqrt(diag(pinv(fisherMatrixTmp)))
+      names(SE) = colnames( fisherMatrixTmp )
+    }else{
+      SE = sqrt(diag(solve(fisherMatrix)))
+    }
+
     return(SE)
-  }
-)
+  })
 
-##########################################################################################################
+# ======================================================================================================
+#' Get the RSE
+#'
+#' @name getRSE
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param model An object from the class \linkS4class{Model}.
+#' @return A vector giving the RSE.
+# ======================================================================================================
 
-#' Get the correlation matrix of the Fisher Information Matrix for a \code{Fim} object.
-#' @name getCorr
-#' @param object A \code{Fim} object.
-#' @return A matrix of numerical values \code{corr_mat} giving the correlation matrix from the Fisher Information Matrix.
+setGeneric("getRSE",
+           function(object, model)
+           {
+             standardGeneric("getRSE")
+           })
 
-setGeneric("getCorr",
+# ======================================================================================================
+#' Get the shrinkage.
+#'
+#' @name getShrinkage
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A vector giving the shrinkage of the Bayesian fim.
+# ======================================================================================================
+
+setGeneric("getShrinkage",
            function(object)
            {
-             standardGeneric("getCorr")
-           }
-)
+             standardGeneric("getShrinkage")
+           })
+
+# ======================================================================================================
+#' Set the shrinkage.
+#'
+#' @name setShrinkage
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param value A vector giving the shrinkage of the Bayesian fim.
+#' @return The object with the updated shrinkage.
+# ======================================================================================================
+
+setGeneric("setShrinkage",
+           function(object, value)
+           {
+             standardGeneric("setShrinkage")
+           })
+
+# ======================================================================================================
+#' Get the eigenvalues of the fim.
+#'
+#' @name getEigenValues
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A vector giving the eigenvalues of the fim.
+# ======================================================================================================
+
+setGeneric("getEigenValues",
+           function(object)
+           {
+             standardGeneric("getEigenValues")
+           })
 
 setMethod(
-  f ="getCorr",
+  "getEigenValues",
   signature = "Fim",
   definition = function (object)
   {
-    corr_mat<-cov2cor(solve(object@mfisher))
-    return(corr_mat)
-  }
-)
+    fisherMatrix = getFisherMatrix( object )
+    eigenValues = eigen(fisherMatrix)$values
+    return(eigenValues)
+  })
 
-##########################################################################################################
+# ======================================================================================================
+#' Get the condition number of the matrix of the fixed effects.
+#'
+#' @name getConditionNumberFixedEffects
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A numeric giving the condition number of the matrix of the fixed effects.
+# ======================================================================================================
 
-#' Get the eigen values of the Fisher Information Matrix for a \code{Fim} object.
-#' @name getEigenValue
-#' @param object A \code{Fim} object.
-#' @return A vector of numerical values \code{EV} giving the eigen values of the \code{Fim} object.
-
-setGeneric("getEigenValue",
+setGeneric("getConditionNumberFixedEffects",
            function(object)
            {
-             standardGeneric("getEigenValue")
-           }
-)
+             standardGeneric("getConditionNumberFixedEffects")
+           })
 
 setMethod(
-  f ="getEigenValue",
+  "getConditionNumberFixedEffects",
   signature = "Fim",
   definition = function (object)
   {
-    EV<-eigen(object@mfisher)$values
-    return(EV)
-  }
-)
+    fisherMatrix = getFixedEffects( object )
+    conditionNumberFixedEffects = cond(fisherMatrix)
+    return(conditionNumberFixedEffects)
+  })
 
-##########################################################################################################
+# ======================================================================================================
+#' Get the condition number of the matrix of the variance effects.
+#'
+#' @name getConditionNumberVarianceEffects
+#' @param object An object from the class \linkS4class{Fim}..
+#' @return A numeric giving the condition number of the matrix of the variance effects.
+# ======================================================================================================
 
-#' Get the Condition Number Matrix of the Fisher Information Matrix for a \code{Fim} object..
-#' @name getConditionNumberMatrix
-#' @param object A \code{Fim} object.
-#' @param FixedEffectParameterNumber A numerical giving the number of Fixed Effect Parameters.
-#' @return A matrix \code{conditionNumbers} of numerical values giving the Condition Number Matrix the min, max and min/max for the FixedEffects and VarianceComponents.
-
-setGeneric("getConditionNumberMatrix",
-           function(object, FixedEffectParameterNumber)
+setGeneric("getConditionNumberVarianceEffects",
+           function(object)
            {
-             standardGeneric("getConditionNumberMatrix")
-           }
-)
+             standardGeneric("getConditionNumberVarianceEffects")
+           })
 
 setMethod(
-  f ="getConditionNumberMatrix",
+  "getConditionNumberVarianceEffects",
   signature = "Fim",
-  definition = function (object, FixedEffectParameterNumber)
+  definition = function (object)
   {
-    EV<-eigen(object@mfisher)$values
+    varianceEffects = getVarianceEffects( object )
+    conditionNumberVarianceEffects = cond( varianceEffects )
+    return( conditionNumberVarianceEffects )
+  })
 
-    minFixedEffect <- min(EV[1:FixedEffectParameterNumber])
-    maxFixedEffect <- max(EV[1:FixedEffectParameterNumber])
-
-    minRandomEffect <- min(EV[(FixedEffectParameterNumber+1):length(EV)])
-    maxRandomEffect <- max(EV[(FixedEffectParameterNumber+1):length(EV)])
-
-    conditionNumbers <- matrix(c(minFixedEffect, maxFixedEffect,maxFixedEffect/minFixedEffect, minRandomEffect, maxRandomEffect, maxRandomEffect/minRandomEffect ), ncol =2)
-    colnames(conditionNumbers) <- c("FixedEffects ", "VarianceComponents")
-    rownames(conditionNumbers) <- c("min", "max", "max/min")
-    return(conditionNumbers)
-  }
-)
-
-
-
-##########################################################################################################
-
-#' Show the Fisher Information Matrix for a \code{Fim} object and its information: Determinant, D-criterion, SE, Eigenvalues, Correlation.
+# ======================================================================================================
+#' Get the names of the names of the parameters associated to each column of the fim.
 #'
-#' @rdname show
-#' @param object A \code{Fim} object.
-#' @return Print the Fisher Information Matrix and its informations: Determinant, D-criterion, SE, Eigenvalues, Correlation.
+#' @name getColumnAndParametersNamesFIM
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param model An object from the class \linkS4class{Model}.
+#' @return A list giving the names of the parameters associated to each column of the fim.
+# ======================================================================================================
 
-setMethod(f = "show",
-          signature = "Fim",
-          definition = function(object)
-          {
-            cat("Fisher matrix\n")
-            return()
-            #print( object@mfisher )
-            # MF <- object@mfisher
-            #
-            # if( any( is.na( MF[1][1] ) ) )
-            #   cat(" This design have not be evaluated.\n\n")
-            # else
-            # {
-            #   if(object@isOptimizationResult)
-            #     cat(" This is an optimization result.\n")
-            #   else
-            #     cat(" This is an evaluation result.\n")
-            #
-            #   cat( "\n ", getDescription( object ), "\n" )
-            #
-            #   print( getMfisher(object) )
-            #
-            #   tryCatch({
-            #     cat("\n Determinant\n")
-            #     cat( getDeterminant(object),"\n" )
-            #   },error=function(e){
-            #     cat("Determinant cannot be calculated.\n")
-            #   })
-            #
-            #   tryCatch({
-            #     cat("\n D-criterion\n")
-            #     cat( getDcriterion(object),"\n" )
-            #   },error=function(e){
-            #     cat("D-criterion cannot be calculated.\n" )
-            #   })
-            #
-            #   cat("\n SE\n")
-            #   print( getSE(object) )
-            #
-            #   tryCatch({
-            #     cat("\n EigenValue \n")
-            #     eigens <- getEigenValue(object)
-            #     names(eigens) <- names(getSE(object))
-            #     print( eigens )
-            #   },error=function(e){
-            #     cat("EigenValues cannot be calculated.\n" )
-            #   })
-            #
-            #   tryCatch({
-            #     cat("\n Correlation\n")
-            #     print( getCorr(object) )
-            #   },error=function(e){
-            #     cat("Correlations cannot be calculated.\n" )
-            #   })
-            #
-            #   return(getSE(object))
-            # }
-          }
-)
-
-##########################################################################################################
-
-# Compute expected standard error data frame
-#' @name getStatisticalModelStandardErrors
-#' @rdname getStatisticalModelStandardErrors
-#' @aliases getStatisticalModelStandardErrors
-#' @param object A \code{Fim} object.
-#' @param modelParameters A character string giving the model parameters.
-#' @return A data frame giving the expected standard error.
-
-setGeneric("getStatisticalModelStandardErrors",
-           function(object, modelParameters)
+setGeneric("getColumnAndParametersNamesFIM",
+           function(object, model )
            {
-             standardGeneric("getStatisticalModelStandardErrors")
-           }
-)
+             standardGeneric("getColumnAndParametersNamesFIM")
+           })
 
-##########################################################################################################
-
-#' Show expected standard error data frame.
+# ======================================================================================================
+#' #' Get the names of the names of the parameters associated to each column of the fim in Latex format.
 #'
-#' @name showStatisticalModelStandardErrors
-#' @rdname showStatisticalModelStandardErrors
-#' @aliases showStatisticalModelStandardErrors
-#' @param object A \code{Fim} object.
-#' @param modelParameters A character string giving the model parameters.
-#' @return A data frame giving the standard error.
+#' @name getColumnAndParametersNamesFIMInLatex
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param model An object from the class \linkS4class{Model}.
+#' @return A list giving the names of the parameters associated to each column of the fim in Latex format.
+# ======================================================================================================
 
-setGeneric("showStatisticalModelStandardErrors",
-           function(object, modelParameters)
+setGeneric("getColumnAndParametersNamesFIMInLatex",
+           function(object, model )
            {
-             standardGeneric("showStatisticalModelStandardErrors")
-           }
-)
+             standardGeneric("getColumnAndParametersNamesFIMInLatex")
+           })
+
+
+# ======================================================================================================
+#' Generate the tables for the report.
+#'
+#' @name reportTablesFIM
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param evaluationObject A list giving the results of the evaluation of the model.
+#' @return A list giving the table in kable format for the report.
+# ======================================================================================================
+
+setGeneric("reportTablesFIM",
+           function( object, evaluationObject )
+           {
+             standardGeneric("reportTablesFIM")
+           })
+
+# ======================================================================================================
+#' Generate the report for the evaluation
+#'
+#' @name generateReportEvaluation
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param evaluationObject A list giving the results of the evaluation of the model.
+#' @param outputPath A string giving the output path.
+#' @param outputFile A string giving the name of the output file.
+#' @param plotOptions A list giving the plot options.
+#' @return Return the report for the evaluation in html.
+# ======================================================================================================
+
+setGeneric("generateReportEvaluation",
+           function( object, evaluationObject, outputPath, outputFile, plotOptions )
+           {
+             standardGeneric("generateReportEvaluation")
+           })
+
+# ======================================================================================================
+#' Convert the type of the object fim to a string.
+#'
+#' @name setFimTypeToString
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return The type of the object fim convert as a string.
+# ======================================================================================================
+
+setGeneric("setFimTypeToString",
+           function( object )
+           {
+             standardGeneric("setFimTypeToString")
+           })
+
+setMethod(
+  "setFimTypeToString",
+  signature = "Fim",
+  definition = function( object )
+  {
+    if ( is( object, "PopulationFim" ) )
+    {
+      object = "population"
+    }
+    else if ( is( object, "IndividualFim" ) )
+    {
+      object = "individual"
+    }
+    else if ( is( object, "BayesianFim" ) )
+    {
+      object = "Bayesian"
+    }
+    return( object )
+  })
 
 ##########################################################################################################
-# END Class "Fim"
+# End Class "Fim"
 ##########################################################################################################
-
-

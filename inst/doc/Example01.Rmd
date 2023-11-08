@@ -44,176 +44,216 @@ knitr::opts_chunk$set(collapse = TRUE,
 comment = "#>",echo = FALSE, warning = FALSE, message = FALSE,
 cache = FALSE, tidy = FALSE, size = "small")
 devtools::load_all()
+library(stringr) 
 ```
 
 # Overview
 
 Data for this example result from a PKPD population study on a non-steroidal molecule [@FloresMurrieta1998]. Single doses of 1, 3.2, 10, 31.6, 56.2, or 100mg/kg per os were given respectively to 6 groups, each of which contained at least 6 rats (weighing 200g on average), following a parallel design. Blood sampling and drug response (DI score) evaluation were conducted at 0, 15, 30, and 45 min and at 1, 1.25, 1.5, 2, 3 and 4 hours after administration.
 
-Based on the evaluation results, we choose to optimize a design for 30 rats receiving a single dose of either 100mg/kg or 320 mg/kg, selecting only 3 from previously defined time points for blood sampling and response evaluation by using Fedorov-Wynn method.
+Based on the evaluation results, we choose to optimize a design for 30 rats receiving a single dose of either 100mg/kg or 320 mg/kg, selecting only 3 from previously defined time points for blood sampling and response evaluation by using Fedorov-Wynn method and Multiplicative Algorithm.
 
 Reports of the design evaluation and optimization are available at https://github.com/iame-researchCenter/PFIM
 
 # Design evaluation 
 
-### Create two PFIM projects:
-#### - `MyProject_evaluation`: project for the design evaluation named `eval_PKPD_FloresMurrieta1998`
-#### - `MyProject_optimization`: project for the design optimization named `opti_PKPD_FloresMurrieta1998`
-
-```{r, echo = TRUE, comment=''} 
-MyProject_evaluation = PFIMProject(name = "eval_PKPD_FloresMurrieta1998")
-MyProject_optimization = PFIMProject(name = "opti_PKPD_FloresMurrieta1998")
+```{r}
+outputPath = getwd()
 ```
 
-### Create the statistical model and set the parameters for the ode solver
-```{r, echo = TRUE, comment=''} 
-MyStatisticalModel = StatisticalModel()
-MyStatisticalModel = setParametersOdeSolver( MyStatisticalModel, list( atol=1e-8, rtol=1e-8, .relStep=1e-8 ) )
-```
 
 ### Define the model equations of the PKPD model
 ```{r, echo = TRUE, comment=''} 
-MyModelEquations  =  ModelODEquations( list(RespPK = expression( Cc ),
-                                           RespPD = expression( E )) ,
-                                      list("Deriv_Cc" = expression( dose_RespPK/V*ka*exp(-ka*t) - Cl/V*Cc ),
-                                           "Deriv_E" = expression(Rin*(1-Imax*(Cc**gamma)/(Cc**gamma + IC50**gamma))-kout*E) ) )
+modelEquations = list(
+
+  outcomes = list( "RespPK"  = "Cc",
+                   "RespPD"  = "E" ),
+
+  equations = list(  "Deriv_Cc" = "dose_RespPK/V*ka*exp(-ka*t) - Cl/V*Cc",
+                     "Deriv_E" = "Rin*(1-Imax*(Cc**gamma)/(Cc**gamma + IC50**gamma))-kout*E" ) )
 ```
 
-### Assign the PKPD model the statistical model
-```{r, echo = TRUE, comment=''} 
-MyStatisticalModel = defineModelEquations( MyStatisticalModel, MyModelEquations )
-```
-
-### Create the variables of the PKPD model
-```{r, echo = TRUE, comment=''} 
-vCc  =  ModelVariable( "Cc" )
-vE  =  ModelVariable( "E" )
-```
-
-### Assign the model variables to the statistical model
-```{r, echo = TRUE, comment=''} 
-MyStatisticalModel  =  defineVariable( MyStatisticalModel, vCc )
-MyStatisticalModel  =  defineVariable( MyStatisticalModel, vE )
-```
 
 ### Set mu and omega for each parameter
 ```{r, echo = TRUE, comment=''} 
-pV = ModelParameter( "V", mu = 0.74, omega = 0.316, distribution = LogNormalDistribution() )
-pCl = ModelParameter( "Cl", mu = 0.28, omega = 0.456, distribution = LogNormalDistribution() )
-pka = ModelParameter( "ka", mu = 10, fixedMu = TRUE, omega = sqrt( 0 ), distribution = LogNormalDistribution() )
-pkout = ModelParameter( "kout", mu = 6.14, omega = 0.947, distribution = LogNormalDistribution() )
-pRin = ModelParameter( "Rin", mu = 614, fixedMu = TRUE, omega = sqrt( 0 ), distribution = LogNormalDistribution() )
-pImax = ModelParameter( "Imax", mu = 0.76, omega = 0.439, distribution = LogNormalDistribution() )
-pIC50 = ModelParameter( "IC50", mu = 9.22, omega = 0.452, distribution = LogNormalDistribution() )
-pgamma = ModelParameter( "gamma", mu = 2.77, omega = 1.761, distribution = LogNormalDistribution() )
+modelParameters = list(
+
+  ModelParameter( name = "V",
+                  distribution = LogNormal( mu = 0.74, omega = 0.316 ) ),
+
+  ModelParameter( name = "Cl",
+                  distribution = LogNormal( mu = 0.28, omega = 0.456 ) ),
+
+  ModelParameter( name = "ka",
+                  distribution = LogNormal( mu = 10, omega = sqrt( 0 ) ), fixedMu = TRUE ),
+
+  ModelParameter( name = "kout",
+                  distribution = LogNormal( mu = 6.14, omega = 0.947 ) ),
+  
+  ModelParameter( name = "Rin",
+                  distribution = LogNormal( mu = 614, omega = sqrt( 0 ) ), fixedMu = TRUE ),
+
+  ModelParameter( name = "Imax",
+                  distribution = LogNormal( mu = 0.76, omega = 0.439 ) ),
+
+  ModelParameter( name = "IC50",
+                  distribution = LogNormal( mu = 9.22, omega = 0.452 ) ),
+  
+  ModelParameter( name = "gamma",
+                  distribution = LogNormal( mu = 2.77, omega = 1.761 ) )
+  
+  )
+
 ```
 
-### Assign the model parameters to the statistical model
+
+### Create the error model to the responses PK and PD. 
 ```{r, echo = TRUE, comment=''} 
-MyStatisticalModel = defineParameter( MyStatisticalModel, pka )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pV )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pCl )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pkout )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pRin )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pImax )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pIC50 )
-MyStatisticalModel = defineParameter( MyStatisticalModel, pgamma )
+errorModelRespPK = Combined1( outcome = "RespPK", sigmaInter = 0, sigmaSlope = 0.21 )
+errorModelRespPD = Constant( outcome = "RespPD", sigmaInter = 9.6 )
+modelError = list( errorModelRespPK, errorModelRespPD )
 ```
 
-### Create and add the error model to the responses PK and PD. Create and add the responses PK and PD to the statistical model
-```{r, echo = TRUE, comment=''} 
-MyStatisticalModel = addResponse( MyStatisticalModel, Response( "RespPK", Proportional( sigma_slope = 0.21 ) ) )
-MyStatisticalModel = addResponse( MyStatisticalModel, Response( "RespPD", Constant( sigma_inter = 9.6 ) ) )
-```
 
-### Assign the statistical model to the PFIM projects  
-```{r, echo = TRUE, comment=''} 
-MyProject_evaluation = defineStatisticalModel( MyProject_evaluation, MyStatisticalModel )
-MyProject_optimization = defineStatisticalModel( MyProject_optimization, MyStatisticalModel )
-```
 
-### Create a design called `MyDesign`
-```{r, echo = TRUE, comment=''} 
-MyDesign =  Design( name = "MyDesign")
-```
 ### Define the arms and for each arm 
-    - create and add the administration parameters for the response PK
-    - create and add the sampling times for the responses PK and PD
+    - create the administration parameters for the response PK
+    - create the sampling times for the responses PK and PD
 ```{r, echo = TRUE, comment=''} 
-brasTest1 = Arm( name="0.2mg Arm", arm_size = 6, cond_init = list("Cc"=0,"E"=100) )
-brasTest1 = addAdministration( brasTest1, Administration( outcome = "RespPK", time_dose = c(0), amount_dose = c(0.2) ) )
-brasTest1 = addSampling( brasTest1, SamplingTimes( outcome = "RespPK", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
-brasTest1 = addSampling( brasTest1, SamplingTimes( outcome = "RespPD", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
 
-brasTest2 = Arm( name="0.64mg Arm", arm_size = 6, cond_init = list("Cc"=0,"E"=100) )
-brasTest2 = addAdministration( brasTest2, Administration( outcome = "RespPK", time_dose = c(0), amount_dose = c(0.64) ) )
-brasTest2 = addSampling( brasTest2, SamplingTimes( outcome = "RespPK", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
-brasTest2 = addSampling( brasTest2, SamplingTimes( outcome = "RespPD", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
+# sampling times
+samplingTimesRespPK = SamplingTimes( outcome = "RespPK",
+                                     samplings = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) )
 
-brasTest3 = Arm( name="2mg Arm", arm_size = 6, cond_init = list("Cc"=0,"E"=100) )
-brasTest3 = addAdministration( brasTest3, Administration( outcome = "RespPK", time_dose = c(0), amount_dose = c(2) ) )
-brasTest3 = addSampling( brasTest3, SamplingTimes( outcome = "RespPK", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
-brasTest3 = addSampling( brasTest3, SamplingTimes( outcome = "RespPD", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
+samplingTimesRespPD = SamplingTimes( outcome = "RespPD",
+                                     samplings = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) )
 
-brasTest4 = Arm( name="6.24mg Arm", arm_size = 6, cond_init = list("Cc"=0,"E"=100) )
-brasTest4 = addAdministration( brasTest4, Administration( outcome = "RespPK", time_dose = c(0), amount_dose = c(6.24) ) )
-brasTest4 = addSampling( brasTest4, SamplingTimes( outcome = "RespPK", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
-brasTest4 = addSampling( brasTest4, SamplingTimes( outcome = "RespPD", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
+## arms
 
-brasTest5 = Arm( name="11.24mg Arm", arm_size = 6, cond_init = list("Cc"=0,"E"=100) )
-brasTest5 = addAdministration( brasTest5, Administration( outcome = "RespPK", time_dose = c(0), amount_dose = c(11.24) ) )
-brasTest5 = addSampling( brasTest5, SamplingTimes( outcome = "RespPK", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
-brasTest5 = addSampling( brasTest5, SamplingTimes( outcome = "RespPD", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
+# Administrations
+administrationRespPK1 = Administration( outcome = "RespPK", timeDose = c(0), dose = c( 0.2 ) )
 
-brasTest6 = Arm( name="20mg Arm", arm_size = 6, cond_init = list("Cc"=0,"E"=100) )
-brasTest6 = addAdministration( brasTest6, Administration( outcome = "RespPK", time_dose = c(0), amount_dose = c(20) ) )
-brasTest6 = addSampling( brasTest6, SamplingTimes( outcome = "RespPK", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) )
-brasTest6 = addSampling( brasTest6, SamplingTimes( outcome = "RespPD", sample_time = c( 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4 ) ) ) 
+arm1 = Arm( name = "0.2mg Arm",
+            size = 6,
+            administrations = list( administrationRespPK1 ) ,
+            samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
+            initialCondition = list( "Cc" = 0,
+                                     "E" = 100 ) )
+
+
+# Administrations
+administrationRespPK2 = Administration( outcome = "RespPK", timeDose = c(0), dose = c( 0.64 ) )
+
+arm2 = Arm( name = "0.64mg Arm",
+            size = 6,
+            administrations = list( administrationRespPK2 ) ,
+            samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
+            initialCondition = list( "Cc" = 0,
+                                     "E" = 100 ) )
+
+# Administrations
+administrationRespPK3 = Administration( outcome = "RespPK", timeDose = c(0), dose = c( 2 ) )
+
+arm3 = Arm( name = "2mg Arm",
+            size = 6,
+            administrations = list( administrationRespPK3 ) ,
+            samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
+            initialCondition = list( "Cc" = 0,
+                                     "E" = 100 ) )
+
+# Administrations
+administrationRespPK4 = Administration( outcome = "RespPK", timeDose = c(0), dose = c( 6.24 ) )
+
+arm4 = Arm( name = "6.24mg Arm",
+            size = 6,
+            administrations = list( administrationRespPK4 ) ,
+            samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
+            initialCondition = list( "Cc" = 0,
+                                     "E" = 100 ) )
+
+# Administrations
+administrationRespPK5 = Administration( outcome = "RespPK", timeDose = c(0), dose = c( 11.24 ) )
+
+arm5 = Arm( name = "11.24mg Arm",
+            size = 6,
+            administrations = list( administrationRespPK5 ) ,
+            samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
+            initialCondition = list( "Cc" = 0,
+                                     "E" = 100 ) )
+
+# Administrations
+administrationRespPK6 = Administration( outcome = "RespPK", timeDose = c(0), dose = c( 20 ) )
+
+arm6 = Arm( name = "20mg Arm",
+            size = 6,
+            administrations = list( administrationRespPK6 ) ,
+            samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
+            initialCondition = list( "Cc" = 0,
+                                     "E" = 100 ) )
+
 ```
 
-### Add the arms to the design `MyDesign`
+### Add the arms to the design `design1`
 ```{r, echo = TRUE, comment=''} 
-MyDesign  =  addArm( MyDesign, brasTest1 )
-MyDesign  =  addArm( MyDesign, brasTest2 )
-MyDesign  =  addArm( MyDesign, brasTest3 )
-MyDesign  =  addArm( MyDesign, brasTest4 )
-MyDesign  =  addArm( MyDesign, brasTest5 )
-MyDesign  =  addArm( MyDesign, brasTest6 )
+design1 = Design( name = "design1", arms = list( arm1, arm2, arm3, arm4, arm5, arm6 ) )
 ```
 
-### Add the design `MyDesign` to the PFIM project `MyProject_evaluation`
-```{r, echo = TRUE, comment=''} 
-MyProject_evaluation  =  addDesign( MyProject_evaluation, MyDesign )
-```
 
 ### Evaluate the population FIM
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-evaluationPop  =  EvaluatePopulationFIM( MyProject_evaluation )
+evaluationFIM = Evaluation( name = "",
+                            modelEquations = modelEquations,
+                            modelParameters = modelParameters,
+                            modelError = modelError,
+                            outcomes = list( "RespPK"  = "Cc", "RespPD"  = "E" ),
+                            designs = list( design1 ),
+                            fim = "population",
+                            odeSolverParameters = list( atol = 1e-4, rtol = 1e-4 ) )
+
+evaluationFIM = run( evaluationFIM )
 ```
 
 ### Display the results of the design evaluation
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-show( evaluationPop )
+show( evaluationFIM )
 ```
 
 ### Create and save the report for the design evaluation
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-# set the path and name of the report to save the report
-outputPath = "C:/Users/ADMIN Romain LEROUX/Documents/GIT PFIM/PFIM/PAGE2022"
 
+outputFile = "Example01_EvaluationPopFIM.html"
 plotOptions = list( unitTime=c("hour"), unitResponses= c("mcg/mL","DI%") )
- 
-evaluationPop = setNamePFIMProject( evaluationPop, "PKPD_FloresMurrieta1998_populationFIM" )
 
-reportPFIMProject( evaluationPop,
-                   outputPath = outputPath, plotOptions = plotOptions )
+Report( evaluationFIM, outputPath, outputFile, plotOptions )
+
 ```
 
 ### Evaluate the individual and Bayesian FIMs
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-evaluationInd = EvaluateIndividualFIM( MyProject_evaluation )
-evaluationBay = EvaluateBayesianFIM( MyProject_evaluation )
+evaluationInd = Evaluation( name = "",
+                            modelEquations = modelEquations,
+                            modelParameters = modelParameters,
+                            modelError = modelError,
+                            outcomes = list( "RespPK"  = "Cc", "RespPD"  = "E" ),
+                            designs = list( design1 ),
+                            fim = "individual",
+                            odeSolverParameters = list( atol = 1e-4, rtol = 1e-4 ) )
+
+evaluationInd = run( evaluationInd )
+
+evaluationBay = Evaluation( name = "",
+                            modelEquations = modelEquations,
+                            modelParameters = modelParameters,
+                            modelError = modelError,
+                            outcomes = list( "RespPK"  = "Cc", "RespPD"  = "E" ),
+                            designs = list( design1 ),
+                            fim = "Bayesian",
+                            odeSolverParameters = list( atol = 1e-4, rtol = 1e-4 ) )
+
+evaluationBay = run( evaluationBay )
+
+
 ```
 
 ### Display the results of the design evaluation
@@ -225,89 +265,81 @@ show( evaluationBay )
 ### Reports for the design evaluation
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-evaluationInd = setNamePFIMProject( evaluationInd, "PKPD_FloresMurrieta1998_IndividualFIM" )
-reportPFIMProject( evaluationInd,
-                   outputPath = outputPath, plotOptions = plotOptions )
 
-evaluationBay = setNamePFIMProject( evaluationBay, "PKPD_FloresMurrieta1998_BayesianFIM" )
-reportPFIMProject( evaluationBay,
-                   outputPath = outputPath, plotOptions = plotOptions )
+plotOptions = list( unitTime=c("hour"), unitResponses= c("mcg/mL","DI%") )
+
+outputFile = "Example01_EvaluationIndFIM.html"
+Report( evaluationInd, outputPath, outputFile, plotOptions )
+
+outputFile = "Example01_EvaluationBayFIM.html"
+Report( evaluationBay, outputPath, outputFile, plotOptions )
+
 ```
 
 # Design optimization
 
-### Define the arm and 
-    - create and add the administration parameters for the response PK
-    - create and add the sampling times for the responses PK and PD
-    
-```{r, echo = TRUE, comment=''} 
-brasTest = Arm( name="20mg Arm", arm_size = 30, cond_init = list( "Cc" = 0,"E"= expression( Rin/kout ) ) )
-brasTest = addAdministration( brasTest, Administration( outcome = "RespPK", time_dose = c(0), amount_dose = c(20) ) )
-brasTest = addSampling( brasTest, SamplingTimes( outcome = "RespPK", sample_time = c( 0.25, 1, 4 ) ) )
-brasTest = addSampling( brasTest, SamplingTimes( outcome = "RespPD", sample_time = c( 1.5, 2, 6 ) ) )
-```
 
-### Create and add the design `MyDesign2` to the project `MyProject_optimization`
+### Create an administration for response PK and samplings times
+We create sampling times that will be used in the initial design for comparison during the optimization process. 
 ```{r, echo = TRUE, comment=''} 
-MyDesign2= Design( name = "MyDesign2")
-MyDesign2 = addArm( MyDesign2, brasTest )
-MyProject_optimization = addDesign( MyProject_optimization, MyDesign2 )
+
+samplingTimesRespPK = SamplingTimes( outcome = "RespPK", samplings = c( 0.25, 0.75, 1, 1.5, 2, 4, 6 ) )
+samplingTimesRespPD = SamplingTimes( outcome = "RespPD", samplings = c( 0.25, 0.75, 1.5, 2, 3, 6, 8, 12 ) )
 ```
 
 ### Create a sampling constraint for the responses PK and PD
+  - Set the vector of allowed sampling times for the responses PK and PD
+  - Fix certain time values
+  - Set the number of optimisable sampling times 
 ```{r, echo = TRUE, comment=''} 
-samplingRespPK = SamplingConstraint( response = "RespPK" )
-samplingRespPD = SamplingConstraint( response = "RespPD" )
+samplingConstraintsRespPK  = SamplingTimeConstraints( outcome = "RespPK",
+                                                     initialSamplings = c( 0.25, 0.75, 1, 1.5, 2, 4, 6 ),
+                                                     fixedTimes = c( 0.25, 4 ),
+                                                     numberOfsamplingsOptimisable = 3 
+                                                     )
+
+samplingConstraintsRespPD  = SamplingTimeConstraints( outcome = "RespPD",
+                                                     initialSamplings = c( 0.25, 0.75, 1.5, 2, 3, 6, 8, 12 ),
+                                                     fixedTimes = c( 2, 6 ),
+                                                     numberOfsamplingsOptimisable = 3 )
+
 ```
-### Define the vector of allowed sampling times for the responses PK and PD
-```{r, echo = TRUE, comment=''} 
-samplingRespPK = allowedDiscretSamplingTimes( samplingRespPK, list( c( 0.25, 0.75, 1, 1.5, 2, 4, 6 ) ) )
-samplingRespPD = allowedDiscretSamplingTimes( samplingRespPD, list( c( 0.25, 0.75, 1.5, 2, 3, 6, 8, 12 ) ) )
-```
+
 
 ### Set the initial vectors for the FedorovWynn algorithm
 ```{r, echo = TRUE, comment=''} 
 initialElementaryProtocols = list( c( 0.25, 1, 4 ), c( 1.5, 2, 6 ) )
 ```
 
-### Set the number of optimisable sampling times 
+
+### Create an administration constraint with the vector of allowed amount of doses for the response PK
 ```{r, echo = TRUE, comment=''} 
-samplingRespPK = numberOfSamplingTimesIsOptimisable( samplingRespPK, c(3) )
-samplingRespPD = numberOfSamplingTimesIsOptimisable( samplingRespPD, c(3) ) 
+administrationConstraintsResp = AdministrationConstraints( outcome = "RespPK",
+                                                             doses = c( 0.2, 0.64, 2, 6.24, 11.24, 20 )
+                                                           )
+
 ```
 
-### Fix certain time values
-```{r, echo = TRUE, comment=''} 
-samplingRespPK = FixTimeValues( samplingRespPK, c( 0.25, 4 ) )
-samplingRespPD = FixTimeValues( samplingRespPD, c( 2, 6 ) )
-```
 
-### Create a design constraint and add the sampling constraints to the design
+### Create the constraint design to the project
+  - total number of individuals to be considered
+  - administration constraint
+  - sampling constraint
 ```{r, echo = TRUE, comment=''} 
-Constr = DesignConstraint()
-Constr = addSamplingConstraint( Constr, samplingRespPK )
-Constr = addSamplingConstraint( Constr, samplingRespPD )
-```
 
-### Create an administration for response PK
-```{r, echo = TRUE, comment=''} 
-administrationResp = AdministrationConstraint( response = "RespPK" )
-```
+armConstraint = Arm( name = "armConstraint",
+            size = 30,
+            administrations = list( administrationRespPK1 ),
+            samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
+            administrationsConstraints = list( administrationConstraintsResp ),
+            samplingTimesConstraints = list( samplingConstraintsRespPK, samplingConstraintsRespPD ),
+            initialCondition = list( "Cc" = 0,
+                                     "E" = "Rin/kout"  )
+            )
 
-### Define the vector of allowed amount of doses for the response PK
-```{r, echo = TRUE, comment=''} 
-administrationResp  =  AllowedDoses( administrationResp, c(20,64) )
-Constr = addAdministrationConstraint( Constr, administrationResp )
-```
+designConstraint = Design( name = "designConstraint", 
+                           arms = list( armConstraint ), numberOfArms = 30 )
 
-### Define the total number of individuals to be considered
-```{r, echo = TRUE, comment=''} 
-Constr = setTotalNumberOfIndividuals( Constr, 30 )
-```
-
-### Add the design to the project
-```{r, echo = TRUE, comment=''} 
-MyProject_optimization = setConstraint( MyProject_optimization, Constr )
 ```
 
 ### Set the vector of initial proportions or numbers of subjects for each elementary design
@@ -318,24 +350,73 @@ proportionsOfSubjects = c(30)/30
 
 ### Set the the parameters of the FedorovWynn algorithm and run the algorithm for the design optimization with a population FIM
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-optimizer  =  FedorovWynnAlgorithm( initialElementaryProtocols,numberOfSubjects, proportionsOfSubjects, showProcess = T )
-optimization_populationFIM  =  OptimizeDesign( MyProject_optimization , optimizer, PopulationFim() )
+optimizationFWPopFIM = Optimization( name = "PKPD_ODE_multi_doses_populationFIM",
+                             modelEquations = modelEquations,
+                             modelParameters = modelParameters,
+                             modelError = modelError,
+                             optimizer = "FedorovWynnAlgorithm",
+                             optimizerParameters = list( elementaryProtocols = initialElementaryProtocols,
+                                                         numberOfSubjects = numberOfSubjects,
+                                                         proportionsOfSubjects = proportionsOfSubjects,
+                                                         showProcess = T ),
+                             designs = list( designConstraint ),
+                             fim = "population",
+                             outcomes = list( "RespPK" = "Cc","RespPD" = "E" ),
+                             odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
+
+optimizationFWPopFIM = run( optimizationFWPopFIM )
 ```
 
 ### Display the results of the design optimization
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-show( optimization_populationFIM )
+show( optimizationFWPopFIM )
 ```
 
 ### Reports for the design optimization
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-# set the path and name of the report to save the report
-outputPath = "C:/Users/ADMIN Romain LEROUX/Documents/GIT PFIM/PFIM/PAGE2022"
-
-plotOptions = list( unitTime=c("hour"), unitResponses= c("mcg/mL","DI%") )
-
-reportPFIMProject( optimization_populationFIM, outputPath = outputPath, plotOptions = plotOptions  )
+outputFile = "Example01_OptimizationFWPopFIM.html"
+Report( optimizationFWPopFIM, outputPath, outputFile, plotOptions )
 ```
+
+### Set the the parameters of the Multiplicative Algorithm algorithm and run the algorithm for the design optimization with a population FIM
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+
+optimizationMultPopFIM = Optimization( name = "PKPD_ODE_multi_doses_populationFIM",
+                             modelEquations = modelEquations,
+                             modelParameters = modelParameters,
+                             modelError = modelError,
+                             optimizer = "MultiplicativeAlgorithm",
+                             optimizerParameters = list( lambda = 0.99,
+                                                         numberOfIterations = 1000,
+                                                         delta = 1e-04, showProcess = T ),
+                              designs = list( designConstraint ),
+                             fim = "population",
+                             outcomes = list( "RespPK" = "Cc","RespPD" = "E" ),
+                             odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
+
+
+```
+
+### Run the Multiplicative Algorithm algorithm for the optimization with a population FIM
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+optimizationMultPopFIM = run( optimizationMultPopFIM )
+```
+
+### Display the results of the design optimization
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+show( optimizationMultPopFIM )
+
+```
+
+### Create and save the report for the design optimization
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+
+plotOptions = list( unitTime=c("hour"), unitResponses= c("mcg/mL","DI%"), threshold = 0.01 )
+
+outputFile = "Example01_OptimizationMultPopFIM.html"
+Report( optimizationMultPopFIM, outputPath, outputFile, plotOptions )
+```
+
 
 # References  
 

@@ -2,16 +2,16 @@
 % Please edit documentation in R/ModelParameter.R
 \name{getDistribution}
 \alias{getDistribution}
-\title{Get the distribution of a \code{ModelParameter} object.}
+\title{Get the distribution.}
 \usage{
 getDistribution(object)
 }
 \arguments{
-\item{object}{\code{ModelParameter} object.}
+\item{object}{An object from the class \linkS4class{ModelParameter}.}
 }
 \value{
-The distribution given by \code{distribution} of a \code{ModelParameter} object.
+The parameter distribution.
 }
 \description{
-Get the distribution of a \code{ModelParameter} object.
+Get the distribution.
 }

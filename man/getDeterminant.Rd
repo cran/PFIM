@@ -2,16 +2,16 @@
 % Please edit documentation in R/Fim.R
 \name{getDeterminant}
 \alias{getDeterminant}
-\title{Get the Determinant of a Fisher Information Matrix.}
+\title{Get the determinant of the fim.}
 \usage{
 getDeterminant(object)
 }
 \arguments{
-\item{object}{\code{Fim} object.}
+\item{object}{An object from the class \linkS4class{Fim}.}
 }
 \value{
-A numeric \code{Det} giving the determinant of a Fisher Information Matrix.
+A numeric giving the determinant of the fim.
 }
 \description{
-Get the Determinant of a Fisher Information Matrix.
+Get the determinant of the fim.
 }

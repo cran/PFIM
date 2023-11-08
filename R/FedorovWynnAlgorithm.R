@@ -1,13 +1,14 @@
-#####################################################################################################################################
 #' Class "FedorovWynnAlgorithm"
 #'
 #' @description Class \code{FedorovWynnAlgorithm} represents an initial variable for ODE model.
 #'
 #' @name FedorovWynnAlgorithm-class
+#' @aliases FedorovWynnAlgorithm
 #' @docType class
-#' @include Optimization.R
+#' @include OptimizationAlgorithm.R
+#' @include GenericMethods.R
 #' @include Design.R
-#' @exportClass FedorovWynnAlgorithm
+#' @export
 #'
 #' @section Objects from the class \code{FedorovWynnAlgorithm}:
 #' Objects form the class \code{FedorovWynnAlgorithm} can be created by calls of the form \code{FedorovWynnAlgorithm(...)}
@@ -15,7 +16,7 @@
 #'
 #'@section Slots for \code{FedorovWynnAlgorithm} objects:
 #' \describe{
-#' \item{\code{initialElementaryProtocols}:}{A list of vector for the intial elementary protocols.}
+#' \item{\code{elementaryProtocols}:}{A list of vector for the initial elementary protocols.}
 #' \item{\code{numberOfSubjects}:}{A vector for the number of subjects.}
 #' \item{\code{proportionsOfSubjects}:}{A vector for the number of subjects.}
 #' \item{\code{OptimalDesign}:}{A object Design giving the optimal Design.}
@@ -25,18 +26,16 @@
 #' \item{\code{optimalSamplingTimes}:}{A list of vectors for the optimal sampling times.}
 #' \item{\code{optimalDoses}:}{A vector for the optimal doses.}
 #' }
-#'
-#####################################################################################################################################
 
-FedorovWynnAlgorithm<-setClass(
+FedorovWynnAlgorithm = setClass(
   Class = "FedorovWynnAlgorithm",
-  contains = "Optimization",
+  contains = "OptimizationAlgorithm",
   representation = representation(
-    initialElementaryProtocols = "list",
+    elementaryProtocols = "list",
     numberOfSubjects = "vector",
     proportionsOfSubjects = "vector",
     showProcess = "logical",
-    OptimalDesign = "Design",
+    optimalDesign = "Design",
     FisherMatrix = "vector",
     optimalFrequencies = "vector",
     optimalSamplingTimes = "list",
@@ -46,19 +45,19 @@ FedorovWynnAlgorithm<-setClass(
 setMethod(
   f="initialize",
   signature="FedorovWynnAlgorithm",
-  definition= function (.Object, initialElementaryProtocols, numberOfSubjects, proportionsOfSubjects, showProcess)
+  definition= function (.Object, elementaryProtocols, numberOfSubjects, proportionsOfSubjects, showProcess)
   {
-    if(!missing(initialElementaryProtocols))
-      .Object@initialElementaryProtocols<-initialElementaryProtocols
+    if(!missing(elementaryProtocols))
+      .Object@elementaryProtocols=elementaryProtocols
 
     if(!missing(numberOfSubjects))
-      .Object@numberOfSubjects<-numberOfSubjects
+      .Object@numberOfSubjects=numberOfSubjects
 
     if(!missing(proportionsOfSubjects))
-      .Object@proportionsOfSubjects<-proportionsOfSubjects
+      .Object@proportionsOfSubjects=proportionsOfSubjects
 
     if(!missing(showProcess))
-      .Object@showProcess<-showProcess
+      .Object@showProcess=showProcess
 
     validObject(.Object)
     return (.Object )
@@ -81,13 +80,13 @@ setMethod(
 #' @param nok_input parameter nok_input
 #' @param protdep_input parameter protdep_input
 #' @param freqdep_input parameter freqdep_input
-#' @return A list ginving the results of the outputs of the FedorovWynn algorithm.
+#' @return A list giving the results of the outputs of the FedorovWynn algorithm.
 
 FedorovWynnAlgorithm_Rcpp = function( protocols_input,  ndimen_input, nbprot_input,
                                       numprot_input, freq_input, nbdata_input,
                                       vectps_input, fisher_input, nok_input,
                                       protdep_input, freqdep_input ){
-  incltxtFedorovWynnAlgorithm <- '
+  incltxtFedorovWynnAlgorithm = '
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1070,20 +1069,20 @@ optimal_sampling_times(i,j) = pop->pind[i].tps[j];
 
 } // end FedorovInit_R
 '
-FedorovWynnAlgorithm_Rcpp <- inline::cxxfunction( signature( protocols_input = "list",
-                                                             ndimen_input = "integer",
-                                                             nbprot_input = "integer",
-                                                             numprot_input = "integer",
-                                                             freq_input = "numeric",
-                                                             nbdata_input = "integer",
-                                                             vectps_input = "numeric",
-                                                             fisher_input = "numeric",
-                                                             nok_input = "integer",
-                                                             protdep_input = "integer",
-                                                             freqdep_input = "numeric"),
-                                                  plugin = "Rcpp",
-                                                  incl = incltxtFedorovWynnAlgorithm,
-                                                  body = '
+FedorovWynnAlgorithm_Rcpp = inline::cxxfunction( signature( protocols_input = "list",
+                                                            ndimen_input = "integer",
+                                                            nbprot_input = "integer",
+                                                            numprot_input = "integer",
+                                                            freq_input = "numeric",
+                                                            nbdata_input = "integer",
+                                                            vectps_input = "numeric",
+                                                            fisher_input = "numeric",
+                                                            nok_input = "integer",
+                                                            protdep_input = "integer",
+                                                            freqdep_input = "numeric"),
+                                                 plugin = "Rcpp",
+                                                 incl = incltxtFedorovWynnAlgorithm,
+                                                 body = '
           List protocols = Rcpp::as<List>(protocols_input);
           IntegerVector ndimen  = Rcpp::as<IntegerVector>(ndimen_input);
           IntegerVector nbprot  = Rcpp::as<IntegerVector>(nbprot_input);
@@ -1107,17 +1106,17 @@ return( output )
 
 }
 
-##########################################################################################################
-
+# ======================================================================================================
 #' Resize the fisher Matrix from a vector to a matrix.
 #'
 #' @name resizeFisherMatrix
-#' @param nb_dimensions : a numeric for the dimensions of the fisher matrix.
+#' @param nbOfDimensions : a numeric for the dimensions of the fisher matrix.
 #' @param fisherMatrix : a vector that contain the low triangular Fisher matrix + its main diagonal.
-#' @return The Fisher matrix of size nb_dimensions*nb_dimensions.
+#' @return The Fisher matrix of size nbOfDimensions*nbOfDimensions
+# ======================================================================================================
 
 setGeneric("resizeFisherMatrix",
-           function( nb_dimensions, fisherMatrix )
+           function( nbOfDimensions, fisherMatrix )
            {
              standardGeneric("resizeFisherMatrix")
            }
@@ -1125,11 +1124,11 @@ setGeneric("resizeFisherMatrix",
 
 setMethod(
   f="resizeFisherMatrix",
-  definition = function( nb_dimensions, fisherMatrix )
+  definition = function( nbOfDimensions, fisherMatrix )
   {
-    M = matrix(0, nrow = nb_dimensions, ncol = nb_dimensions)
-    k=1;
-    for (i in 1:nb_dimensions){
+    M = matrix(0, nrow = nbOfDimensions, ncol = nbOfDimensions)
+    k=1
+    for (i in 1:nbOfDimensions){
       for (j in 1:i) {
         M[i,j] = fisherMatrix[k]
         k=k+1
@@ -1140,71 +1139,61 @@ setMethod(
     return( M )
   })
 
-#' Prepare the Fisher Informations matrices.
-#'
-#' @rdname PrepareFIMs
-#' @param object A \code{FedorovWynnAlgorithm} object.
-#' @param statistical_model A \code{StatisticalModel} object.
-#' @param constraint : A \code{Constraint} object.
-#' @param cond_init : cond_init
-#' @param typeFim : A character string giving the type of FIM : Population, Individual or Bayesian.
-#' @return A list \code{FIMs} of the Fisher Informations matrices.
+# ======================================================================================================
+# setParameters
+# ======================================================================================================
 
-setMethod(
-  f="PrepareFIMs",
-  signature = "FedorovWynnAlgorithm",
-  definition = function(object, statistical_model , cond_init, constraint, typeFim)
-  {
-    FIMs <- callNextMethod( object, statistical_model , cond_init, constraint, typeFim )
-    return(FIMs)
-  }
-)
+setMethod("setParameters",
+          "FedorovWynnAlgorithm",
+          function( object, parameters ) {
+            object@name = "FedorovWynnAlgorithm"
+            object@elementaryProtocols = parameters$elementaryProtocols
+            object@numberOfSubjects = parameters$numberOfSubjects
+            object@proportionsOfSubjects = parameters$proportionsOfSubjects
+            object@showProcess = parameters$showProcess
+            return( object )
+          })
 
-##########################################################################################################
+# ======================================================================================================
+# optimize
+# ======================================================================================================
 
-#' Optimization with the Fedorov-Wynn algorithm.
-#'
-#' @rdname Optimize
-#' @param object A \code{FedorovWynnAlgorithm} object.
-#' @param statistical_model A \code{StatisticalModel} object.
-#' @param cond_init : A list of numeric giving the values of the initial conditions.
-#' @param constraint : A \code{Constraint} object.
-#' @param typeFim : A character string giving the type of FIM : Population, Individual or Bayesian.
-#' @return The \code{FedorovWynnAlgorithm} object with:
-#' \itemize{
-#' \item \code{{OptimalDesign}:}{The optimal Design.}
-#' \item \code{{optimalDoses}:}{A vector giving the optimal doses.}
-#' \item \code{{FisherMatrix}:}{A matrix giving The Fisher Information Matrix.}
-#' \item \code{{optimalFrequencies}:}{A vector of the optimal frequencies.}
-#' \item \code{{optimalSamplingTimes}:}{A list of vectors of the optimal sampling times.}
-#'}
-
-setMethod(f = "Optimize",
+setMethod(f = "optimize",
           signature = "FedorovWynnAlgorithm",
-          definition = function(object, statistical_model, cond_init, constraint, typeFim)
+          definition = function( object, optimizerParameters, optimizationObject )
           {
-            callNextMethod( object, statistical_model , cond_init, constraint, typeFim )
+            # ===================
+            # get fim type
+            # ===================
 
-            # get the FIM for all the elementary designs
-            FIMandDesigns = PrepareFIMs( object, statistical_model , cond_init, constraint, typeFim )
+            fim = getFim( optimizationObject )
 
-            # matrix of elementary protocols
-            protocols = getElementaryProtocols( FIMandDesigns )
+            # ===============================================
+            # generate Fims from constraints
+            # ===============================================
 
+            fims = generateFimsFromConstraints( optimizationObject )
+
+            # ===============================================
+            # generate initial elementary protocols
+            # ===============================================
+
+             elementaryProtocolsFW = getElementaryProtocols( optimizationObject, fims )
+
+            # ===============================================
             # parameters for FedorovWynn algorithm in Rcpp
-            nb_protocols = protocols$nb_protocols
-            total_cost = protocols$total_cost
-            nb_times = protocols$nb_times
-            nb_dimensions = protocols$nb_dimensions
-            samplingTimes = protocols$samplingTimes
-            fisherMatrices = protocols$fisherMatrices
+            # ===============================================
 
-            # set dimensions parameters
-            ndim = nb_dimensions
+            numberOfprotocols = elementaryProtocolsFW$numberOfprotocols
+            totalCost = elementaryProtocolsFW$totalCost
+            numberOfTimes = elementaryProtocolsFW$numberOfTimes
+            nbOfDimensions = elementaryProtocolsFW$nbOfDimensions
+            samplingTimes = elementaryProtocolsFW$samplingTimes
+            fisherMatrices = elementaryProtocolsFW$fisherMatrices
 
-            ndimen = c( nb_protocols, nb_dimensions, total_cost )
-
-            np.init = nb_protocols
+            ndim = nbOfDimensions
+            ndimen = c( numberOfprotocols, nbOfDimensions, totalCost )
+            npInit = numberOfprotocols
             numprot = rep(0,ndim*2)
             freq = rep(0,ndim*2)
             nbdata = rep(0,ndim*2)
@@ -1212,154 +1201,251 @@ setMethod(f = "Optimize",
             fisher = rep(0,ndim*(ndim + 1)/2)
             nok = 0
 
-            # indices for initial samplingTimes in matrix of initialElementaryProtocols
-            initialElementaryProtocols = unlist(object@initialElementaryProtocols)
+            # ========================================================================
+            # indices for initial oversampling in matrix of initialElementaryProtocols
+            # ========================================================================
+
+            optimizerParameters = getOptimizerParameters( optimizationObject )
+            initialElementaryProtocols = unlist( optimizerParameters$elementaryProtocols )
+
             indexElementaryProtocols = rowSums(samplingTimes == initialElementaryProtocols[col(samplingTimes)]) == ncol(samplingTimes)
             indexElementaryProtocols = which( indexElementaryProtocols == TRUE )
-
             numberOfElementaryProtocol = length( indexElementaryProtocols )
-            proportionsOfSubjects = object@proportionsOfSubjects
+            proportionsOfSubjects = optimizerParameters$proportionsOfSubjects
 
+            # ========================================================================
             # initial protocols, number and indices
+            # ========================================================================
+
             zeprot = rep(0,ndim*2)
             zeprot = c( numberOfElementaryProtocol, indexElementaryProtocols )
 
+            # ========================================================================
             # initials frequencies
+            # ========================================================================
+
             zefreq = rep(0,ndim*2)
+            proportionsOfSubjects = getProportionsOfSubjects( optimizationObject )
             zefreq[1:length(proportionsOfSubjects)] = proportionsOfSubjects
 
+            # ========================================================================
             # run the FedorovWynn algorithm
-            output = FedorovWynnAlgorithm_Rcpp( protocols, ndimen, np.init,
-                                                numprot, freq, nbdata, vectps,
+            # ========================================================================
+
+            output = FedorovWynnAlgorithm_Rcpp( elementaryProtocolsFW, ndimen, npInit, numprot, freq, nbdata, vectps,
                                                 fisher, nok, zeprot, zefreq )
 
+            # ==============================================================================
             # optimalSamplingTimes : remove rows of 0 and convert matrix to a list of vector
-            optimalSamplingTimes = output$optimal_sampling_times
-            optimalSamplingTimes = optimalSamplingTimes[rowSums(optimalSamplingTimes)>0,]
+            # ==============================================================================
 
-            # optimal feequencies
+            optimalSamplingTimes = output$optimal_sampling_times
+            indexOptimalSamplingTimes = which(rowSums( optimalSamplingTimes )>0)
+
+            # ===============================
+            # check if FW has converged
+            # ===============================
+
+            if ( length( indexOptimalSamplingTimes ) == 0 )
+            {
+              print ( " ==================================================================================================== ")
+              print ( paste0( " The algorithm has not converged " ) )
+              print ( " ==================================================================================================== ")
+              stop()
+            }
+
+            optimalSamplingTimes = optimalSamplingTimes[indexOptimalSamplingTimes,]
+
+            # ========================================================================
+            # optimal frequencies
+            # ========================================================================
+
             optimalFrequencies = output$freq
             optimalFrequencies = optimalFrequencies[optimalFrequencies>0]
 
-            # indices des optimalSamplingTimes in samplingTimes
+            # ========================================================================
+            # indices optimalSamplingTimes in sampling Times
+            # ========================================================================
+
             indexOptimalSamplingTime = output$numprot
             indexOptimalSamplingTime = indexOptimalSamplingTime[indexOptimalSamplingTime>0]
 
-            samplingConstraints = getSamplingConstraints( constraint )
+            # ========================================================================
+            # optimal sampling times
+            # ========================================================================
 
-            numberOfSamplingTimes = c()
-            k=1
+            designs = getDesigns( optimizationObject )
+            design = designs[[1]]
+            arms = getArms( design )
+            arm = arms[[1]]
 
-            for ( samplingConstraint in samplingConstraints )
-            {
-              numberOfSamplingTimes[k] = getnumberOfSamplingTimes( samplingConstraint )
-              k=k+1
-            }
+            samplingTimesConstraints = getSamplingTimesConstraints( arm )
+
+            numberOfsamplingsOptimisable = lapply( samplingTimesConstraints, function(x) getNumberOfsamplingsOptimisable (x) )
+            numberOfsamplingsOptimisable = unlist( numberOfsamplingsOptimisable )
+
+            outcomes = unlist( lapply( samplingTimesConstraints, function(x) getOutcome( x ) ) )
 
             splitOptimalSamplingTimes = list()
 
-            if ( !is.null ( dim( optimalSamplingTimes )[1] ) )
+            if ( length( indexOptimalSamplingTimes ) > 1 )
             {
-              for ( k in 1:dim( optimalSamplingTimes )[1] )
+              for ( i in 1:length( indexOptimalSamplingTimes ) )
               {
-                splitOptimalSamplingTimes[[k]] = split(optimalSamplingTimes[k,], rep(1:length( numberOfSamplingTimes ),
-                                                                                     numberOfSamplingTimes ) )
+                splitOptimalSamplingTimes[[i]] = split(optimalSamplingTimes[i,], rep( 1:length(numberOfsamplingsOptimisable ), numberOfsamplingsOptimisable ) )
+                names( splitOptimalSamplingTimes[[i]] ) = outcomes
               }
-            }
-            else{
-              splitOptimalSamplingTimes[[1]] = split(optimalSamplingTimes, rep(1:length( numberOfSamplingTimes ),
-                                                                               numberOfSamplingTimes ) )
+            }else {
+              splitOptimalSamplingTimes[[1]] = split( optimalSamplingTimes, rep( 1:length(numberOfsamplingsOptimisable ), numberOfsamplingsOptimisable ) )
+              names( splitOptimalSamplingTimes[[1]] ) = outcomes
             }
 
+            # ========================================================================
             # optimal doses
-            administrationConstraints = constraint@administrationConstraints
-            allowedDoses = getAllowedDoses( administrationConstraints[[1]] )
-            numberOfAllowedDoses = length( allowedDoses )
-            indicesDoses = rep( c( 1:numberOfAllowedDoses ), nb_protocols/numberOfAllowedDoses )
+            # ========================================================================
+
+            administrationConstraints = getAdministrationsConstraints( arm )
+            doses = getDose( administrationConstraints[[1]] )
+            numberOfDoses = length( doses )
+            indicesDoses = rep( c( 1:numberOfDoses ), numberOfprotocols / numberOfDoses )
             indicesDosesOptimalSamplingTimes = indicesDoses[ indexOptimalSamplingTime ]
-            optimalDoses = allowedDoses[indicesDosesOptimalSamplingTimes]
+            optimalDoses = doses[ indicesDosesOptimalSamplingTimes ]
 
-            # optimal design
-            optimalDesign = Design( name = paste0( "Design optimized from ", getNameDesignConstraint( constraint ) ) )
-            optimalDesign@isOptimalDesign = TRUE
-
-            # -------------------------------------------
+            # ========================================================================
             # case : populationFIM
-            # -------------------------------------------
+            # ========================================================================
 
+            # ========================================================================
             # number of individuals and freq
-            numberOfIndividuals = getTotalNumberOfIndividuals( constraint )
-            numberOfIndividuals = numberOfIndividuals * optimalFrequencies
+            # ========================================================================
 
+            numberOfIndividuals = optimizerParameters$numberOfSubjects * optimalFrequencies
+
+            # ========================================================================
             #  optimal sampling times and responses
+            # ========================================================================
+
+            listArms = list()
             k = 1
+
             for( ind in indexOptimalSamplingTime )
             {
-              arm = FIMandDesigns@arms[[ind]]
-              arm = setArmSize( arm, numberOfIndividuals[k] )
-              arm@administrations[[1]]@amount_dose = optimalDoses[k]
+              # =================================
+              # set size
+              # =================================
 
-              for ( i in 1:length( arm@samplings ) )
+              arm = fims$listArms[[ind]]
+              arm = setSize( arm, numberOfIndividuals[k] )
+              armName = paste0("Arm",ind)
+              arm = setName( arm, armName )
+
+              # =================================
+              # set administration
+              # =================================
+
+              administration = getAdministrations( arm )
+              administration = setDose( administration[[1]], optimalDoses[k] )
+              arm = setAdministrations( arm, list( administration ) )
+
+              # =================================
+              # set sampling times
+              # =================================
+
+              samplingTimesArms = list()
+
+              for ( outcome in outcomes )
               {
-                arm@samplings[[i]]@sample_time = unlist( splitOptimalSamplingTimes[[k]][i] )
+                # =================================
+                # get samplingTimes and samplings
+                # =================================
+
+                samplings =  splitOptimalSamplingTimes[[k]][[outcome]]
+
+                samplingTime = getSamplingTime( arm, outcome )
+                samplingTime = setSamplings( samplingTime, samplings )
+
+                arm = setSamplingTime( arm, samplingTime )
+
+                listArms = append( listArms, arm )
               }
-
-              arm = setInitialConditions( arm, cond_init )
-
-              optimalDesign = addArm( optimalDesign, arm )
-
               k=k+1
             }
 
+            design = setArms( design, listArms )
+
+            # =====================================
             # Fisher Matrix : from vector to matrix
-            output$fisher = resizeFisherMatrix(  nb_dimensions, output$fisher )
+            # =====================================
 
-            if ( class ( typeFim ) %in% c( "IndividualFim", "BayesianFim" ) )
+            output$fisher = resizeFisherMatrix(  nbOfDimensions, output$fisher )
+
+            if ( class ( fim ) %in% c( "IndividualFim", "BayesianFim" ) )
             {
-              # -------------------------------------------
-              # case : individualFIM & bayesianFIM
-              # -------------------------------------------
+              listArms = list()
 
-              # optimalDesign
-              optimalDesign = Design( name = paste0( "Design optimized from ", getNameDesignConstraint( constraint ) ) )
-              optimalDesign@isOptimalDesign = TRUE
+              # =====================================
+              # case : individualFIM & bayesianFIM
+              # =====================================
 
               indexOptimalSamplingTime = indexOptimalSamplingTime[1]
               optimalDoses = optimalDoses[ which.max( indexOptimalSamplingTime ) ]
-              names( optimalSamplingTimes ) = "optimalSamplingTimes"
-              numberOfIndividuals = getTotalNumberOfIndividuals( constraint )
+              numberOfIndividuals = optimizerParameters$numberOfSubjects
 
-              for( ind in indexOptimalSamplingTime )
+              for ( ind in indexOptimalSamplingTime )
               {
-                # add optimal arms in optimalDesign
-                arm = FIMandDesigns@arms[[ind]]
-                arm = setArmSize( arm, 1 )
+                # ===================
+                # set size and name
+                # ===================
 
-                arm@administrations[[1]]@amount_dose = optimalDoses[1]
+                arm = fims$listArms[[ind]]
+                arm = setSize( arm, 1 )
+                armName = paste0("Arm",ind)
+                arm = setName( arm, armName )
 
-                for ( i in 1:length( arm@samplings ) )
+                # ===================
+                # set administration
+                # ===================
+
+                administration = getAdministrations( arm )
+                administration = setDose( administration[[1]], optimalDoses[1] )
+                arm = setAdministrations( arm, list( administration ) )
+
+                for ( outcome in outcomes )
                 {
-                  arm@samplings[[i]]@sample_time = unlist( splitOptimalSamplingTimes[[1]][i] )
+                  # ===============================
+                  # get samplingTimes and samplings
+                  # ===============================
+
+                  samplings = splitOptimalSamplingTimes[[1]][[outcome]]
+
+                  samplingTimes = getSamplingTime( arm, outcome )
+                  samplingTimes = setSamplings( samplingTimes, samplings )
+
+                  arm = setSamplingTime( arm, samplingTimes )
+
+                  listArms = append( listArms, arm )
                 }
-
-                arm = setInitialConditions( arm, cond_init )
-
-                optimalDesign <- addArm( optimalDesign, arm )
               }
 
+              design = setArms( design, listArms )
+
+              # =====================================
               # Fisher Matrix : from vector to matrix
-              output$fisher = protocols$fisherMatrices[indexOptimalSamplingTime,]
+              # =====================================
+
+              output$fisher = elementaryProtocolsFW$fisherMatrices[indexOptimalSamplingTime,]
               output$fisher = resizeFisherMatrix( ndim,output$fisher )
               output$freq = c(1.0)
             }
 
-            # -------------------------------------------
+            # =====================================
             # outputs
-            # -------------------------------------------
+            # =====================================
 
-            object@OptimalDesign = optimalDesign
+            object = setOptimalDesign( object, design )
             object@optimalDoses = optimalDoses
             object@FisherMatrix = output$fisher
+            optimalFrequencies = list( listArms = listArms, optimalFrequencies = optimalFrequencies )
             object@optimalFrequencies = optimalFrequencies
             object@optimalSamplingTimes = splitOptimalSamplingTimes
 
@@ -1367,8 +1453,86 @@ setMethod(f = "Optimize",
 
           })
 
+# ======================================================================================================
+# show
+# ======================================================================================================
+
+setMethod(f="show",
+          signature = "FedorovWynnAlgorithm",
+          definition = function( object )
+          {
+            optimalFrequencies = object@optimalFrequencies
+            arms = optimalFrequencies$listArms
+            optimalFrequencies = optimalFrequencies$optimalFrequencies
+
+            armNames = unlist( lapply( arms, function(x) getName( x ) ) )
+            armSizes = unlist( lapply( arms, function(x) getSize( x ) ) )
+
+            armSizes = round( armSizes, 2 )
+            optimalFrequencies = round( optimalFrequencies, 2 )
+
+            armsAndOptimalFrequencies = data.frame( armNames = armNames,
+                                                    armSizes = armSizes,
+                                                    optimalFrequencies = optimalFrequencies )
+
+            colnames( armsAndOptimalFrequencies ) = c("Arm","Arm size","Optimal frequencie")
+
+            cat( " ************************************************* ")
+            cat("\n")
+            cat( " Arm, size and optimal frequencie  ")
+            cat("\n")
+            cat( " ************************************************* ")
+            cat("\n\n")
+
+            print( armsAndOptimalFrequencies )
+
+          })
+
+# ======================================================================================================
+# generateReportOptimization
+# ======================================================================================================
+
+setMethod(
+  "generateReportOptimization",
+  signature = "FedorovWynnAlgorithm",
+  definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
+  {
+    # ===================================================
+    # projectName and outputs tables
+    # ===================================================
+
+    projectName = getName( optimizationObject )
+
+    evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
+    fimType = is( getFim( evaluationFIMResults ) )[1]
+
+    evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
+
+    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
+
+    tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
+
+    # =====================================
+    # markdown template
+    # =====================================
+
+    path = system.file(package = "PFIM")
+    path = paste0( path, "/rmarkdown/templates/skeleton/" )
+    nameInputFile = paste0( path, "template_FedorovAlgorithm.rmd" )
+
+    rmarkdown::render( input = nameInputFile,
+                       output_file = outputFile,
+                       output_dir = outputPath,
+                       params = list(
+                         object = "object",
+                         plotOptions = "plotOptions",
+                         projectName = "projectName",
+                         fimType = "fimType",
+                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
+                         tablesOptimizationObject = "tablesOptimizationObject" ) )
+
+  })
+
 ##########################################################################################################
 # END Class "FedorovWynnAlgorithm"
 ##########################################################################################################
-
-

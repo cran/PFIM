@@ -4,15 +4,8 @@
 \name{IndividualFim-class}
 \alias{IndividualFim-class}
 \alias{IndividualFim}
-\title{Class "individualFim" representing the individual Fisher information matrix}
+\title{Class "Fim"}
 \description{
-A class storing information regarding the individual Fisher computation matrix.
+A class storing information regarding the individual Fisher matrix.
+The class \code{IndividualFim} inherits from the class \code{Fim}.
 }
-\section{Objects from the class}{
- IndividualFim objects are typically created by calls to \code{{fim}} or \code{{pfim}} and contain the following slots:
-
-\describe{
-\item{IndividualFim}{Create a new object \code{{Fim}}}
-}
-}
-

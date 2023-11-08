@@ -10,7 +10,7 @@ getTimeDose(object)
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}
 }
 \value{
-The vector \code{time_dose} giving the times when the doses are given.
+The vector \code{timeDose} giving the times when the doses are given.
 }
 \description{
 Get the times vector when doses are given.

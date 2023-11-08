@@ -1,7 +1,6 @@
 ---
 title: |
     | `r projectName`
-    | `r optimizationAlgorithm `
 fig: no crop
 geometry: left=1mm, right=1mm, top=1mm, bottom=1mm, asymmetric
 indent: TRUE
@@ -17,7 +16,7 @@ header-includes:
     - \usepackage{setspace}\doublespacing
     - \usepackage{lineno}
     - \linenumbers
-author: "`r 'PFIM 5.0' `"
+author: "`r 'PFIM 6.0' `"
 date: "`r paste( 'Date:' , Sys.Date())`"
 ---
 
@@ -29,134 +28,195 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, echo=FALSE}
 title_shrinkage = FALSE
-plotWeight = FALSE
 variance_components = TRUE
-plotFrequencies = FALSE
-output = knitrFIM(object)
-if ( output$typeOfFIM[1] == "BayesianFim" ){
+if ( fimType == "BayesianFim" )
+{
   title_shrinkage = TRUE
   variance_components = FALSE
-}else{
-  title_shrinkage = FALSE
-  variance_components = TRUE
-}
-if ( output$typeOfFIM[1] == "PopulationFim" ){
-  plotFrequencies = TRUE
 }
 ```
 
-# Model equations 
-```{r ModelEquations, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-knitrModelEquations(object)
+# Model outputs 
+
+```{r modelOutputs, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelEquations$outcomes
 ```
 
-# Error model 
-```{r ModelError, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-knitrModelError(object)
+# Model equations
+
+```{r modelEquations, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelEquations$equations
 ```
 
-# Model parameters 
-```{r ModelParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-knitrModelParameters(object)
+# Model error
+
+```{r modelError, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelError
 ```
 
-# Administration parameters 
-```{r AdministrationParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-knitrAdministrationParameters(object)
+# Model parameters
+
+```{r modelParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesModelParameters
 ```
 
-# Initial design
-```{r InitialDesigns, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-knitrInitialDesigns(object)
+# Administration parameters
+
+```{r administrationParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesAdministration
 ```
 
-## Determinant, condition numbers and D-criteria of the FIM
-```{r CriteriaInitialDesign, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
-output = knitrFIM( object )
-output$criteriaFimInitialDesign
+# Initial design 
+
+```{r initialDesignParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesDesign
+```
+
+# Administration and sampling time constraints  
+
+```{r samplingTimeConstraints, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+
+variableSelection = c("Design","Arm","Outcome", "Doses", "Initial sampling times","Fixed times", "Number of samplings optimisable")
+
+table = tablesOptimizationObject$tablesSamplingConstraints[,variableSelection]
+colnames( table ) = variableSelection
+
+knitr::kable( table ) %>%
+  kable_styling( font_size = 12,
+                 latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                 full_width = T)
+```
+
+## Determinant, condition numbers and D-criterion of the FIM
+
+```{r criteriaFimInitialDesignTable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesEvaluationFIMIntialDesignResults$tablesFIM$criteriaFimTable 
 ```
 
 # Optimal design
-```{r Optimal, echo = FALSE, comment='', fig.height = 4, fig.width = 8}
-knitrOptimalDesign(object)
+
+```{r optimalDesignParameters, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesOptimizationObject$tablesDesign
 ```
 
 ## Fisher information matrix
 
-### Fixed effects 
-```{r Fixed, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-output = knitrFIM(object)
-output$fIMFixedEffects 
-``` 
-`r if ( variance_components ) '### Variance components'`
-```{r VarianceComponentsFIM,  eval = variance_components, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-output = knitrFIM(object)
-output$fIMRandomEffects
+### Fixed effects
+
+```{r FIMFixedEffectsTable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesOptimizationObject$tablesFIM$FIMFixedEffectsTable 
 ```
 
-## Correlation matrix  
-
-### Fixed effects 
-```{r FixedEffectsCorrelation, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-output = knitrFIM(object)
-output$correlationFixedEffects 
-``` 
-
-`r if ( variance_components ) '### Variance components'`
-```{r VarianceComponentsCorrelation,  eval = variance_components, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
-output = knitrFIM(object)
-output$correlationRandomEffects 
-``` 
-
-## Determinant, condition numbers and D-criteria of the FIM
-```{r Determinant, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
-output = knitrFIM(object)
-output$criteriaFim
+`r if ( variance_components ) '### Variance effects'`
+```{r FIMVarianceEffectsTable, eval = variance_components, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesOptimizationObject$tablesFIM$FIMVarianceEffectsTable 
 ```
 
-`r if ( title_shrinkage ) '##   Values for SE and RSE and shrinkage'`
-```{r se_rse_bayes, eval = title_shrinkage, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
-output = knitrFIM(object)
-output$se_rse
-```
-`r if ( variance_components ) '##   Values for SE and RSE '`
-```{r se_rse_pop_ind, eval = variance_components, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
-output = knitrFIM(object)
-output$se_rse
+## Correlation matrix
+
+### Fixed effects
+
+```{r correlationMatrixFixedEffectsTable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesOptimizationObject$tablesFIM$correlationMatrixFixedEffectsTable 
 ```
 
-# Graphs of the responses
-```{r plotResponses, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
-for ( i in 1:length( plotResponses ) )
+`r if ( variance_components ) '### Variance effects'`
+```{r correlationMatrixVarianceEffectsTable, eval = variance_components, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesOptimizationObject$tablesFIM$correlationMatrixVarianceEffectsTable 
+```
+
+## Determinant, condition numbers and D-criterion of the FIM
+
+```{r criteriaFimTable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesOptimizationObject$tablesFIM$criteriaFimTable 
+```
+
+## Values for SE and RSE
+
+```{r SEandRSETable, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+tablesOptimizationObject$tablesFIM$SEandRSETable 
+```
+
+# Graphs for the responses
+
+```{r plotOutcomesEvaluation, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"}
+
+plotOutcomesEvaluation = tablesOptimizationObject$tablesPlot$plotOutcomesEvaluation
+
+designNames = names( plotOutcomesEvaluation )
+
+for ( designName in designNames )
 {
-print( plotResponses[[i]] )
+  armNames = names( plotOutcomesEvaluation[[ designName ]] )
+  
+  for ( armName in armNames )
+  { 
+    outcomes = names( plotOutcomesEvaluation[[ designName ]][[armName]] )
+    
+    for ( outcome in outcomes )
+    {
+      print( plotOutcomesEvaluation[[designName]][[armName]][[outcome]] )
+    }
+  }
 }
 ```
 
-# Graphs of the SE and RSE
-```{r plotSE, echo = FALSE, comment='', fig.height = 4, fig.width = 8}
-SE =plotSE( object )
-print(SE[[1]])
-RSE = plotRSE( object )
-print(RSE[[1]])
+# Graphs for the sensitivity indices
+
+```{r plotOutcomesGradient, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+plotOutcomesGradient = tablesOptimizationObject$tablesPlot$plotOutcomesGradient
+
+designNames = names( plotOutcomesGradient )
+
+for ( designName in designNames )
+{
+  armNames = names( plotOutcomesGradient[[ designName ]] )
+  
+  for ( armName in armNames )
+  { 
+    outcomes = names( plotOutcomesGradient[[ designName ]][[armName]] )
+    
+    for ( outcome in outcomes )
+    {
+      parameterNames = names( plotOutcomesGradient[[ designName ]][[armName]][[outcome]] )
+      
+      for ( parameterName in parameterNames )
+      {
+        print( plotOutcomesGradient[[designName]][[armName]][[outcome]][[parameterName]] )
+      }
+    }
+  }
+}
+
 ```
 
-`r if ( title_shrinkage ) '#  Graph of shrinkage'`
+# Graphs for the SE and RSE
+
+```{r plotSEandRSE, echo = FALSE, comment='', fig.height = 5, fig.width = 10, fig.align = "center"} 
+
+plotSE = tablesOptimizationObject$tablesPlot$plotSE
+plotRSE = tablesOptimizationObject$tablesPlot$plotRSE
+
+designNames = names( plotSE )
+
+for ( designName in designNames )
+{
+  print( plotSE[[designName]] )
+  print( plotRSE[[designName]] )
+}
+```
+
+`r if ( title_shrinkage ) '# Graph of shrinkage'`
 ```{r shrinkage, eval = title_shrinkage, echo = FALSE, fig.height = 5, fig.width = 10, fig.align = "center"}
-if ( title_shrinkage ==TRUE){
-  shrinkage = plotShrinkage( object )
-  print(shrinkage[[1]])}
-```
-
-`r if ( plotFrequencies ) '#  Graph for the optimal frequencies'`
-```{r plotFrequenciesOptimisation, eval = plotFrequencies, echo = FALSE, comment='', fig.height = 4, fig.width = 8, fig.align = "center"}
-output = plotFrequenciesOptimisation( object )
-for ( i in 1:length(output$plot[[1]] ) )
+if ( title_shrinkage ==TRUE)
 {
-print(output$plot[[1]][[i]] )
+  plotShrinkage = tablesOptimizationObject$tablesPlot$plotShrinkage
+  
+  designNames = names( plotShrinkage )
+  
+  for ( designName in designNames )
+  {
+    print( plotShrinkage[[designName]] )
+  }
 }
 ```
-
-
-
-

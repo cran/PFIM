@@ -2,17 +2,18 @@
 % Please edit documentation in R/Arm.R
 \name{getAdministration}
 \alias{getAdministration}
-\title{Get the parameters of the administration for an arm.}
+\title{Get the administrations by outcome.}
 \usage{
-getAdministration(object)
+getAdministration(object, outcome)
 }
 \arguments{
 \item{object}{An object \code{Arm} from the class \linkS4class{Arm}.}
+
+\item{outcome}{A string giving the name of the outcome.}
 }
 \value{
-A list \code{administrations} of objects from the class \code{Administration} class giving
-the parameters of the administration for the object \code{Arm}.
+The element of the list \code{administrations} containing the administration of the outcome \code{outcome}
 }
 \description{
-Get the parameters of the administration for an arm.
+Get the administrations by outcome.
 }

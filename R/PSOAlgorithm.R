@@ -1,408 +1,709 @@
-
-##########################################################################################################
 #' Class "PSOAlgorithm"
 #'
 #' @description
-#' The Class "PSOAlgorithm" implements the PSO algortihm : Particle Swarm Optimization
+#' The class "PSOAlgorithm" implements the PSO algorithm.
 #'
 #' @name PSOAlgorithm-class
+#' @aliases PSOAlgorithm
 #' @docType class
-#' @include Optimization.R
+#' @include OptimizationAlgorithm.R
 #' @include Design.R
-#' @exportClass PSOAlgorithm
-
+#' @include GenericMethods.R
+#' @export
+#'
 #' @section Objects from the class \code{PSOAlgorithm}:
-#' Objects form the xlass \code{PSOAlgorithm} can be created by calls of the form \code{PSOAlgorithm(...)} where
+#' Objects form the class \code{PSOAlgorithm} can be created by calls of the form \code{PSOAlgorithm(...)} where
 #' (...) are the parameters for the \code{PSOAlgorithm} objects.
 
 #'@section Slots for \code{PSOAlgorithm} objects:
 #'  \describe{
 #'    \item{\code{maxIteration}:}{A numeric giving the maximum of iterations.}
-#'    \item{\code{populationSize}:}{A numeric giving the mpopulation size.}
-#'    \item{\code{intertiaWeight}:}{A numeric giving the inertial weight.}
+#'    \item{\code{populationSize}:}{A numeric giving the population size.}
+#'    \item{\code{seed}:}{A numeric giving the seed.}
 #'    \item{\code{personalLearningCoefficient}:}{A numeric giving the personal learning coefficient.}
 #'    \item{\code{globalLearningCoefficient}:}{A numeric giving the global learning coefficient.}
-#'    \item{\code{resultsPSO}:}{A list giving the iteration and the results when a new best criteria is found.}
+#'    \item{\code{showProcess}:}{A boolean to show or not the process.}
+#'    \item{\code{optimalDesign}:}{A \code{Design} object giving the optimal design.}
+#'    \item{\code{iterationAndCriteria}:}{A list giving the optimal criteria at each iteration.}
 #'  }
-##########################################################################################################
 
-PSOAlgorithm<-setClass(
+PSOAlgorithm = setClass(
   Class = "PSOAlgorithm",
-  contains = "Optimization",
+  contains = "OptimizationAlgorithm",
   representation = representation(
     maxIteration = "numeric",
     populationSize = "numeric",
-    intertiaWeight = "numeric",
     seed = "numeric",
     personalLearningCoefficient = "numeric",
     globalLearningCoefficient = "numeric",
-    resultsOptimization = "list",
     showProcess = "logical",
-    OptimalDesign = "Design" ),
+    optimalDesign = "Design",
+    iterationAndCriteria = "list" ),
   prototype = prototype(
     showProcess = F ) )
 
 setMethod(
-  f="initialize",
-  signature="PSOAlgorithm",
-  definition= function ( .Object,
-                         maxIteration,
-                         populationSize,
-                         intertiaWeight,
-                         personalLearningCoefficient,
-                         globalLearningCoefficient,
-                         seed,
-                         showProcess )
+  f = "initialize",
+  signature = "PSOAlgorithm",
+  definition = function ( .Object,
+                          maxIteration,
+                          populationSize,
+                          personalLearningCoefficient,
+                          globalLearningCoefficient,
+                          seed,
+                          showProcess,
+                          optimalDesign,
+                          iterationAndCriteria )
   {
+    # ===============================
     # values by default
-    .Object@maxIteration <- 200
-    .Object@populationSize <- 200
-    .Object@intertiaWeight <- 0.7298
-    .Object@personalLearningCoefficient <- 1.4962
-    .Object@globalLearningCoefficient <- 1.4962
-    .Object@seed <- -1
+    # ===============================
 
-    .Object@showProcess <- TRUE
+    .Object@maxIteration = 200
+    .Object@populationSize = 200
+    .Object@personalLearningCoefficient = 1.4962
+    .Object@globalLearningCoefficient = 1.4962
+    .Object@seed = -1
+
+    .Object@showProcess = TRUE
 
     if ( !missing( maxIteration ) )
-      .Object@maxIteration <- maxIteration
-
+    {
+      .Object@maxIteration = maxIteration
+    }
     if ( !missing( populationSize ) )
-      .Object@populationSize <- populationSize
-
-    if ( !missing( intertiaWeight ) )
-      .Object@intertiaWeight <- intertiaWeight
-
+    {
+      .Object@populationSize = populationSize
+    }
     if ( !missing( personalLearningCoefficient ) )
-      .Object@personalLearningCoefficient <- personalLearningCoefficient
-
+    {
+      .Object@personalLearningCoefficient = personalLearningCoefficient
+    }
     if ( !missing( globalLearningCoefficient ) )
-      .Object@globalLearningCoefficient <- globalLearningCoefficient
-
+    {
+      .Object@globalLearningCoefficient = globalLearningCoefficient
+    }
     if ( !missing( seed ) )
-      .Object@seed <- seed
-
+    {
+      .Object@seed = seed
+    }
     if ( !missing( showProcess ) )
-      .Object@showProcess <- showProcess
+    {
+      .Object@showProcess = showProcess
+    }
+    if ( !missing( optimalDesign ) )
+    {
+      .Object@optimalDesign = optimalDesign
+    }
+    if ( !missing( iterationAndCriteria ) )
+    {
+      .Object@iterationAndCriteria = iterationAndCriteria
+    }
 
     validObject( .Object )
     return ( .Object )
   })
 
-setMethod( f = "Optimize",
-           signature = "PSOAlgorithm",
-           definition = function( object, pfimProject, designs, statistical_model, constraint, typeFim )
-           {
-             if( object@seed != -1 )
-               set.seed( object@seed )
+# ======================================================================================================
+# setParameters
+# ======================================================================================================
 
-             callNextMethod( object, pfimProject, designs, statistical_model , constraint, typeFim )
+setMethod("setParameters",
+          "PSOAlgorithm",
+          function( object, parameters ) {
+            object@maxIteration = parameters$maxIteration
+            object@name = "PSOAlgorithm"
+            object@populationSize = parameters$populationSize
+            object@personalLearningCoefficient = parameters$personalLearningCoefficient
+            object@globalLearningCoefficient = parameters$globalLearningCoefficient
+            object@showProcess = parameters$showProcess
+            return( object )
+          })
 
-             # Initilisation
-             # get responses from statistical model
-             responses = getResponsesStatisticalModel( statistical_model )
-             nameResponses = names( responses )
+# ======================================================================================================
+# optimize
+# ======================================================================================================
 
-             position = list()
-             velocity = list()
-             bestPosition = list()
-             cost = list()
-             bestCost = list()
-             globalBestPosition = list()
-             globalBestCost =  Inf
-             results = list()
-             listDesign = list()
-             stepSize = list()
+setMethod(f = "optimize",
+          signature = "PSOAlgorithm",
+          definition = function(  object, optimizationObject  )
+          {
+            # ===================================================
+            # get PSO parameters
+            # ===================================================
 
-             designA = designs[[1]]
-             best = designA
-             arms = getArms( designA )
-             nameArms = names( arms )
+            optimizationParameters = getOptimizerParameters( optimizationObject )
+            populationSize = optimizationParameters$populationSize
+            maxIteration = optimizationParameters$maxIteration
+            personalLearningCoefficient = optimizationParameters$personalLearningCoefficient
+            globalLearningCoefficient = optimizationParameters$globalLearningCoefficient
+            showProcess = optimizationParameters$showProcess
 
-             # initialization PSO
-             k = 1
-             results = data.frame()
+            # ===================================================
+            # get parameters for the evaluation
+            # ===================================================
 
-             while ( length(globalBestPosition) ==0){
+            modelParameters = getModelParameters( optimizationObject )
+            modelEquations = getModelEquations( optimizationObject )
+            modelError = getModelError( optimizationObject )
+            outcomesForEvaluation = getOutcomes( optimizationObject )
+            designs = getDesigns( optimizationObject )
+            odeSolverParameters = getOdeSolverParameters( optimizationObject )
 
-               for ( iterPop in 1:object@populationSize )
-               {
-                 constraintsPop = TRUE
-                 cost[[ iterPop ]] = Inf
-                 bestCost[[ iterPop ]] = Inf
+            # ===================================================
+            # get design
+            # ===================================================
 
-                 for( nameArm in nameArms )
-                 {
-                   arm = arms[[ nameArm ]]
+            design = designs[[1]]
+            optimalDesign = design
 
-                   samplings = getSamplings( arm )
+            # ===================================================
+            # fim
+            # ===================================================
 
-                   for( nameResponse in nameResponses )
-                   {
-                     sample_time = getSampleTime( samplings[[ nameResponse ]])
-                     sizeSampleTime = length( sample_time )
+            fimOptimization = getFim( optimizationObject )
 
-                     # Set initial position
-                     position[[ nameResponse ]][[ nameArm ]][[ iterPop ]] =
-                       sort( runif( sizeSampleTime, min( sample_time ),  max( sample_time )  ) )
+            if ( is( fimOptimization, "PopulationFim" ) )
+            {
+              fimEvaluation = "population"
+            }
+            else if ( is( fimOptimization, "IndividualFim" ) )
+            {
+              fimEvaluation = "individual"
+            }
+            else if ( is( fimOptimization, "BayesianFim" ) )
+            {
+              fimEvaluation = "Bayesian"
+            }
 
-                     # Set the best position
-                     bestPosition[[ nameResponse ]][[ nameArm ]][[ iterPop ]] =
-                       position[[ nameResponse ]][[ nameArm ]][[ iterPop ]]
+            # ==============================================
+            # check validity of the samplingTimesConstraints
+            # ==============================================
 
-                     # Set initial velocity
-                     velocity[[ nameResponse ]][[ nameArm ]][[ iterPop ]] =
-                       runif( sizeSampleTime, min( sample_time ), max( sample_time ) )
+            checkValiditySamplingConstraint( design )
 
-                     # Model constraints
-                     samplingTimes = position[[ nameResponse ]][[ nameArm ]][[ iterPop ]]
+            # ===============================================
+            # in case of partial sampling constraints
+            # set the new arms with the sampling constraints
+            # ===============================================
 
-                     samplingConstraints = getSamplingConstraintsInArm( arm, nameResponse )
+            design = setSamplingConstraintForOptimization( design )
+            arms = getArms( design )
 
-                     for ( samplingConstraint in samplingConstraints )
-                     {
-                       if ( isLessThanDelay( samplingConstraint, samplingTimes ) == TRUE )
-                       {
-                         constraintsPop = FALSE
-                         break
-                       }
+            # ===============================================
+            # get arm outcomes
+            # ===============================================
 
-                       for ( time in samplingTimes )
-                       {
-                         if ( isTimeInBetweenBounds( samplingConstraint, time ) == FALSE )
-                         {
-                           constraintsPop = FALSE
-                           break
-                         }
-                       }
-                     }
-                     arm <- modifySamplingTimes( arm, nameResponse,  position[[ nameResponse ]][[ nameArm ]][[ iterPop ]]  )
-                   } # end response
-                   designA  = modifyArm( designA, nameArm, arm)
-                 } # end arm
+            outcomes = list()
 
-                 # Constraints TRUE : modified the Design with arms and responses
+            for ( arm in arms )
+            {
+              armName = getName( arm )
+              outcomes[[armName]] = unlist( lapply( getSamplingTimesConstraints( arm ), function( x ) getOutcome( x ) ) )
+            }
 
-                 if (constraintsPop == TRUE )
-                 {
-                   # Evaluation
-                   evaluatedDesign = EvaluateDesignForEachArm( designA, statistical_model, typeFim )
-                   cost[[ iterPop ]] =  1 / getDcriterion( getFimOfDesign( evaluatedDesign ) )
+            # ===============================================
+            # get arm outcomes
+            # ===================================================
+            # generate the initial population for the PSO
+            # ===================================================
 
-                   # Update personal best
+            cost = list()
+            bestCost = rep(Inf, populationSize)
+            globalBestCost = Inf
 
-                   for( nameArm in nameArms )
-                   {
-                     for( nameResponse in nameResponses )
-                     {
-                       bestPosition[[ nameResponse ]][[ nameArm ]][[ iterPop ]] =
-                         position[[ nameResponse ]][[ nameArm ]][[ iterPop ]]
-                     }
-                   }
+            globalBestPosition = list()
+            bestPosition = list()
+            velocity = list()
+            position = list()
+            results = data.frame()
 
-                   # Update bestCost, globalBestCost, globalBestPosition globalBestPosition
-                   bestCost[[ iterPop ]] = cost[[ iterPop ]]
+            for ( iterPop in 1:populationSize )
+            {
+              # ===============================
+              # generate initial population
+              # ===============================
 
-                   # index min of bestCost
-                   indexMinBestCost = which.min( bestCost )
+              for ( arm in arms )
+              {
+                armName = getName( arm )
 
-                   if ( bestCost[[ indexMinBestCost ]] <= globalBestCost )
-                   {
-                     for( nameArm in nameArms )
-                     {
-                       for( nameResponse in nameResponses )
-                       {
-                         globalBestPosition[[ nameResponse ]][[ nameArm ]] =
-                           bestPosition[[ nameResponse ]][[ nameArm ]][[ indexMinBestCost ]]
-                       }
-                     }
-                     globalBestCost = bestCost[[ indexMinBestCost ]]
-                   }
-                 } # end constraintselse
-               } # end iterPop
+                # ===============================
+                # sampling constraints
+                # ===============================
 
-               if ( length(globalBestPosition) != 0)
-               {
-                 break
-               }else{k=k+1}
-             }
+                samplingTimesArms = list()
 
-             # PSO
-             for( iter in 1:object@maxIteration )
-             {
-               if (object@showProcess == TRUE)
-               {
-                 print( paste0( " PSO iter = ",iter ) )
-               }
+                samplingTimesConstraints = getSamplingTimesConstraints( arm )
 
-               if ( iter %in% c(1, object@maxIteration ))
-               {
-                 results = rbind( c( iter , globalBestCost ) , results)
-               }
+                for ( samplingTimesConstraint in samplingTimesConstraints )
+                {
+                  samplingsFromSamplingConstraint = generateSamplingsFromSamplingConstraints( samplingTimesConstraint )
 
-               for ( iterPop in 1:object@populationSize )
-               {
-                 constraintsPop = TRUE
+                  outcome = names( samplingsFromSamplingConstraint )
 
-                 for( nameArm in nameArms )
-                 {
-                   arm = arms[[ nameArm ]]
+                  # ======================================
+                  # set initial position
+                  # ======================================
 
-                   samplings = getSamplings( arm )
+                  position[[ armName ]][[ outcome ]][[ iterPop ]] = samplingsFromSamplingConstraint[[outcome]]
 
-                   for( nameResponse in nameResponses )
-                   {
-                     # get the sample time
-                     sample_time = getSampleTime( samplings[[ nameResponse ]])
-                     sizeSampleTime = length( sample_time )
+                  # ======================================
+                  # Set the best position
+                  # ======================================
 
-                     samplingConstraints = getSamplingConstraintsInArm( arm, nameResponse )
-                     valuesIntervals = getallowedContinuousSamplingTimes( samplingConstraints[[1]] )
-                     minPosition = min( unlist(valuesIntervals ) )
-                     maxPosition = max( unlist(valuesIntervals ) )
+                  bestPosition[[ armName ]][[ outcome ]][[ iterPop ]] = position[[ armName ]][[ outcome ]][[ iterPop ]]
 
-                     # Update Velocity
-                     r1 = runif( sizeSampleTime, 0, 1 )
-                     r2 = runif( sizeSampleTime, 0, 1 )
+                  # ======================================
+                  # Set initial velocity
+                  # ======================================
 
-                     # Constricted PSOs
-                     # phi = constriction factor
-                     phi = object@personalLearningCoefficient + object@globalLearningCoefficient
-                     constrictionFactor = 2 / abs( 2 - phi - sqrt( phi * ( phi - 4 ) ) )
+                  velocity[[ armName ]][[ outcome ]][[ iterPop ]] = 0.0
 
-                     velocity[[ nameResponse ]][[ nameArm ]][[ iterPop ]] =
-                       constrictionFactor * ( velocity[[ nameResponse ]][[ nameArm ]][[ iterPop ]]  +
-                                                object@personalLearningCoefficient * r1 * ( bestPosition[[ nameResponse ]][[ nameArm ]][[ iterPop ]] - position[[ nameResponse ]][[ nameArm ]][[ iterPop ]] ) +
-                                                object@globalLearningCoefficient * r2 * ( globalBestPosition[[ nameResponse ]][[ nameArm ]] -  position[[ nameResponse ]][[ nameArm ]][[ iterPop ]] ) )
+                  # ======================================
+                  # Set sampling times
+                  # ======================================
+
+                  samplings = position[[ armName ]][[ outcome ]][[ iterPop ]]
+                  samplingTimes = getSamplingTime( arm, outcome )
+                  samplingTimes = setSamplings( samplingTimes, samplings )
+                  arm = setSamplingTime( arm, samplingTimes )
+                }
+                design = setArm( design, arm)
+              }
+
+              # ===================================================
+              # Evaluation
+              # ===================================================
+
+              # ===================================================
+              # set arms
+              # ===================================================
+
+              evaluationFIM = Evaluation( name = "",
+                                          modelEquations = modelEquations,
+                                          modelParameters = modelParameters,
+                                          modelError = modelError,
+                                          outcomes = outcomesForEvaluation,
+                                          designs = list( design ),
+                                          fim = fimEvaluation,
+                                          odeSolverParameters = odeSolverParameters )
+
+              evaluationFIM =  run( evaluationFIM )
+
+              # ===================================================
+              # get criteria
+              # ===================================================
+
+              designs = getDesigns( evaluationFIM )
+              fim = getFim( designs[[1]] )
+              Dcriterion = getDcriterion( fim )
+              cost[[ iterPop ]] = 1/getDcriterion( fim )
+
+              # ===================================================
+              # update Personal Best
+              # ===================================================
+
+              # ===================================================
+              # update bestPosition
+              # ===================================================
+
+              for ( arm in arms )
+              {
+                armName = getName( arm )
+
+                for ( outcome in outcomes[[armName]] )
+                {
+                  bestPosition[[ armName ]][[ outcome ]][[ iterPop ]] = position[[ armName ]][[ outcome ]][[ iterPop ]]
+                }
+              }
+
+              # ===================================================
+              # update bestCost
+              # ===================================================
+
+              bestCost[[ iterPop ]] = cost[[ iterPop ]]
+
+              indexMinBestCost = which.min( unlist( bestCost ) )
+
+              # ===================================================
+              # update Global Best
+              # ===================================================
+
+              if ( bestCost[[ indexMinBestCost ]] < globalBestCost )
+              {
+                for ( arm in arms )
+                {
+                  armName = getName( arm )
+
+                  for ( outcome in outcomes[[armName]] )
+                  {
+                    globalBestPosition[[ armName ]][[ outcome ]] = bestPosition[[ armName ]][[ outcome ]][[ indexMinBestCost ]]
+                  }
+                }
+                globalBestCost = bestCost[[ indexMinBestCost ]]
+              }
+            } # end iterPop
+
+            # ===================================================
+            # Run the PSO
+            # ===================================================
+
+            for ( iteration in 1:maxIteration )
+            {
+              # ===================================================
+              # show process
+              # ===================================================
+
+              if ( showProcess == TRUE )
+              {
+                print( paste0( "iter = ", iteration ) )
+              }
+
+              for ( iterPop in 1:populationSize )
+              {
+                # ===================================================
+                # update Velocity
+                # ===================================================
+
+                # ===================================================
+                # constrictionFactor
+                # ===================================================
+
+                phi1 = personalLearningCoefficient
+                phi2 = globalLearningCoefficient
+                phi = phi1 + phi2
+                kappa = 1
+                constrictionFactor = 2*kappa / abs( 2 - phi - sqrt( phi * ( phi - 4 ) ) )
+
+                for ( arm in arms )
+                {
+                  armName = getName( arm )
+
+                  for ( outcome in outcomes[[armName]] )
+                  {
+                    n = length( globalBestPosition[[ armName ]][[ outcome ]] )
+
+                    velocity[[ armName ]][[ outcome ]][[ iterPop ]] =
+                      constrictionFactor *
+                      ( velocity[[ armName ]][[ outcome ]][[ iterPop ]] +
+                          phi1 * runif(1,0,1) * ( bestPosition[[ armName ]][[ outcome ]][[ iterPop ]] - position[[ armName ]][[ outcome ]][[ iterPop ]] ) +
+                          phi2 * runif(1,0,1) * ( globalBestPosition[[ armName ]][[ outcome ]] - position[[ armName ]][[ outcome ]][[ iterPop ]] ) )
+                  }
+                }
+
+                # ===================================================
+                # update Position
+                # ===================================================
+
+                for ( arm in arms )
+                {
+                  armName = getName( arm )
+
+                  for ( outcome in outcomes[[armName]] )
+                  {
+                    position[[ armName ]][[ outcome ]][[ iterPop ]] =
+                      position[[ armName ]][[ outcome ]][[ iterPop ]] + velocity[[ armName ]][[ outcome ]][[ iterPop ]]
+
+                    position[[ armName ]][[ outcome ]][[ iterPop ]] =
+                      sort( position[[ armName ]][[ outcome ]][[ iterPop ]] )
+                  }
+                }
+
+                # ===================================================
+                # apply position limits
+                # ===================================================
+
+                for ( arm in arms )
+                {
+                  armName = getName( arm )
+
+                  for ( outcome in outcomes[[armName]] )
+                  {
+                    samplingConstraints = getSamplingTimeConstraint( arm, outcome )
+
+                    samplingsWindows = getSamplingsWindows( samplingConstraints )
+
+                    positionLength = length( position[[ armName ]][[ outcome ]][[ iterPop ]] )
+
+                    for( j in 1:positionLength )
+                    {
+                      distance = list()
+
+                      k = 1
+                      for ( samplingsWindow in samplingsWindows )
+                      {
+                        tmp = lapply( samplingsWindow, function(x) abs( x-position[[ armName ]][[ outcome ]][[ iterPop ]][ j ] ) )
+                        distance[[k]] = unlist( tmp )
+                        k=k+1
+                      }
+
+                      indDistanceMin = which.min( lapply( distance, function(x) min(x) ) )
+
+                      maxSamplings = max( samplingsWindows[[indDistanceMin]])
+                      minSamplings = min( samplingsWindows[[indDistanceMin]])
+
+                      position[[ armName ]][[ outcome ]][[ iterPop ]][ j ] = min( maxSamplings, position[[ armName ]][[ outcome ]][[ iterPop ]][ j ] )
+                      position[[ armName ]][[ outcome ]][[ iterPop ]][ j ] = max( minSamplings, position[[ armName ]][[ outcome ]][[ iterPop ]][ j ] )
+                    }
+                    position[[ armName ]][[ outcome ]][[ iterPop ]] = sort(  position[[ armName ]][[ outcome ]][[ iterPop ]] )
+                  }
+                }
 
 
-                     # Update Position
-                     position[[ nameResponse ]][[ nameArm ]][[ iterPop ]] =
-                       position[[ nameResponse ]][[ nameArm ]][[ iterPop ]] + velocity[[ nameResponse ]][[ nameArm ]][[ iterPop ]]
+                # ===================================================
+                # constraints
+                # ===================================================
 
-                     # Apply position limits
-                     for( j in 1:sizeSampleTime )
-                     {
-                       position[[ nameResponse ]][[ nameArm ]][[ iterPop ]][ j ] =
-                         min( maxPosition, position[[ nameResponse ]][[ nameArm ]][[ iterPop ]][ j ] )
+                samplingTimeConstraintsForContinuousOptimization = list()
 
-                       position[[ nameResponse ]][[ nameArm ]][[ iterPop ]][ j ] =
-                         max( minPosition, position[[ nameResponse ]][[ nameArm ]][[ iterPop ]][ j ] )
-                     }
+                for ( arm in arms )
+                {
+                  armName = getName( arm )
 
-                     position[[ nameResponse ]][[ nameArm ]][[ iterPop ]] = sort( position[[ nameResponse ]][[ nameArm ]][[ iterPop ]] )
+                  samplingTimesConstraints = getSamplingTimesConstraints( arm )
 
-                     # Constraints of the model : windows for sampling times and min time delay
+                  # =======================================================
+                  # check the constraints on the samplings times
+                  # =======================================================
 
-                     samplingTimes =  position[[ nameResponse ]][[ nameArm ]][[ iterPop ]]
+                  for ( outcome in outcomes[[armName]] )
+                  {
+                    newSamplings = position[[ armName ]][[ outcome ]][[ iterPop ]]
 
-                     for (   samplingConstraint in samplingConstraints )
-                     {
-                       if ( isLessThanDelay( samplingConstraint, samplingTimes ) == TRUE )
-                       {
-                         constraintsPop = FALSE
-                         break
-                       }
+                    samplingTimesConstraints = getSamplingTimeConstraint( arm, outcome )
 
-                       for ( time in samplingTimes )
-                       {
-                         if ( isTimeInBetweenBounds( samplingConstraint, time ) == FALSE )
-                         {
-                           constraintsPop = FALSE
-                           break
-                         }
-                       }
-                     }
-                     arm <- modifySamplingTimes( arm, nameResponse,  position[[ nameResponse ]][[ nameArm ]][[ iterPop ]]  )
-                   } # end reponse
-                   designA  = modifyArm( designA, nameArm, arm)
-                 } # end arm
+                    samplingTimeConstraintsForContinuousOptimization[[ armName ]][[ outcome ]] =
+                      checkSamplingTimeConstraintsForContinuousOptimization( samplingTimesConstraints, arm, newSamplings, outcome )
 
-                 # Constraints and cost and global cost of the model
-                 if (constraintsPop == TRUE )
-                 {
-                   arms = getArms( designA )
-                   nameArms = names( arms )
+                  }
+                }
 
-                   # Evaluation
-                   evaluatedDesign = EvaluateDesignForEachArm( designA, statistical_model, typeFim )
-                   cost[[ iterPop ]] =  1 / getDcriterion( getFimOfDesign( evaluatedDesign ) )
+                samplingTimeConstraintsForContinuousOptimization = unlist( samplingTimeConstraintsForContinuousOptimization )
 
-                   if (is.nan( cost[[ iterPop ]]))
-                   {
-                     cost[[ iterPop ]]=Inf
-                   }
+                if( all( samplingTimeConstraintsForContinuousOptimization ) == TRUE )
+                {
+                  # ===================================================
+                  # evaluation
+                  # ===================================================
 
-                   if (is.nan( bestCost[[ iterPop ]]))
-                   {
-                     bestCost[[ iterPop ]]=Inf
-                   }
+                  # ===================================================
+                  # set new sampling times
+                  # ===================================================
 
-                   # Update personal best
-                   if ( cost[[ iterPop ]] < bestCost[[ iterPop ]] )
-                   {
-                     for( nameArm in nameArms )
-                     {
-                       for( nameResponse in nameResponses )
-                       {
-                         bestPosition[[ nameResponse ]][[ nameArm ]][[ iterPop ]] = position[[ nameResponse ]][[ nameArm ]][[ iterPop ]]
-                       }
-                     }
-                     bestCost[[ iterPop ]] = cost[[ iterPop ]]
-                   }
+                  for ( arm in arms )
+                  {
+                    armName = getName( arm )
 
-                   # index min of bestCost
-                   indexMinBestCost = which.min( bestCost )
+                    for ( outcome in outcomes[[armName]] )
+                    {
+                      samplings = position[[ armName ]][[ outcome ]][[ iterPop ]]
+                      samplingTimes = getSamplingTime( arm, outcome )
+                      samplingTimes = setSamplings( samplingTimes, samplings )
+                      arm = setSamplingTime( arm, samplingTimes )
+                    }
 
-                   if ( bestCost[[ indexMinBestCost ]] < globalBestCost )
-                   {
-                     # update particle positions
-                     for( nameArm in nameArms )
-                     {
-                       for( nameResponse in nameResponses )
-                       {
-                         globalBestPosition[[ nameResponse ]][[ nameArm ]] = bestPosition[[ nameResponse ]][[ nameArm ]][[ indexMinBestCost ]]
-                       }
-                     }
+                    design = setArm( design, arm )
+                  }
 
-                     globalBestCost = bestCost[[ indexMinBestCost ]]
+                  # ===================================================
+                  # set and evaluate new design with the constraints
+                  # ===================================================
 
-                     results = rbind( c( iter , 1/globalBestCost ), results )
+                  evaluationFIM = Evaluation( name = "",
+                                              modelEquations = modelEquations,
+                                              modelParameters = modelParameters,
+                                              modelError = modelError,
+                                              outcomes = outcomesForEvaluation,
+                                              designs = list( design ),
+                                              fim = fimEvaluation,
+                                              odeSolverParameters = odeSolverParameters )
 
-                     if (object@showProcess == TRUE)
-                     {
-                       print( paste0( " global best cost = ", globalBestCost ) )
-                     }
-                     best = designA
-                     best@isOptimalDesign = TRUE
-                   }
-                 } # end constraints
-               } # end iterPop
-             } #end iter
+                  evaluationFIM =  run( evaluationFIM )
 
-             # set armSize to 1 for individual and bayesian Fim
 
-             arms = getArms( best )
+                  # ===================================================
+                  # get criteria
+                  # ===================================================
 
-             if ( class( typeFim ) %in% c( "IndividualFim", "BayesianFim" ) )
-             {
-               for ( arm in arms)
-               {
-                 arm = setArmSize( arm, 1 )
-                 nameArm = getNameArm( arm )
-                 best = modifyArm( best, nameArm, arm)
-               }
-             }
+                  designs = getDesigns( evaluationFIM )
+                  newDesign = designs[[1]]
 
-             colnames( results ) = c("Iteration","Criteria")
-             object@OptimalDesign <- best
-             object@OptimalDesign@name = paste0( "Design optimized from",constraint@name )
-             object@resultsOptimization <- results
+                  fim = getFim( newDesign )
 
-             return(object)
-           })
+                  cost[[ iterPop ]] = 1/getDcriterion( fim )
 
-########################################################################################################
-# END Class "PSO"
-########################################################################################################
+                  if (is.nan( cost[[ iterPop ]]))
+                  {
+                    cost[[ iterPop ]] = Inf
+                  }
+
+                  if (is.nan( bestCost[[ iterPop ]]))
+                  {
+                    bestCost[[ iterPop ]] = Inf
+                  }
+
+                  # ===================================================
+                  # Update Personal Best
+                  # ===================================================
+
+                  if ( cost[[ iterPop ]] < bestCost[[ iterPop ]] )
+                  {
+                    for ( arm in arms )
+                    {
+                      armName = getName( arm )
+
+                      for ( outcome in outcomes[[armName]] )
+                      {
+                        bestPosition[[ armName ]][[ outcome ]][[ iterPop ]] = position[[ armName ]][[ outcome ]][[ iterPop ]]
+                      }
+                      bestCost[[ iterPop ]] = cost[[ iterPop ]]
+                    }
+
+                    indexMinBestCost = which.min( unlist( bestCost ) )
+
+                    if ( bestCost[[ indexMinBestCost ]] < globalBestCost )
+                    {
+                      for ( arm in arms )
+                      {
+                        armName = getName( arm )
+
+                        samplingTimesArms = list()
+
+                        for ( outcome in outcomes[[armName]] )
+                        {
+                          globalBestPosition[[ armName ]][[ outcome ]] = bestPosition[[ armName ]][[ outcome ]][[ indexMinBestCost ]]
+                        }
+                      }
+
+                      globalBestCost = bestCost[[ indexMinBestCost ]]
+
+                      # ===================================================
+                      # update design
+                      # ===================================================
+
+                      optimalDesign = design
+                    }
+                  }
+                }
+
+              } # end iterPop
+
+              results = rbind( c( iteration , globalBestCost ), results )
+
+              if ( showProcess == TRUE )
+              {
+                print( paste0( "globalBestCost = ", 1/globalBestCost ) )
+              }
+            } # end maxIteration
+
+            # ===================================================
+            # Outputs
+            # ===================================================
+
+            # ===================================================
+            # set Iteration & Criteria
+            # ===================================================
+
+            colnames( results ) = c("Iteration","Criterion")
+            results = results[rev(rownames(results)),]
+            object = setIterationAndCriteria( object, results )
+
+            # ===================================================
+            # set optimal design
+            # ===================================================
+
+            object = setOptimalDesign( object, optimalDesign )
+
+            return( object )
+
+          })
+
+# ======================================================================================================
+# show
+# ======================================================================================================
+
+setMethod(f="show",
+          signature = "PSOAlgorithm",
+          definition = function( object )
+          {
+
+            cat( " ************************************************* ")
+            cat("\n")
+            cat( " Criterion ")
+            cat("\n")
+            cat( " ************************************************* ")
+
+            cat("\n")
+
+            iterationAndCriteria = getIterationAndCriteria( object )
+            rownames(iterationAndCriteria )=NULL
+
+            # ===================================================
+            # keep only criterion change
+            # ===================================================
+
+            iterationAndCriteriaUnique = iterationAndCriteria[!duplicated(iterationAndCriteria$Criterion),]
+
+            iterationAndCriteriaUnique = rbind(iterationAndCriteriaUnique,
+                                               iterationAndCriteria[max(iterationAndCriteria$Iteration),])
+            print( iterationAndCriteriaUnique )
+
+          })
+
+# ======================================================================================================
+# generateReportOptimization
+# ======================================================================================================
+
+setMethod(
+  "generateReportOptimization",
+  signature = "PSOAlgorithm",
+  definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
+  {
+    # ===================================================
+    # projectName and outputs tables
+    # ===================================================
+
+    projectName = getName( optimizationObject )
+
+    evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
+    fimType = is( getFim( evaluationFIMResults ) )[1]
+
+    evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
+
+    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
+
+    tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
+
+    # ===================================================
+    # markdown template
+    # ===================================================
+
+    path = system.file(package = "PFIM")
+    path = paste0( path, "/rmarkdown/templates/skeleton/" )
+    nameInputFile = paste0( path, "template_PSOAlgorithm.rmd" )
+
+    rmarkdown::render( input = nameInputFile,
+                       output_file = outputFile,
+                       output_dir = outputPath,
+                       params = list(
+                         object = "object",
+                         plotOptions = "plotOptions",
+                         projectName = "projectName",
+                         fimType = "fimType",
+                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
+                         tablesOptimizationObject = "tablesOptimizationObject" ) )
+
+  })
+
+##############################################################################
+# END Class PSOAlgorithm
+##############################################################################
+
+
+
+
+
+
+
 

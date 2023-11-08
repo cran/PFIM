@@ -2,16 +2,16 @@
 % Please edit documentation in R/Fim.R
 \name{getDcriterion}
 \alias{getDcriterion}
-\title{Get the D-criterion for a \code{Fim} object.}
+\title{Get the D criterion of the fim.}
 \usage{
 getDcriterion(object)
 }
 \arguments{
-\item{object}{A \code{Fim} object.}
+\item{object}{An object from the class \linkS4class{Fim}.}
 }
 \value{
-A numeric \code{Dcriterion} giving the D-criterion of a Fisher Information Matrix.
+A numeric giving the D criterion of the fim.
 }
 \description{
-Get the D-criterion for a \code{Fim} object.
+Get the D criterion of the fim.
 }

@@ -4,10 +4,9 @@
 \name{MultiplicativeAlgorithm-class}
 \alias{MultiplicativeAlgorithm-class}
 \alias{MultiplicativeAlgorithm}
-\alias{MultiplicativeAlgorithmClass}
 \title{Class "MultiplicativeAlgorithm"}
 \description{
-Class "MultiplicativeAlgorithm" implements the Multiplicative algorithm.
+The class \code{MultiplicativeAlgorithm} implements the multiplicative algorithm.
 }
 \section{Objects from the class}{
 
@@ -18,14 +17,13 @@ Objects form the class \code{MultiplicativeAlgorithm} can be created by calls of
 \section{Slots for \code{MultiplicativeAlgorithm} objects}{
 
 \describe{
+\item{\code{arms}:}{A list giving the arms.}
 \item{\code{lambda}:}{A numeric giving the lambda parameter of the multiplicative algorithm.}
 \item{\code{delta}:}{A numeric giving the delta parameter of the multiplicative algorithm.}
-\item{\code{iteration_init}:}{A numeric giving the first iteration of the optimization process.}
-\item{\code{iteration_fin}:}{A numeric giving the last iteration of the optimization process.}
-\item{\code{FinalWeights}:}{A vector givint hte optimal weights.}
+\item{\code{numberOfIterations}:}{A numeric giving the maximal number iteration of the optimization process.}
+\item{\code{optimalWeights}:}{A vector giving the optimal weights.}
+\item{\code{optimalDesign}:}{An object of the class \code{Design} giving the optimal design.}
 \item{\code{showProcess}:}{A boolean for showing or not the process of optimization.}
-\item{\code{OptimalDesign}:}{A object from the class \code{Design}}
-\item{\code{allArms}:}{A list of all arms.}
 }
 }
 

@@ -4,15 +4,8 @@
 \name{BayesianFim-class}
 \alias{BayesianFim-class}
 \alias{BayesianFim}
-\title{Class "BayesianFim" representing the population Fisher information matrix.}
+\title{Class "BayesianFim"}
 \description{
-A class storing information regarding the population Fisher computation matrix.
+The class \code{BayesianFim} represents the population Fisher information matrix.
+The class \code{BayesianFim} inherits from the class \code{Fim}.
 }
-\section{Objects from the class}{
-
-\code{BayesianFim} objects are typically created by calls to \code{{BayesianFim}}:
-\describe{
-\item{Bayesianfim:}{Create a new \code{BayesianFim}}
-}
-}
-

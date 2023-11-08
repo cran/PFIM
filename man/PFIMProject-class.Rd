@@ -6,26 +6,19 @@
 \alias{PFIMProject}
 \title{Class "PFIMProject"}
 \description{
-The class \code{PFIMProject} implements the evaluation of the Fisher Information Matrix through the use
-of a statistical model. This class also plot the graphic for the evolution over time of the
-concentraton, the sensitivity indices and the standard errors (SE, RSE) of a model.
+A class storing information concerning a PFIM project.
 }
-\section{Objects from the class \code{PFIMProject}}{
+\section{Objects from the class}{
 
 Objects form the class \code{PFIMProject} can be created by calls of the form \code{PFIMProject(...)} where
 (...) are the parameters for the \code{PFIMProject} objects.
 }
 
-\section{The slots for the \code{PFIMProject} objects}{
+\section{Slots for \code{PFIMProject} objects}{
 
-\describe{
-\item{\code{name}:}{A character strings giving the name of the project.}
-\item{\code{previous_fim}:}{A matrix of numerical values giving the information matrix obtained from a previous study.}
-\item{\code{fim}:}{A list of Fims (population or individual or Bayesian information).}
-\item{\code{statistical_model}:}{A list of StatisticalModels }
-\item{\code{designs}:}{A list of all designs.}
-\item{\code{constraints}:}{design constraint.}
-\item{\code{graph_options}:}{List of graphical options.}
-}
+ \describe{
+   \item{\code{name}:}{A character string giving the name of the PFIM project.}
+   \item{\code{description}:}{A list giving the description of the PFIM project.}
+ }
 }
 

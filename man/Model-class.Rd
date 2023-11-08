@@ -4,22 +4,29 @@
 \name{Model-class}
 \alias{Model-class}
 \alias{Model}
-\title{Class "Model" representing a Model}
+\title{Class "Model"}
 \description{
-A class storing information concerning the models in the \code{LibraryOfModels}.
+The class \code{Model} defines information concerning the construction of a model.
 }
-\section{Objects from the Class  \code{Model}}{
+\section{Objects from the class}{
 
-Objects form the Class \code{Model} can be created by calls of the form \code{Model(...)} where
-(...) are the parameters for the \code{Model} object.
+Objects form the class \code{Model} can be created by calls of the form \code{Model(...)} where
+(...) are the parameters for the \code{Model} objects.
 }
 
-\section{Slots for the \code{Model} objects}{
+\section{Slots for \code{Administration} objects}{
 
-\describe{
-\item{\code{nameModel}:}{A character string giving the name of the model.}
-\item{\code{descriptionModel}:}{A list of character string giving the characterisation of the model (name, administration, number of compartment)}
-\item{\code{equationsModel}:}{A object \code{ModelEquations} giving the equations of the model.}
-}
+ \describe{
+   \item{\code{name}:}{A string giving the name of the model.}
+   \item{\code{description}:}{A list of string giving the description of the model.}
+   \item{\code{equations}:}{A list giving the equations of the model.}
+   \item{\code{outcomes}:}{A list giving the outcomes of the model.}
+   \item{\code{outcomesForEvaluation}:}{A list giving the outcomes used for the evaluation of the model.}
+   \item{\code{parameters}:}{A list giving the parameters of the model.}
+   \item{\code{modelError}:}{A list giving the model error of the model.}
+   \item{\code{initialConditions}:}{A list giving the initial conditions of the model.}
+   \item{\code{odeSolverParameters}:}{A list giving the parameters for the solver of the model.}
+   \item{\code{modelFromLibrary}:}{A list giving the model equations when the model is constructed from the library of model.}
+ }
 }
 

@@ -2,16 +2,16 @@
 % Please edit documentation in R/ModelError.R
 \name{getSigmaSlope}
 \alias{getSigmaSlope}
-\title{Get the \code{sigma_slope} of a \code{ModelError} object.}
+\title{Get the parameter sigma slope.}
 \usage{
 getSigmaSlope(object)
 }
 \arguments{
-\item{object}{An \code{ModelError} object.}
+\item{object}{An object from the class \linkS4class{ModelError}.}
 }
 \value{
-The numeric \code{sigma_slope} giving the \code{sigma_slope}.
+A numeric giving the parameter sigma slope.
 }
 \description{
-Get the \code{sigma_slope} of a \code{ModelError} object.
+Get the parameter sigma slope.
 }

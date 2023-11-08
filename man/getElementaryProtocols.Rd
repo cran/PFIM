@@ -2,16 +2,19 @@
 % Please edit documentation in R/Optimization.R
 \name{getElementaryProtocols}
 \alias{getElementaryProtocols}
-\title{Get the matrix of all the combination of the elementary protocols.}
+\title{Get the elementary protocols.}
 \usage{
-getElementaryProtocols(object)
+getElementaryProtocols(object, fims)
 }
 \arguments{
-\item{object}{An \code{Optimization} object.}
+\item{object}{An object from the class \linkS4class{Optimization}.}
+
+\item{fims}{A list of object from the class \linkS4class{Fim}.}
 }
 \value{
-A matrix giving  all the combination of the elementary protocols.
+A list containing the results of the evaluation of the elementary protocols giving
+the numberOfTimes, nbOfDimensions, totalCost, samplingTimes and the fisherMatrices
 }
 \description{
-Get the matrix of all the combination of the elementary protocols.
+Get the elementary protocols.
 }

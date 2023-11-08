@@ -4,24 +4,21 @@
 \name{SamplingTimes-class}
 \alias{SamplingTimes-class}
 \alias{SamplingTimes}
-\alias{[,Sampling-method}
-\alias{[<-,Sampling-method}
 \title{Class "SamplingTimes"}
 \description{
-Class "SamplingTimes" stores information concerning sampling times.
+The class "SamplingTimes" implements the sampling times.
 }
-\section{Objects from the Class}{
+\section{Objects from the class \code{SamplingTimes}}{
 
-Objects form the Class \code{SamplingTimes} can be created by calls of the form \code{SamplingTimes(...)} where
+Objects form the class \code{SamplingTimes} can be created by calls of the form \code{SamplingTimes(...)} where
 (...) are the parameters for the \code{SamplingTimes} objects.
 }
 
-\section{Slots for the \code{SamplingTimes} objects}{
+\section{Slots for \code{SamplingTimes} objects}{
 
-\describe{
-\item{\code{outcome}:}{A character string giving either a compartment name or number (character or integer, TBD with model) (nombre de reponses "1", "2").}
-\item{\code{sample_time}:}{A list of discrete vectors giving the times when sampling design is performed. }
-\item{\code{initialTime}:}{A numeric giving the initial time of the vecotr of sampling times.}
-}
+ \describe{
+   \item{\code{outcome}:}{A string giving the outcome.}
+   \item{\code{samplings}:}{A vector giving the sampling times.}
+ }
 }
 
