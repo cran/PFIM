@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{getModelFromLibrary}
 \alias{getModelFromLibrary}
+\alias{getModelFromLibrary,Model-method}
 \title{Get a model from the library of models.}
 \usage{
 getModelFromLibrary(object)
+
+\S4method{getModelFromLibrary}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

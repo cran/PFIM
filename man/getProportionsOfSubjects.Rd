@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{getProportionsOfSubjects}
 \alias{getProportionsOfSubjects}
+\alias{getProportionsOfSubjects,Optimization-method}
 \title{Get the proportion of subjects.}
 \usage{
 getProportionsOfSubjects(object)
+
+\S4method{getProportionsOfSubjects}{Optimization}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

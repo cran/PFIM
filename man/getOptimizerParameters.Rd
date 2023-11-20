@@ -2,9 +2,12 @@
 % Please edit documentation in R/PFIMProject.R
 \name{getOptimizerParameters}
 \alias{getOptimizerParameters}
+\alias{getOptimizerParameters,PFIMProject-method}
 \title{Get the optimization parameters.}
 \usage{
 getOptimizerParameters(object)
+
+\S4method{getOptimizerParameters}{PFIMProject}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{PFIMProject}.}

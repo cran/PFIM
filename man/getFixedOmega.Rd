@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelParameter.R
 \name{getFixedOmega}
 \alias{getFixedOmega}
+\alias{getFixedOmega,ModelParameter-method}
 \title{Get the fixed variance.}
 \usage{
 getFixedOmega(object)
+
+\S4method{getFixedOmega}{ModelParameter}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelParameter}.}

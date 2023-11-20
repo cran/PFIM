@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{defineModelFromLibraryOfModels}
 \alias{defineModelFromLibraryOfModels}
+\alias{defineModelFromLibraryOfModels,Model-method}
 \title{Define a model from the library of models.}
 \usage{
 defineModelFromLibraryOfModels(object, designs)
+
+\S4method{defineModelFromLibraryOfModels}{Model}(object, designs)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

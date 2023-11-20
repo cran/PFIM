@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getCorrelationMatrix}
 \alias{getCorrelationMatrix}
+\alias{getCorrelationMatrix,Fim-method}
 \title{Get the correlation matrix.}
 \usage{
 getCorrelationMatrix(object)
+
+\S4method{getCorrelationMatrix}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Arm.R
 \name{getSamplingTimesConstraints}
 \alias{getSamplingTimesConstraints}
-\title{Get the sampling times constraints.}
+\alias{getSamplingTimesConstraints,Arm-method}
+\title{getSamplingTimesConstraints}
 \usage{
 getSamplingTimesConstraints(object)
+
+\S4method{getSamplingTimesConstraints}{Arm}(object)
 }
 \arguments{
 \item{object}{An object \code{Arm} from the class \linkS4class{Arm}.}

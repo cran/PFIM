@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{getNumberOfArms}
 \alias{getNumberOfArms}
-\title{Get the number of arms in a design.}
+\alias{getNumberOfArms,Design-method}
+\title{getNumberOfArms}
 \usage{
 getNumberOfArms(object)
+
+\S4method{getNumberOfArms}{Design}(object)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

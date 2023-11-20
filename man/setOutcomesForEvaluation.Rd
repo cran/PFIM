@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{setOutcomesForEvaluation}
 \alias{setOutcomesForEvaluation}
+\alias{setOutcomesForEvaluation,Model-method}
 \title{Set the outcomes of a model used for the evaluation (is scales outcomes).}
 \usage{
 setOutcomesForEvaluation(object, outcomes)
+
+\S4method{setOutcomesForEvaluation}{Model}(object, outcomes)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

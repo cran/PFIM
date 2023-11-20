@@ -2,9 +2,12 @@
 % Please edit documentation in R/Administration.R
 \name{setTinf}
 \alias{setTinf}
+\alias{setTinf,Administration-method}
 \title{Set the infusion duration.}
 \usage{
 setTinf(object, Tinf)
+
+\S4method{setTinf}{Administration}(object, Tinf)
 }
 \arguments{
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}

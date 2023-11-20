@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{setSamplingConstraintForOptimization}
 \alias{setSamplingConstraintForOptimization}
-\title{Set the sampling times constraint for optimization with PSO, PGBO and Simplex}
+\alias{setSamplingConstraintForOptimization,Design-method}
+\title{setSamplingConstraintForOptimization}
 \usage{
 setSamplingConstraintForOptimization(object)
+
+\S4method{setSamplingConstraintForOptimization}{Design}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Design}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{getDescription}
 \alias{getDescription}
+\alias{getDescription,Model-method}
 \title{Get the description of a model.}
 \usage{
 getDescription(object)
+
+\S4method{getDescription}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

@@ -18,43 +18,45 @@ ModelAnalyticInfusion = setClass(
     odeSolverParameters = list(NULL)))
 
 
-setMethod(
-  f="initialize",
-  signature="ModelAnalyticInfusion",
-  definition= function (.Object, name, description, equations, outcomes, parameters, modelError)
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
-    if(!missing(description))
-    {
-      .Object@description = description
-    }
-    if(!missing(equations))
-    {
-      .Object@equations = equations
-    }
-    if(!missing(outcomes))
-    {
-      .Object@outcomes = outcomes
-    }
-    if(!missing(parameters))
-    {
-      .Object@parameters = parameters
-    }
-    if(!missing(modelError))
-    {
-      .Object@modelError = modelError
-    }
-    validObject(.Object)
-    return (.Object )
-  }
+setMethod( f="initialize",
+           signature="ModelAnalyticInfusion",
+           definition= function (.Object, name, description, equations, outcomes, parameters, modelError)
+           {
+             if(!missing(name))
+             {
+               .Object@name = name
+             }
+             if(!missing(description))
+             {
+               .Object@description = description
+             }
+             if(!missing(equations))
+             {
+               .Object@equations = equations
+             }
+             if(!missing(outcomes))
+             {
+               .Object@outcomes = outcomes
+             }
+             if(!missing(parameters))
+             {
+               .Object@parameters = parameters
+             }
+             if(!missing(modelError))
+             {
+               .Object@modelError = modelError
+             }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
 # ======================================================================================================
 # EvaluateModel
 # ======================================================================================================
+
+#' @rdname EvaluateModel
+#' @export
 
 setMethod(f="EvaluateModel",
           signature =  "ModelAnalyticInfusion",
@@ -587,6 +589,9 @@ setMethod(f="EvaluateModel",
 # definePKModel
 # ======================================================================================================
 
+#' @rdname definePKModel
+#' @export
+
 setMethod("definePKModel",
           signature( "ModelAnalyticInfusion"),
           function( object, outcomes )
@@ -805,6 +810,9 @@ setMethod("definePKModel",
 # ======================================================================================================
 # definePKPDModel
 # ======================================================================================================
+
+#' @rdname definePKPDModel
+#' @export
 
 setMethod("definePKPDModel",
           signature( "ModelAnalyticInfusion", "ModelAnalytic" ),
@@ -1035,6 +1043,9 @@ setMethod("definePKPDModel",
 # ======================================================================================================
 # definePKPDModel
 # ======================================================================================================
+
+#' @rdname definePKPDModel
+#' @export
 
 setMethod("definePKPDModel",
           signature( "ModelAnalyticInfusion", "ModelODE" ),
@@ -1306,6 +1317,9 @@ setMethod("definePKPDModel",
 # ======================================================================================================
 # convertPKModelAnalyticToPKModelODE
 # ======================================================================================================
+
+#' @rdname convertPKModelAnalyticToPKModelODE
+#' @export
 
 setMethod("convertPKModelAnalyticToPKModelODE",
           signature("ModelAnalyticInfusion"),

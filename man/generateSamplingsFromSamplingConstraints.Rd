@@ -2,9 +2,12 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{generateSamplingsFromSamplingConstraints}
 \alias{generateSamplingsFromSamplingConstraints}
+\alias{generateSamplingsFromSamplingConstraints,SamplingTimeConstraints-method}
 \title{Generate samplings from sampling constraints}
 \usage{
 generateSamplingsFromSamplingConstraints(object)
+
+\S4method{generateSamplingsFromSamplingConstraints}{SamplingTimeConstraints}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{SamplingTimeConstraints}.}

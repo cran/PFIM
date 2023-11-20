@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{setDerivatives}
 \alias{setDerivatives}
+\alias{setDerivatives,ModelError-method}
 \title{Set the derivatives of the model error equation.}
 \usage{
 setDerivatives(object, derivatives)
+
+\S4method{setDerivatives}{ModelError}(object, derivatives)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{isModelBolus}
 \alias{isModelBolus}
+\alias{isModelBolus,Model-method}
 \title{Test if a mode is bolus.}
 \usage{
 isModelBolus(object, designs)
+
+\S4method{isModelBolus}{Model}(object, designs)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

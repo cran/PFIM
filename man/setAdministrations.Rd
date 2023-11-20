@@ -2,9 +2,12 @@
 % Please edit documentation in R/Arm.R
 \name{setAdministrations}
 \alias{setAdministrations}
-\title{Set all the administration for an arm.}
+\alias{setAdministrations,Arm-method}
+\title{setAdministrations}
 \usage{
 setAdministrations(object, administrations)
+
+\S4method{setAdministrations}{Arm}(object, administrations)
 }
 \arguments{
 \item{object}{An object \code{Arm} from the class \linkS4class{Arm}.}

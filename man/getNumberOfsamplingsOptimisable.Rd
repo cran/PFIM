@@ -2,9 +2,12 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{getNumberOfsamplingsOptimisable}
 \alias{getNumberOfsamplingsOptimisable}
+\alias{getNumberOfsamplingsOptimisable,SamplingTimeConstraints-method}
 \title{Get the number of sampling times that are optimisable.}
 \usage{
 getNumberOfsamplingsOptimisable(object)
+
+\S4method{getNumberOfsamplingsOptimisable}{SamplingTimeConstraints}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{SamplingTimeConstraints}.}

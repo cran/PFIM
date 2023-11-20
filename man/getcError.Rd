@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{getcError}
 \alias{getcError}
+\alias{getcError,ModelError-method}
 \title{Get the parameter c.}
 \usage{
 getcError(object)
+
+\S4method{getcError}{ModelError}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

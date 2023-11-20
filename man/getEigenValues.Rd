@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getEigenValues}
 \alias{getEigenValues}
+\alias{getEigenValues,Fim-method}
 \title{Get the eigenvalues of the fim.}
 \usage{
 getEigenValues(object)
+
+\S4method{getEigenValues}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

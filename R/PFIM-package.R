@@ -2,7 +2,6 @@
 #' @aliases PFIM, package-PFIM
 #' @docType package
 #' @title Fisher Information matrix for design evaluation/optimization for  nonlinear mixed effects models.
-
 #' @section Description:
 #' Nonlinear mixed effects models (NLMEM) are widely used in model-based drug development and use to analyze
 #' longitudinal data. The use of the "population" Fisher Information Matrix (FIM) is a good alternative to
@@ -20,6 +19,9 @@
 #' \pkg{PFIM 6.0} includes several algorithms to conduct design optimization based on the D-criterion, given design constraints : the simplex algorithm (Nelder-Mead) [5], the
 #' multiplicative algorithm [6], the Fedorov-Wynn algorithm [7], PSO (\emph{Particle Swarm Optimization}) and PGBO (\emph{Population Genetics Based
 #' Optimizer}) [9].
+#'
+#' @section Documentation:
+#' Documentation and user guide are available at \url{http://www.pfim.biostat.fr/}
 #'
 #' @section Validation:
 #' \pkg{PFIM 6.0} also provides quality control with tests and validation using the evaluated FIM to assess the validity of the new version  and its new
@@ -144,7 +146,7 @@
 #'     \item{} \code{\link{EvaluateDesign}}
 #'     \item{} \code{\link{plotOutcomesEvaluation}}
 #'     \item{} \code{\link{plotOutcomesGradient}}
-#'     \item{} \code{\link{show}}
+#     \item{} \code{\link{show}}
 #'     \item{} \code{\link{reportTablesAdministration}}
 #'     \item{} \code{\link{reportTablesDesign}}
 #' }
@@ -167,7 +169,7 @@
 #'
 #'   \itemize{
 #'     \item{}\code{\link{run}}
-#'     \item{}\code{\link{show}}
+#     \item{}\code{\link{show}}
 #'     \item{}\code{\link{reportTablesPlot}}
 #'     \item{}\code{\link{generateTables}}
 #'     \item{}\code{\link{Report}}
@@ -181,7 +183,7 @@
 #'     \item{}\code{\link{resizeFisherMatrix}}
 #'     \item{}\code{\link{setParameters}}
 #'     \item{}\code{\link{optimize}}
-#'     \item{}\code{\link{show}}
+#     \item{}\code{\link{show}}
 #'     \item{}\code{\link{generateReportOptimization}}
 #'  }
 #'
@@ -194,7 +196,7 @@
 #'     \item{}\code{\link{resizeFisherMatrix}}
 #'     \item{}\code{\link{setParameters}}
 #'     \item{}\code{\link{optimize}}
-#'     \item{}\code{\link{show}}
+#    \item{}\code{\link{show}}
 #'     \item{}\code{\link{generateReportOptimization}}
 #'  }
 #'
@@ -250,7 +252,7 @@
 #'     \item{}\code{\link{setName}}
 #'     \item{}\code{\link{setArms}}
 #'     \item{}\code{\link{getArms}}
-#'     \item{}\code{\link{show}}
+#    \item{}\code{\link{show}}
 #'  }
 #'
 #' Class \code{\link{IndividualFim}}
@@ -497,7 +499,7 @@
 #'      \item{} \code{\link{optimize}}
 #'      \item{} \code{\link{getDataFrameResults}}
 #'      \item{} \code{\link{plotWeights}}
-#'      \item{} \code{\link{show}}
+#      \item{} \code{\link{show}}
 #'      \item{} \code{\link{generateReportOptimization}}
 #'  }
 #'
@@ -524,7 +526,7 @@
 #'      \item{} \code{\link{getElementaryProtocols}}
 #'      \item{} \code{\link{generateFimsFromConstraints}}
 #'      \item{} \code{\link{run}}
-#'      \item{} \code{\link{show}}
+#      \item{} \code{\link{show}}
 #'      \item{} \code{\link{plotWeights}}
 #'      \item{} \code{\link{Report}}
 #'  }
@@ -558,7 +560,7 @@
 #'   \itemize{
 #'      \item{} \code{\link{setParameters}}
 #'      \item{} \code{\link{optimize}}
-#'      \item{} \code{\link{show}}
+#    \item{} \code{\link{show}}
 #'      \item{} \code{\link{generateReportOptimization}}
 #'  }
 #'
@@ -601,7 +603,7 @@
 #'   \itemize{
 #'      \item{} \code{\link{setParameters}}
 #'      \item{} \code{\link{optimize}}
-#'      \item{} \code{\link{show}}
+#      \item{} \code{\link{show}}
 #'      \item{} \code{\link{generateReportOptimization}}
 #'  }
 #'
@@ -640,7 +642,7 @@
 #'      \item{} \code{\link{fun.amoeba}}
 #'      \item{} \code{\link{fisher.simplex}}
 #'      \item{} \code{\link{optimize}}
-#'      \item{} \code{\link{show}}
+#     \item{} \code{\link{show}}
 #'      \item{} \code{\link{generateReportOptimization}}
 #'  }
 #'

@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{getSigmaSlope}
 \alias{getSigmaSlope}
+\alias{getSigmaSlope,ModelError-method}
 \title{Get the parameter sigma slope.}
 \usage{
 getSigmaSlope(object)
+
+\S4method{getSigmaSlope}{ModelError}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

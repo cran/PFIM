@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{setDesigns}
 \alias{setDesigns}
+\alias{setDesigns,Optimization-method}
 \title{Set the designs.}
 \usage{
 setDesigns(object, designs)
+
+\S4method{setDesigns}{Optimization}(object, designs)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

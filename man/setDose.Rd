@@ -2,9 +2,12 @@
 % Please edit documentation in R/Administration.R
 \name{setDose}
 \alias{setDose}
+\alias{setDose,Administration-method}
 \title{Set the amount of dose}
 \usage{
 setDose(object, dose)
+
+\S4method{setDose}{Administration}(object, dose)
 }
 \arguments{
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}

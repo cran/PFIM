@@ -42,72 +42,74 @@ PSOAlgorithm = setClass(
   prototype = prototype(
     showProcess = F ) )
 
-setMethod(
-  f = "initialize",
-  signature = "PSOAlgorithm",
-  definition = function ( .Object,
-                          maxIteration,
-                          populationSize,
-                          personalLearningCoefficient,
-                          globalLearningCoefficient,
-                          seed,
-                          showProcess,
-                          optimalDesign,
-                          iterationAndCriteria )
-  {
-    # ===============================
-    # values by default
-    # ===============================
+setMethod( f = "initialize",
+           signature = "PSOAlgorithm",
+           definition = function ( .Object,
+                                   maxIteration,
+                                   populationSize,
+                                   personalLearningCoefficient,
+                                   globalLearningCoefficient,
+                                   seed,
+                                   showProcess,
+                                   optimalDesign,
+                                   iterationAndCriteria )
+           {
+             # ===============================
+             # values by default
+             # ===============================
 
-    .Object@maxIteration = 200
-    .Object@populationSize = 200
-    .Object@personalLearningCoefficient = 1.4962
-    .Object@globalLearningCoefficient = 1.4962
-    .Object@seed = -1
+             .Object@maxIteration = 200
+             .Object@populationSize = 200
+             .Object@personalLearningCoefficient = 1.4962
+             .Object@globalLearningCoefficient = 1.4962
+             .Object@seed = -1
 
-    .Object@showProcess = TRUE
+             .Object@showProcess = TRUE
 
-    if ( !missing( maxIteration ) )
-    {
-      .Object@maxIteration = maxIteration
-    }
-    if ( !missing( populationSize ) )
-    {
-      .Object@populationSize = populationSize
-    }
-    if ( !missing( personalLearningCoefficient ) )
-    {
-      .Object@personalLearningCoefficient = personalLearningCoefficient
-    }
-    if ( !missing( globalLearningCoefficient ) )
-    {
-      .Object@globalLearningCoefficient = globalLearningCoefficient
-    }
-    if ( !missing( seed ) )
-    {
-      .Object@seed = seed
-    }
-    if ( !missing( showProcess ) )
-    {
-      .Object@showProcess = showProcess
-    }
-    if ( !missing( optimalDesign ) )
-    {
-      .Object@optimalDesign = optimalDesign
-    }
-    if ( !missing( iterationAndCriteria ) )
-    {
-      .Object@iterationAndCriteria = iterationAndCriteria
-    }
+             if ( !missing( maxIteration ) )
+             {
+               .Object@maxIteration = maxIteration
+             }
+             if ( !missing( populationSize ) )
+             {
+               .Object@populationSize = populationSize
+             }
+             if ( !missing( personalLearningCoefficient ) )
+             {
+               .Object@personalLearningCoefficient = personalLearningCoefficient
+             }
+             if ( !missing( globalLearningCoefficient ) )
+             {
+               .Object@globalLearningCoefficient = globalLearningCoefficient
+             }
+             if ( !missing( seed ) )
+             {
+               .Object@seed = seed
+             }
+             if ( !missing( showProcess ) )
+             {
+               .Object@showProcess = showProcess
+             }
+             if ( !missing( optimalDesign ) )
+             {
+               .Object@optimalDesign = optimalDesign
+             }
+             if ( !missing( iterationAndCriteria ) )
+             {
+               .Object@iterationAndCriteria = iterationAndCriteria
+             }
 
-    validObject( .Object )
-    return ( .Object )
-  })
+             validObject( .Object )
+             return ( .Object )
+           })
 
 # ======================================================================================================
 # setParameters
 # ======================================================================================================
 
+#' @rdname setParameters
+#' @export
+#'
 setMethod("setParameters",
           "PSOAlgorithm",
           function( object, parameters ) {
@@ -124,6 +126,9 @@ setMethod("setParameters",
 # optimize
 # ======================================================================================================
 
+#' @rdname optimize
+#' @export
+#'
 setMethod(f = "optimize",
           signature = "PSOAlgorithm",
           definition = function(  object, optimizationObject  )
@@ -623,6 +628,11 @@ setMethod(f = "optimize",
 # show
 # ======================================================================================================
 
+#' @title show
+#' @rdname show
+#' @param object object
+#' @export
+
 setMethod(f="show",
           signature = "PSOAlgorithm",
           definition = function( object )
@@ -655,46 +665,48 @@ setMethod(f="show",
 # generateReportOptimization
 # ======================================================================================================
 
-setMethod(
-  "generateReportOptimization",
-  signature = "PSOAlgorithm",
-  definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
-  {
-    # ===================================================
-    # projectName and outputs tables
-    # ===================================================
+#' @rdname generateReportOptimization
+#' @export
+#'
+setMethod( "generateReportOptimization",
+           signature = "PSOAlgorithm",
+           definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
+           {
+             # ===================================================
+             # projectName and outputs tables
+             # ===================================================
 
-    projectName = getName( optimizationObject )
+             projectName = getName( optimizationObject )
 
-    evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
-    fimType = is( getFim( evaluationFIMResults ) )[1]
+             evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
+             fimType = is( getFim( evaluationFIMResults ) )[1]
 
-    evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
+             evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
 
-    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
+             tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
 
-    tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
+             tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
 
-    # ===================================================
-    # markdown template
-    # ===================================================
+             # ===================================================
+             # markdown template
+             # ===================================================
 
-    path = system.file(package = "PFIM")
-    path = paste0( path, "/rmarkdown/templates/skeleton/" )
-    nameInputFile = paste0( path, "template_PSOAlgorithm.rmd" )
+             path = system.file(package = "PFIM")
+             path = paste0( path, "/rmarkdown/templates/skeleton/" )
+             nameInputFile = paste0( path, "template_PSOAlgorithm.rmd" )
 
-    rmarkdown::render( input = nameInputFile,
-                       output_file = outputFile,
-                       output_dir = outputPath,
-                       params = list(
-                         object = "object",
-                         plotOptions = "plotOptions",
-                         projectName = "projectName",
-                         fimType = "fimType",
-                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
-                         tablesOptimizationObject = "tablesOptimizationObject" ) )
+             rmarkdown::render( input = nameInputFile,
+                                output_file = outputFile,
+                                output_dir = outputPath,
+                                params = list(
+                                  object = "object",
+                                  plotOptions = "plotOptions",
+                                  projectName = "projectName",
+                                  fimType = "fimType",
+                                  tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
+                                  tablesOptimizationObject = "tablesOptimizationObject" ) )
 
-  })
+           })
 
 ##############################################################################
 # END Class PSOAlgorithm

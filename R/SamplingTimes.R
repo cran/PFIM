@@ -25,27 +25,29 @@ SamplingTimes = setClass(Class="SamplingTimes",
                            samplings ="vector"
                          ))
 # Initialize method
-setMethod(
-  f="initialize",
-  signature="SamplingTimes",
-  definition= function (.Object, outcome, samplings )
-  {
-    if(!missing(outcome))
-    {
-      .Object@outcome = outcome
-    }
-    if(!missing(samplings))
-    {
-      .Object@samplings = samplings
-    }
-    validObject(.Object)
-    return (.Object )
-  }
+setMethod( f="initialize",
+           signature="SamplingTimes",
+           definition= function (.Object, outcome, samplings )
+           {
+             if(!missing(outcome))
+             {
+               .Object@outcome = outcome
+             }
+             if(!missing(samplings))
+             {
+               .Object@samplings = samplings
+             }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
 # ======================================================================================================
 # getOutcome
 # ======================================================================================================
+
+#' @rdname getOutcome
+#' @export
 
 setMethod("getOutcome",
           "SamplingTimes",
@@ -60,6 +62,9 @@ setMethod("getOutcome",
 # setOutcome
 # ======================================================================================================
 
+#' @rdname setOutcome
+#' @export
+#'
 setMethod("setOutcome",
           "SamplingTimes",
           function(object, outcome)
@@ -73,6 +78,9 @@ setMethod("setOutcome",
 # getSamplings
 # ======================================================================================================
 
+#' @rdname getSamplings
+#' @export
+#'
 setMethod("getSamplings",
           "SamplingTimes",
           function(object)
@@ -81,14 +89,13 @@ setMethod("getSamplings",
           }
 )
 
-# ======================================================================================================
 #' Set the sampling times.
 #'
 #' @name setSamplings
 #' @param object An object from the class \linkS4class{SamplingTimes}.
 #' @param samplings A vector giving the sampling times.
 #' @return The updated sampling times.
-# ======================================================================================================
+#' @export
 
 setGeneric("setSamplings",
            function(object, samplings)
@@ -97,6 +104,9 @@ setGeneric("setSamplings",
            }
 )
 
+#' @rdname setSamplings
+#' @export
+#'
 setMethod("setSamplings",
           "SamplingTimes",
           function(object, samplings)

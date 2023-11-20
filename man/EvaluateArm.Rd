@@ -2,9 +2,12 @@
 % Please edit documentation in R/Arm.R
 \name{EvaluateArm}
 \alias{EvaluateArm}
-\title{Evaluate an arm.}
+\alias{EvaluateArm,Arm-method}
+\title{EvaluateArm}
 \usage{
 EvaluateArm(object, model, fim)
+
+\S4method{EvaluateArm}{Arm}(object, model, fim)
 }
 \arguments{
 \item{object}{An object \code{arm} from the class \linkS4class{Arm}.}

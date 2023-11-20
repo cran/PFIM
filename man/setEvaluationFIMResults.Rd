@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{setEvaluationFIMResults}
 \alias{setEvaluationFIMResults}
+\alias{setEvaluationFIMResults,Optimization-method}
 \title{Set the evaluation results.}
 \usage{
 setEvaluationFIMResults(object, value)
+
+\S4method{setEvaluationFIMResults}{Optimization}(object, value)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

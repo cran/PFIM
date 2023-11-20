@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{setEquation}
 \alias{setEquation}
+\alias{setEquation,ModelError-method}
 \title{Set the equation of a model error.}
 \usage{
 setEquation(object, equation)
+
+\S4method{setEquation}{ModelError}(object, equation)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

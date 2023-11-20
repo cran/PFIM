@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{getOutcomesForEvaluation}
 \alias{getOutcomesForEvaluation}
+\alias{getOutcomesForEvaluation,Model-method}
 \title{Get the outcomes of a model used for the evaluation (is scales outcomes).}
 \usage{
 getOutcomesForEvaluation(object)
+
+\S4method{getOutcomesForEvaluation}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

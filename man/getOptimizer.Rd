@@ -2,9 +2,12 @@
 % Please edit documentation in R/PFIMProject.R
 \name{getOptimizer}
 \alias{getOptimizer}
+\alias{getOptimizer,PFIMProject-method}
 \title{Get the optimization algorithm.}
 \usage{
 getOptimizer(object)
+
+\S4method{getOptimizer}{PFIMProject}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{PFIMProject}.}

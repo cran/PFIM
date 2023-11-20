@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{getNumberOfParameters}
 \alias{getNumberOfParameters}
+\alias{getNumberOfParameters,Model-method}
 \title{Get the number of parameters.}
 \usage{
 getNumberOfParameters(object)
+
+\S4method{getNumberOfParameters}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

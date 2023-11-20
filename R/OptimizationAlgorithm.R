@@ -23,34 +23,32 @@ OptimizationAlgorithm = setClass(
   representation = representation( name="character",
                                    parameters = "list" ) )
 
-setMethod(
-  f="initialize",
-  signature="OptimizationAlgorithm",
-  definition= function ( .Object, name, parameters )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
+setMethod( f="initialize",
+           signature="OptimizationAlgorithm",
+           definition= function ( .Object, name, parameters )
+           {
+             if(!missing(name))
+             {
+               .Object@name = name
+             }
 
-    if(!missing(parameters))
-    {
-      .Object@parameters = parameters
-    }
+             if(!missing(parameters))
+             {
+               .Object@parameters = parameters
+             }
 
-    validObject(.Object)
-    return (.Object )
-  }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
-# ======================================================================================================
 #' Optimize a design.
 #' @name optimize
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
 #' @param optimizerParameters A list giving the optimization parameters.
 #' @param optimizationObject An object giving the optimization algorithm.
 #' @return A list giving the results if the optimization.
-# ======================================================================================================
+#' @export
 
 setGeneric("optimize",
            function(object, optimizerParameters, optimizationObject )
@@ -59,19 +57,21 @@ setGeneric("optimize",
              standardGeneric("optimize")
            })
 
-# ======================================================================================================
 #' Graph of the weights for the multiplicative algorithm.
 #' @name plotWeights
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
 #' @param threshold A numeric giving the threshold for the optimal weights in the multiplicative algorithm.
 #' @return The graphs of the  weights for the multiplicative algorithm.
-# ======================================================================================================
+#' @export
 
 setGeneric("plotWeights",
            function(object, threshold )
            {
              standardGeneric("plotWeights")
            })
+
+#' @rdname getFim
+#' @export
 
 setMethod(f="getFim",
           signature="OptimizationAlgorithm",
@@ -81,18 +81,20 @@ setMethod(f="getFim",
           }
 )
 
-# ======================================================================================================
 #' Get the optimal design.
 #' @name getOptimalDesign
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
 #' @return The optimal design.
-# ======================================================================================================
+#' @export
 
 setGeneric("getOptimalDesign",
            function(object )
            {
              standardGeneric("getOptimalDesign")
            })
+
+#' @rdname getOptimalDesign
+#' @export
 
 setMethod(f="getOptimalDesign",
           signature="OptimizationAlgorithm",
@@ -102,19 +104,21 @@ setMethod(f="getOptimalDesign",
           }
 )
 
-# ======================================================================================================
 #' Set the optimal design.
 #' @name setOptimalDesign
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
 #' @param optimalDesign An object from the class \linkS4class{Design}.
 #' @return The object with the updated optimal design.
-# ======================================================================================================
+#' @export
 
 setGeneric("setOptimalDesign",
            function( object, optimalDesign )
            {
              standardGeneric("setOptimalDesign")
            })
+
+#' @rdname setOptimalDesign
+#' @export
 
 setMethod(f="setOptimalDesign",
           signature="OptimizationAlgorithm",
@@ -129,6 +133,9 @@ setMethod(f="setOptimalDesign",
 # getArms
 # ======================================================================================================
 
+#' @rdname getArms
+#' @export
+
 setMethod(f="getArms",
           signature="OptimizationAlgorithm",
           definition = function(object)
@@ -141,6 +148,9 @@ setMethod(f="getArms",
 # setArms
 # ======================================================================================================
 
+#' @rdname setArms
+#' @export
+
 setMethod(f="setArms",
           signature="OptimizationAlgorithm",
           definition = function(object,arms)
@@ -150,18 +160,20 @@ setMethod(f="setArms",
           }
 )
 
-# ======================================================================================================
 #' Get the iteration with the convergence criteria.
 #' @name getIterationAndCriteria
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
 #' @return A dataframe giving the iteration with the convergence criteria.
-# ======================================================================================================
+#' @export
 
 setGeneric("getIterationAndCriteria",
            function(object )
            {
              standardGeneric("getIterationAndCriteria")
            })
+
+#' @rdname getIterationAndCriteria
+#' @export
 
 setMethod(f="getIterationAndCriteria",
           signature="OptimizationAlgorithm",
@@ -171,19 +183,21 @@ setMethod(f="getIterationAndCriteria",
           }
 )
 
-# ======================================================================================================
 #' Set the iteration with the convergence criteria.
 #' @name setIterationAndCriteria
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
 #' @param value A dataframe giving the iteration with the convergence criteria.
 #' @return A dataframe giving the iteration with the convergence criteria.
-# ======================================================================================================
+#' @export
 
 setGeneric("setIterationAndCriteria",
            function( object, value )
            {
              standardGeneric("setIterationAndCriteria")
            })
+
+#' @rdname setIterationAndCriteria
+#' @export
 
 setMethod(f="setIterationAndCriteria",
           signature = "OptimizationAlgorithm",
@@ -193,7 +207,6 @@ setMethod(f="setIterationAndCriteria",
             return( object )
           })
 
-# ======================================================================================================
 #' Generate report for the optimization.
 #' @name generateReportOptimization
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
@@ -202,7 +215,7 @@ setMethod(f="setIterationAndCriteria",
 #' @param outputFile A string giving the name of the output file.
 #' @param  plotOptions A list giving the plot options.
 #' @return The report for the optimization in html.
-# ======================================================================================================
+#' @export
 
 setGeneric("generateReportOptimization",
            function( object, optimizationObject, outputPath, outputFile, plotOptions )

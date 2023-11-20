@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getConditionNumberFixedEffects}
 \alias{getConditionNumberFixedEffects}
+\alias{getConditionNumberFixedEffects,Fim-method}
 \title{Get the condition number of the matrix of the fixed effects.}
 \usage{
 getConditionNumberFixedEffects(object)
+
+\S4method{getConditionNumberFixedEffects}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

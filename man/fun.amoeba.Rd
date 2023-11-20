@@ -25,6 +25,7 @@ fun.amoeba(p, y, ftol, itmax, funk, outcomes, data, showProcess)
 }
 \value{
 A list containing the components of the optimized simplex.
+'getColumnAndParametersNamesFIMInLatex.
 }
 \description{
 function fun.amoeba

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Evaluation.R
 \name{reportTablesPlot}
 \alias{reportTablesPlot}
-\title{Generate all the table for the evaluation report}
+\alias{reportTablesPlot,Evaluation-method}
+\title{reportTablesPlot}
 \usage{
 reportTablesPlot(object, plotOptions)
+
+\S4method{reportTablesPlot}{Evaluation}(object, plotOptions)
 }
 \arguments{
 \item{object}{An object \code{evaluation} from the class \linkS4class{Evaluation}.}

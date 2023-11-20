@@ -18,6 +18,9 @@ BayesianFim = setClass(
 # EvaluateFisherMatrix
 # ======================================================================================================
 
+#' @rdname EvaluateFisherMatrix
+#' @export
+
 setMethod("EvaluateFisherMatrix",
           "BayesianFim",
           function
@@ -134,339 +137,355 @@ setMethod("EvaluateFisherMatrix",
 # getRSE
 # ======================================================================================================
 
-setMethod(
-  "getRSE",
-  signature = "BayesianFim",
-  definition = function (object, model )
-  {
-    # parameter values
-    parameters = getParameters( model )
-    modelParametersValues = getModelParametersValues( model )
-    fixedParameters = getFixedParameters( model )
+#' @rdname getRSE
+#' @export
 
-    indexfixedMu = fixedParameters$parameterfixedMu
-    indexfixedOmega = fixedParameters$parameterfixedOmega
-    indexFixed = unique( c( indexfixedMu,indexfixedOmega ) )
-    indexNoFixed = seq_along( parameters )
+setMethod( "getRSE",
+           signature = "BayesianFim",
+           definition = function (object, model )
+           {
+             # parameter values
+             parameters = getParameters( model )
+             modelParametersValues = getModelParametersValues( model )
+             fixedParameters = getFixedParameters( model )
 
-    mu =  modelParametersValues$mu
+             indexfixedMu = fixedParameters$parameterfixedMu
+             indexfixedOmega = fixedParameters$parameterfixedOmega
+             indexFixed = unique( c( indexfixedMu,indexfixedOmega ) )
+             indexNoFixed = seq_along( parameters )
 
-    if ( length( indexFixed ) != 0 )
-    {
-      indexNoFixed = indexNoFixed[ -c( indexFixed ) ]
-      mu = mu[indexNoFixed]
-    }
+             mu =  modelParametersValues$mu
 
-    SE = getSE( object )
-    RSE = SE/mu*100
+             if ( length( indexFixed ) != 0 )
+             {
+               indexNoFixed = indexNoFixed[ -c( indexFixed ) ]
+               mu = mu[indexNoFixed]
+             }
 
-    return( list( RSE = RSE,
-                  parametersValues = mu ) )
-  })
+             SE = getSE( object )
+             RSE = SE/mu*100
+
+             return( list( RSE = RSE,
+                           parametersValues = mu ) )
+           })
 
 # ======================================================================================================
 # getConditionNumberVarianceEffects
 # ======================================================================================================
 
-setMethod(
-  "getConditionNumberVarianceEffects",
-  signature = "BayesianFim",
-  definition = function (object)
-  {
-    return( NA )
-  })
+#' @rdname getConditionNumberVarianceEffects
+#' @export
+
+setMethod("getConditionNumberVarianceEffects",
+          signature = "BayesianFim",
+          definition = function (object)
+          {
+            return( NA )
+          })
 
 # ======================================================================================================
 # getShrinkage
 # ======================================================================================================
 
-setMethod(
-  "getShrinkage",
-  signature = "BayesianFim",
-  definition = function (object)
-  {
-    return(object@shrinkage)
-  })
+#' @rdname getShrinkage
+#' @export
+
+setMethod("getShrinkage",
+          signature = "BayesianFim",
+          definition = function (object)
+          {
+            return(object@shrinkage)
+          })
 
 # ======================================================================================================
 # setShrinkage
 # ======================================================================================================
 
-setMethod(
-  "setShrinkage",
-  signature = "BayesianFim",
-  definition = function (object,value)
-  {
-    object@shrinkage = value
-    return(object)
-  })
+#' @rdname setShrinkage
+#' @export
+
+setMethod("setShrinkage",
+          signature = "BayesianFim",
+          definition = function (object,value)
+          {
+            object@shrinkage = value
+            return(object)
+          })
 
 # ======================================================================================================
 # getColumnAndParametersNamesFIM
 # ======================================================================================================
 
-setMethod(
-  "getColumnAndParametersNamesFIM",
-  signature = "BayesianFim",
-  definition = function( object, model )
-  {
-    # =====================================
-    # model parameters
-    # =====================================
+#' @rdname getColumnAndParametersNamesFIM
+#' @export
 
-    parameters = getParameters( model )
-    modelParametersName = getNames( parameters )
-    fixedParameters = getFixedParameters( model )
-    parameterfixedMu = fixedParameters$parameterfixedMu
-    parameterfixedOmega = fixedParameters$parameterfixedOmega
-    indexFixed = unique( c( parameterfixedMu, parameterfixedOmega ) )
+setMethod("getColumnAndParametersNamesFIM",
+          signature = "BayesianFim",
+          definition = function( object, model )
+          {
+            # =====================================
+            # model parameters
+            # =====================================
 
-    # =====================================
-    # Greek letter for names
-    # =====================================
+            parameters = getParameters( model )
+            modelParametersName = getNames( parameters )
+            fixedParameters = getFixedParameters( model )
+            parameterfixedMu = fixedParameters$parameterfixedMu
+            parameterfixedOmega = fixedParameters$parameterfixedOmega
+            indexFixed = unique( c( parameterfixedMu, parameterfixedOmega ) )
 
-    greeksLetter = c( mu = "\u03bc_" )
+            # =====================================
+            # Greek letter for names
+            # =====================================
 
-    # =====================================
-    # names of the parameters
-    # =====================================
+            greeksLetter = c( mu = "\u03bc_" )
 
-    namesParametersMu = modelParametersName
+            # =====================================
+            # names of the parameters
+            # =====================================
 
-    if ( length( indexFixed ) !=0 )
-    {
-      namesParametersMu = modelParametersName[ -c( indexFixed ) ]
-    }
+            namesParametersMu = modelParametersName
 
-    namesFIMFixedEffectsParameters = namesParametersMu
-    namesParametersMu = paste0( greeksLetter['mu'], namesParametersMu )
+            if ( length( indexFixed ) !=0 )
+            {
+              namesParametersMu = modelParametersName[ -c( indexFixed ) ]
+            }
 
-    colnamesFIM = list( namesFIMFixedEffectsParameters = namesFIMFixedEffectsParameters,
-                        namesParametersMu = namesParametersMu )
+            namesFIMFixedEffectsParameters = namesParametersMu
+            namesParametersMu = paste0( greeksLetter['mu'], namesParametersMu )
 
-    return( colnamesFIM )
-  })
+            colnamesFIM = list( namesFIMFixedEffectsParameters = namesFIMFixedEffectsParameters,
+                                namesParametersMu = namesParametersMu )
+
+            return( colnamesFIM )
+          })
 
 # ======================================================================================================
 # getColumnAndParametersNamesFIMInLatex
 # ======================================================================================================
 
-setMethod(
-  "getColumnAndParametersNamesFIMInLatex",
-  signature = "BayesianFim",
-  definition = function( object, model )
-  {
-    # =====================================
-    # model parameters
-    # =====================================
+#' @rdname getColumnAndParametersNamesFIMInLatex
+#' @export
 
-    parameters = getParameters( model )
-    modelParametersName = getNames( parameters )
-    fixedParameters = getFixedParameters( model )
-    parameterfixedMu = fixedParameters$parameterfixedMu
-    parameterfixedOmega = fixedParameters$parameterfixedOmega
-    indexFixed = unique( c( parameterfixedMu, parameterfixedOmega ) )
+setMethod("getColumnAndParametersNamesFIMInLatex",
+          signature = "BayesianFim",
+          definition = function( object, model )
+          {
+            # =====================================
+            # model parameters
+            # =====================================
 
-    # =====================================
-    # Greek letter for names
-    # =====================================
+            parameters = getParameters( model )
+            modelParametersName = getNames( parameters )
+            fixedParameters = getFixedParameters( model )
+            parameterfixedMu = fixedParameters$parameterfixedMu
+            parameterfixedOmega = fixedParameters$parameterfixedOmega
+            indexFixed = unique( c( parameterfixedMu, parameterfixedOmega ) )
 
-    greeksLetter = c( mu = "\\mu_")
+            # =====================================
+            # Greek letter for names
+            # =====================================
 
-    # =====================================
-    # names of the parameters
-    # =====================================
+            greeksLetter = c( mu = "\\mu_")
 
-    namesParametersMu = modelParametersName
+            # =====================================
+            # names of the parameters
+            # =====================================
 
-    if ( length( indexFixed ) !=0 )
-    {
-      namesParametersMu = modelParametersName[ -c( indexFixed ) ]
-    }
+            namesParametersMu = modelParametersName
 
-    namesParametersMu = paste0( greeksLetter['mu'], "{",namesParametersMu , "}" )
-    namesParametersMu = paste0('$',namesParametersMu,"$")
+            if ( length( indexFixed ) !=0 )
+            {
+              namesParametersMu = modelParametersName[ -c( indexFixed ) ]
+            }
 
-    # =====================================
-    # names of the parameters
-    # =====================================
+            namesParametersMu = paste0( greeksLetter['mu'], "{",namesParametersMu , "}" )
+            namesParametersMu = paste0('$',namesParametersMu,"$")
 
-    colnamesFIM = list( namesParametersMu = namesParametersMu )
+            # =====================================
+            # names of the parameters
+            # =====================================
 
-    return( colnamesFIM )
-  })
+            colnamesFIM = list( namesParametersMu = namesParametersMu )
+
+            return( colnamesFIM )
+          })
 
 # ======================================================================================================
 # reportTablesFIM
 # ======================================================================================================
 
-setMethod(
-  "reportTablesFIM",
-  signature = "BayesianFim",
-  definition = function( object, evaluationObject )
-  {
-    model = getModel( evaluationObject )
-    modelEquations = getEquations( model )
-    modelOutcomes = getOutcomes( model )
-    modelError = getModelError( model )
-    modelParameters = getParameters( model )
+#' @rdname reportTablesFIM
+#' @export
 
-    # =====================================
-    # get initial designs
-    # =====================================
+setMethod("reportTablesFIM",
+          signature = "BayesianFim",
+          definition = function( object, evaluationObject )
+          {
+            model = getModel( evaluationObject )
+            modelEquations = getEquations( model )
+            modelOutcomes = getOutcomes( model )
+            modelError = getModelError( model )
+            modelParameters = getParameters( model )
 
-    designs = getDesigns( evaluationObject )
-    designNames = getNames( designs )
-    designName = designNames[[1]]
-    design = designs[[designName]]
+            # =====================================
+            # get initial designs
+            # =====================================
 
-    columnAndParametersNamesFIM = getColumnAndParametersNamesFIMInLatex( object, model )
-    muAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersMu
+            designs = getDesigns( evaluationObject )
+            designNames = getNames( designs )
+            designName = designNames[[1]]
+            design = designs[[designName]]
 
-    # =====================================
-    # FIMFixedEffects
-    # =====================================
+            columnAndParametersNamesFIM = getColumnAndParametersNamesFIMInLatex( object, model )
+            muAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersMu
 
-    FIMFixedEffects = getFixedEffects( object )
-    FIMFixedEffects = as.matrix( FIMFixedEffects )
+            # =====================================
+            # FIMFixedEffects
+            # =====================================
 
-    colnames( FIMFixedEffects ) = muAndParameterNamesLatex
-    rownames( FIMFixedEffects ) = muAndParameterNamesLatex
+            FIMFixedEffects = getFixedEffects( object )
+            FIMFixedEffects = as.matrix( FIMFixedEffects )
 
-    # =====================================
-    # correlation Matrix
-    # =====================================
+            colnames( FIMFixedEffects ) = muAndParameterNamesLatex
+            rownames( FIMFixedEffects ) = muAndParameterNamesLatex
 
-    correlationMatrix = getCorrelationMatrix( object )
+            # =====================================
+            # correlation Matrix
+            # =====================================
 
-    correlationMatrixFixedEffects = correlationMatrix$fixedEffects
-    correlationMatrixFixedEffects = as.matrix( correlationMatrixFixedEffects )
+            correlationMatrix = getCorrelationMatrix( object )
 
-    colnames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
-    rownames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
+            correlationMatrixFixedEffects = correlationMatrix$fixedEffects
+            correlationMatrixFixedEffects = as.matrix( correlationMatrixFixedEffects )
 
-    # =====================================
-    # shrinkage
-    # =====================================
+            colnames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
+            rownames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
 
-    shrinkage = getShrinkage( object )
-    names( shrinkage ) = colnames( FIMFixedEffects )
+            # =====================================
+            # shrinkage
+            # =====================================
 
-    # =====================================
-    # SE and RSE
-    # =====================================
+            shrinkage = getShrinkage( object )
+            names( shrinkage ) = colnames( FIMFixedEffects )
 
-    fisherMatrix = getFisherMatrix( object )
-    SE = getSE( object )
+            # =====================================
+            # SE and RSE
+            # =====================================
 
-    rseAndParametersValues = getRSE( object, model )
-    RSE = rseAndParametersValues$RSE
-    parametersValues = rseAndParametersValues$parametersValues
+            fisherMatrix = getFisherMatrix( object )
+            SE = getSE( object )
 
-    SE = round( SE, 3 )
-    RSE = round( RSE, 3 )
+            rseAndParametersValues = getRSE( object, model )
+            RSE = rseAndParametersValues$RSE
+            parametersValues = rseAndParametersValues$parametersValues
 
-    SEandRSE = data.frame( parametersValues, SE, RSE, shrinkage )
-    colnames( SEandRSE ) = c("Value", "SE","RSE (%)", "shrinkage" )
-    rownames( SEandRSE ) = c( muAndParameterNamesLatex )
+            SE = round( SE, 3 )
+            RSE = round( RSE, 3 )
 
-    # ==============================================
-    # determinants, condition numbers and Dcriterion
-    # ==============================================
+            SEandRSE = data.frame( parametersValues, SE, RSE, shrinkage )
+            colnames( SEandRSE ) = c("Value", "SE","RSE (%)", "shrinkage" )
+            rownames( SEandRSE ) = c( muAndParameterNamesLatex )
 
-    detFim = getDeterminant( object )
-    condFIMFixedEffects = getConditionNumberFixedEffects( object )
-    DCriterion = getDcriterion( object )
+            # ==============================================
+            # determinants, condition numbers and Dcriterion
+            # ==============================================
 
-    # =====================================
-    # criteriaFim
-    # =====================================
+            detFim = getDeterminant( object )
+            condFIMFixedEffects = getConditionNumberFixedEffects( object )
+            DCriterion = getDcriterion( object )
 
-    criteriaFim = t( data.frame( detFim, condFIMFixedEffects, DCriterion ) )
+            # =====================================
+            # criteriaFim
+            # =====================================
 
-    colnames( criteriaFim ) = c("Value")
-    rownames( criteriaFim ) = c("Determinant",
-                                "Cond number fixed effects",
-                                "D-criterion")
+            criteriaFim = t( data.frame( detFim, condFIMFixedEffects, DCriterion ) )
 
-    # =====================================
-    # kable tables
-    # =====================================
+            colnames( criteriaFim ) = c("Value")
+            rownames( criteriaFim ) = c("Determinant",
+                                        "Cond number fixed effects",
+                                        "D-criterion")
 
-    # =====================================
-    # FIMFixedEffects
-    # =====================================
+            # =====================================
+            # kable tables
+            # =====================================
 
-    FIMFixedEffectsTable = knitr::kable( FIMFixedEffects ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+            # =====================================
+            # FIMFixedEffects
+            # =====================================
 
-    # =====================================
-    # correlationMatrixFixedEffects
-    # =====================================
+            FIMFixedEffectsTable = knitr::kable( FIMFixedEffects ) %>%
+              kable_styling( font_size = 12,
+                             latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                             full_width = T)
 
-    correlationMatrixFixedEffectsTable = knitr::kable( correlationMatrixFixedEffects ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+            # =====================================
+            # correlationMatrixFixedEffects
+            # =====================================
 
-    # =====================================
-    # criteriaFim
-    # =====================================
+            correlationMatrixFixedEffectsTable = knitr::kable( correlationMatrixFixedEffects ) %>%
+              kable_styling( font_size = 12,
+                             latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                             full_width = T)
 
-    rownames( criteriaFim ) = c("","Fixed effects","")
-    colnames( criteriaFim ) = NULL
+            # =====================================
+            # criteriaFim
+            # =====================================
 
-    criteriaFimTable = knitr::kable( t(criteriaFim) ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T) %>%
-      add_header_above(c("Determinant" = 1, "Condition numbers" = 1, "D-criterion" = 1))
+            rownames( criteriaFim ) = c("","Fixed effects","")
+            colnames( criteriaFim ) = NULL
 
-    # =====================================
-    # SEandRSE
-    # =====================================
+            criteriaFimTable = knitr::kable( t(criteriaFim) ) %>%
+              kable_styling( font_size = 12,
+                             latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                             full_width = T) %>%
+              add_header_above(c("Determinant" = 1, "Condition numbers" = 1, "D-criterion" = 1))
 
-    SEandRSETable = knitr::kable( SEandRSE ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+            # =====================================
+            # SEandRSE
+            # =====================================
 
-    tablesBayesianFim = list( FIMFixedEffectsTable = FIMFixedEffectsTable,
-                              correlationMatrixFixedEffectsTable = correlationMatrixFixedEffectsTable,
-                              criteriaFimTable = criteriaFimTable,
-                              SEandRSETable = SEandRSETable )
+            SEandRSETable = knitr::kable( SEandRSE ) %>%
+              kable_styling( font_size = 12,
+                             latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                             full_width = T)
 
-    return( tablesBayesianFim )
+            tablesBayesianFim = list( FIMFixedEffectsTable = FIMFixedEffectsTable,
+                                      correlationMatrixFixedEffectsTable = correlationMatrixFixedEffectsTable,
+                                      criteriaFimTable = criteriaFimTable,
+                                      SEandRSETable = SEandRSETable )
 
-  })
+            return( tablesBayesianFim )
+
+          })
 
 # ======================================================================================================
 # generateReportEvaluation
 # ======================================================================================================
 
-setMethod(
-  "generateReportEvaluation",
-  signature = "BayesianFim",
-  definition = function( object, evaluationObject, outputPath, outputFile, plotOptions )
-  {
-    path = system.file(package = "PFIM")
-    path = paste0( path, "/rmarkdown/templates/skeleton/" )
-    nameInputFile = paste0( path, "templateEvaluationBayesianFim.rmd" )
+#' @rdname generateReportEvaluation
+#' @export
 
-    projectName = getName( evaluationObject )
+setMethod("generateReportEvaluation",
+          signature = "BayesianFim",
+          definition = function( object, evaluationObject, outputPath, outputFile, plotOptions )
+          {
+            path = system.file(package = "PFIM")
+            path = paste0( path, "/rmarkdown/templates/skeleton/" )
+            nameInputFile = paste0( path, "templateEvaluationBayesianFim.rmd" )
 
-    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationObject, plotOptions )
+            projectName = getName( evaluationObject )
 
-    rmarkdown::render( input = nameInputFile,
-                       output_file = outputFile,
-                       output_dir = outputPath,
-                       params = list(
-                         plotOptions = "plotOptions",
-                         projectName = "projectName",
-                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults" ) )
-  })
+            tablesEvaluationFIMIntialDesignResults = generateTables( evaluationObject, plotOptions )
+
+            rmarkdown::render( input = nameInputFile,
+                               output_file = outputFile,
+                               output_dir = outputPath,
+                               params = list(
+                                 plotOptions = "plotOptions",
+                                 projectName = "projectName",
+                                 tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults" ) )
+          })
 
 ##########################################################################################################
 # End class BayesianFim

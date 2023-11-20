@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{isModelInfusion}
 \alias{isModelInfusion}
+\alias{isModelInfusion,Model-method}
 \title{Test if a mode is infusion}
 \usage{
 isModelInfusion(object)
+
+\S4method{isModelInfusion}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

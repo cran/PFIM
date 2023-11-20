@@ -2,9 +2,12 @@
 % Please edit documentation in R/Arm.R
 \name{getAdministrations}
 \alias{getAdministrations}
-\title{Get all the administration for an arm.}
+\alias{getAdministrations,Arm-method}
+\title{getAdministrations}
 \usage{
 getAdministrations(object)
+
+\S4method{getAdministrations}{Arm}(object)
 }
 \arguments{
 \item{object}{An object \code{Arm} from the class \linkS4class{Arm}.}

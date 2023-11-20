@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{setFisherMatrix}
 \alias{setFisherMatrix}
+\alias{setFisherMatrix,Fim-method}
 \title{Set the FIM.}
 \usage{
 setFisherMatrix(object, value)
+
+\S4method{setFisherMatrix}{Fim}(object, value)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

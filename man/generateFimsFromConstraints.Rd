@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{generateFimsFromConstraints}
 \alias{generateFimsFromConstraints}
+\alias{generateFimsFromConstraints,Optimization-method}
 \title{Generate the fim from the constraints}
 \usage{
 generateFimsFromConstraints(object, fims)
+
+\S4method{generateFimsFromConstraints}{Optimization}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

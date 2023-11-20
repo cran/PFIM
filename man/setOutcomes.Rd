@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{setOutcomes}
 \alias{setOutcomes}
+\alias{setOutcomes,Model-method}
 \title{Set the outcomes of a model.}
 \usage{
 setOutcomes(object, outcomes)
+
+\S4method{setOutcomes}{Model}(object, outcomes)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

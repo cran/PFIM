@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{reportTablesSamplingConstraints}
 \alias{reportTablesSamplingConstraints}
-\title{Generate table for the report.}
+\alias{reportTablesSamplingConstraints,Design-method}
+\title{reportTablesSamplingConstraints}
 \usage{
 reportTablesSamplingConstraints(object)
+
+\S4method{reportTablesSamplingConstraints}{Design}(object)
 }
 \arguments{
 \item{object}{An object \code{design} from the class \linkS4class{Design}.}

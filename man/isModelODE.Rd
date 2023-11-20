@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{isModelODE}
 \alias{isModelODE}
+\alias{isModelODE,Model-method}
 \title{Test if a mode is ode.}
 \usage{
 isModelODE(object)
+
+\S4method{isModelODE}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

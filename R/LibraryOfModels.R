@@ -22,27 +22,29 @@ LibraryOfModels = setClass(
   Class ="LibraryOfModels",
   representation = representation(name = "character", content = "list"))
 
-setMethod(
-  f="initialize",
-  signature = "LibraryOfModels",
-  definition = function (.Object, name, content )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
-    if(!missing(content))
-    {
-      .Object@content = content
-    }
-    validObject(.Object)
-    return (.Object )
-  }
+setMethod( f="initialize",
+           signature = "LibraryOfModels",
+           definition = function (.Object, name, content )
+           {
+             if(!missing(name))
+             {
+               .Object@name = name
+             }
+             if(!missing(content))
+             {
+               .Object@content = content
+             }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
 # ======================================================================================================
 # getName
 # ======================================================================================================
+
+#' @rdname getName
+#' @export
 
 setMethod("getName",
           "LibraryOfModels",
@@ -50,13 +52,12 @@ setMethod("getName",
             return( object@name )
           })
 
-# ======================================================================================================
 #' Get content of a library of models.
 #'
 #' @name getContent
 #' @param object An object from the class \linkS4class{LibraryOfModels}.
 #' @return A list giving the content of the library of models.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getContent",
@@ -65,20 +66,22 @@ setGeneric(
     standardGeneric("getContent")
   })
 
+#' @rdname getContent
+#' @export
+
 setMethod("getContent",
           "LibraryOfModels",
           function(object) {
             return( object@content )
           })
 
-# ======================================================================================================
 #' Set content of a library of models.
 #'
 #' @name setContent
 #' @param object An object from the class \linkS4class{LibraryOfModels}.
 #' @param content A list giving the content of the library of models.
 #' @return The library of models with the updated content.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setContent",
@@ -87,6 +90,9 @@ setGeneric(
     standardGeneric("setContent")
   })
 
+#' @rdname setContent
+#' @export
+
 setMethod("setContent",
           "LibraryOfModels",
           function(object,content) {
@@ -94,14 +100,13 @@ setMethod("setContent",
             return( object )
           })
 
-# ======================================================================================================
 #' Add a model to a library of models.
 #'
 #' @name addModel
 #' @param object An object from the class \linkS4class{LibraryOfModels}.
 #' @param model An object from the class \linkS4class{Model}.
 #' @return The library of models with the added model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "addModel",
@@ -109,6 +114,9 @@ setGeneric(
 
     standardGeneric("addModel")
   })
+
+#' @rdname addModel
+#' @export
 
 setMethod("addModel",
           "LibraryOfModels",
@@ -120,14 +128,13 @@ setMethod("addModel",
             return(object)
           })
 
-# ======================================================================================================
 #' Add a models to a library of models.
 #'
 #' @name addModels
 #' @param object An object from the class \linkS4class{LibraryOfModels}.
 #' @param models A list of object from the class \linkS4class{Model}.
 #' @return The library of models with the added models.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "addModels",
@@ -135,6 +142,9 @@ setGeneric(
 
     standardGeneric("addModels")
   })
+
+#' @rdname addModels
+#' @export
 
 setMethod("addModels",
           "LibraryOfModels",
@@ -147,13 +157,12 @@ setMethod("addModels",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the library of PK models.
 #'
 #' @name getLibraryPKModels
 #' @param object An object from the class \linkS4class{LibraryOfModels}.
 #' @return A list giving the PK models.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getLibraryPKModels",
@@ -161,6 +170,9 @@ setGeneric(
 
     standardGeneric("getLibraryPKModels")
   })
+
+#' @rdname getLibraryPKModels
+#' @export
 
 setMethod("getLibraryPKModels",
           "LibraryOfModels",
@@ -172,13 +184,12 @@ setMethod("getLibraryPKModels",
             return( libraryPKModels )
           })
 
-# ======================================================================================================
 #' Get the library of PD models.
 #'
 #' @name getLibraryPDModels
 #' @param object An object from the class \linkS4class{LibraryOfModels}.
 #' @return A list giving the PD models.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getLibraryPDModels",
@@ -186,6 +197,9 @@ setGeneric(
 
     standardGeneric( "getLibraryPDModels" )
   })
+
+#' @rdname getLibraryPDModels
+#' @export
 
 setMethod("getLibraryPDModels",
           "LibraryOfModels",

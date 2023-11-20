@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{setModelError}
 \alias{setModelError}
+\alias{setModelError,Model-method}
 \title{Set the model error.}
 \usage{
 setModelError(object, modelError)
+
+\S4method{setModelError}{Model}(object, modelError)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

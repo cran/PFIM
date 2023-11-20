@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{EvaluateDesign}
 \alias{EvaluateDesign}
-\title{Evaluate an design}
+\alias{EvaluateDesign,Design-method}
+\title{EvaluateDesign}
 \usage{
 EvaluateDesign(object, model, fim)
+
+\S4method{EvaluateDesign}{Design}(object, model, fim)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/PlotEvaluation.R
 \name{plot}
 \alias{plot}
+\alias{plot,Evaluation-method}
 \title{Graphs of the results of the evaluation.}
 \usage{
 plot(object, plotOptions)
+
+\S4method{plot}{Evaluation}(object, plotOptions)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Evaluation}.}

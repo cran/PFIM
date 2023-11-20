@@ -2,9 +2,12 @@
 % Please edit documentation in R/LibraryOfModels.R
 \name{getLibraryPKModels}
 \alias{getLibraryPKModels}
+\alias{getLibraryPKModels,LibraryOfModels-method}
 \title{Get the library of PK models.}
 \usage{
 getLibraryPKModels(object)
+
+\S4method{getLibraryPKModels}{LibraryOfModels}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{LibraryOfModels}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{reportTablesModelParameters}
 \alias{reportTablesModelParameters}
+\alias{reportTablesModelParameters,Model-method}
 \title{Generate the tables for model parameters for the evaluation report.}
 \usage{
 reportTablesModelParameters(object)
+
+\S4method{reportTablesModelParameters}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

@@ -32,37 +32,35 @@ Fim = setClass(
   ))
 
 # Initialize method
-setMethod(
-  f="initialize",
-  signature="Fim",
-  definition= function ( .Object, fisherMatrix, fixedEffects,  varianceEffects, shrinkage )
-  {
-    if(!missing(fisherMatrix))
-    {
-      .Object@fisherMatrix = fisherMatrix
-    }
+setMethod( f="initialize",
+           signature="Fim",
+           definition= function ( .Object, fisherMatrix, fixedEffects,  varianceEffects, shrinkage )
+           {
+             if(!missing(fisherMatrix))
+             {
+               .Object@fisherMatrix = fisherMatrix
+             }
 
-    if(!missing(fixedEffects))
-    {
-      .Object@fixedEffects = fixedEffects
-    }
+             if(!missing(fixedEffects))
+             {
+               .Object@fixedEffects = fixedEffects
+             }
 
-    if(!missing(varianceEffects))
-    {
-      .Object@varianceEffects = varianceEffects
-    }
+             if(!missing(varianceEffects))
+             {
+               .Object@varianceEffects = varianceEffects
+             }
 
-    if(!missing(shrinkage))
-    {
-      .Object@shrinkage = shrinkage
-    }
+             if(!missing(shrinkage))
+             {
+               .Object@shrinkage = shrinkage
+             }
 
-    validObject(.Object)
-    return (.Object )
-  }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
-# ======================================================================================================
 #' Evaluate the Fisher matrix ( population, individual and Bayesian )
 #'
 #' @name EvaluateFisherMatrix
@@ -72,7 +70,7 @@ setMethod(
 #' @param modelEvaluation A list containing the evaluation results.
 #' @param modelVariance A list containing the model variance.
 #' @return An object from the class \linkS4class{Fim} containing the Fisher matrix.
-# ======================================================================================================
+#' @export
 
 setGeneric("EvaluateFisherMatrix",
            function( object, model, arm, modelEvaluation, modelVariance )
@@ -80,7 +78,6 @@ setGeneric("EvaluateFisherMatrix",
              standardGeneric( "EvaluateFisherMatrix" )
            })
 
-# ======================================================================================================
 #' Evaluate the variance of the Fisher information matrix.
 #'
 #' @name EvaluateVarianceFIM
@@ -90,7 +87,7 @@ setGeneric("EvaluateFisherMatrix",
 #' @param modelEvaluation A list containing the evaluation results.
 #' @param modelVariance A list containing the model variance.
 #' @return A list containing the matrices of the variance of the FIM.
-# ======================================================================================================
+#' @export
 
 setGeneric("EvaluateVarianceFIM",
            function( object, model, arm, modelEvaluation, modelVariance )
@@ -98,19 +95,21 @@ setGeneric("EvaluateVarianceFIM",
              standardGeneric( "EvaluateVarianceFIM" )
            })
 
-# ======================================================================================================
 #' Get the FIM.
 #'
 #' @name getFisherMatrix
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return A matrix giving the FIM.
-# ======================================================================================================
+#' @export
 
 setGeneric("getFisherMatrix",
            function(object)
            {
              standardGeneric("getFisherMatrix")
            })
+
+#' @rdname getFisherMatrix
+#' @export
 
 setMethod("getFisherMatrix",
           "Fim",
@@ -119,20 +118,22 @@ setMethod("getFisherMatrix",
             return(object@fisherMatrix)
           })
 
-# ======================================================================================================
 #' Set the FIM.
 #'
 #' @name setFisherMatrix
 #' @param object An object from the class \linkS4class{Fim}.
 #' @param value A matrix giving the FIM.
 #' @return The object from the class \linkS4class{Fim} with the FIM updated.
-# ======================================================================================================
+#' @export
 
 setGeneric("setFisherMatrix",
            function(object, value)
            {
              standardGeneric("setFisherMatrix")
            })
+
+#' @rdname setFisherMatrix
+#' @export
 
 setMethod("setFisherMatrix",
           "Fim",
@@ -142,19 +143,21 @@ setMethod("setFisherMatrix",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the matrix of fixed effects.
 #'
 #' @name getFixedEffects
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return The matrix of the fixed effects.
-# ======================================================================================================
+#' @export
 
 setGeneric("getFixedEffects",
            function(object)
            {
              standardGeneric("getFixedEffects")
            })
+
+#' @rdname getFixedEffects
+#' @export
 
 setMethod("getFixedEffects",
           "Fim",
@@ -168,13 +171,12 @@ setMethod("getFixedEffects",
             return( object@fixedEffects)
           })
 
-# ======================================================================================================
 #' Set the fixed effects.
 #'
 #' @name setFixedEffects
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return Update the matrix of the fixed effects.
-# ======================================================================================================
+#' @export
 
 setGeneric("setFixedEffects",
            function(object)
@@ -182,33 +184,37 @@ setGeneric("setFixedEffects",
              standardGeneric("setFixedEffects")
            })
 
-setMethod(
-  "setFixedEffects",
-  "Fim",
-  definition = function ( object )
-  {
-    mu = "\u03bc_"
-    fisherMatrix = getFisherMatrix( object )
-    colnamesFim = colnames( fisherMatrix )
-    indexMu = which( grepl( mu, colnamesFim ) == TRUE )
-    object@fixedEffects = as.matrix(fisherMatrix[indexMu,indexMu])
+#' @rdname setFixedEffects
+#' @export
 
-    return( object )
-  })
+setMethod( "setFixedEffects",
+           "Fim",
+           definition = function ( object )
+           {
+             mu = "\u03bc_"
+             fisherMatrix = getFisherMatrix( object )
+             colnamesFim = colnames( fisherMatrix )
+             indexMu = which( grepl( mu, colnamesFim ) == TRUE )
+             object@fixedEffects = as.matrix(fisherMatrix[indexMu,indexMu])
 
-# ======================================================================================================
+             return( object )
+           })
+
 #' Get the matrix of the variance effects.
 #'
 #' @name getVarianceEffects
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return The matrix of the variance effects.
-# ======================================================================================================
+#' @export
 
 setGeneric("getVarianceEffects",
            function(object)
            {
              standardGeneric("getVarianceEffects")
            })
+
+#' @rdname getVarianceEffects
+#' @export
 
 setMethod("getVarianceEffects",
           "Fim",
@@ -217,13 +223,12 @@ setMethod("getVarianceEffects",
             return(object@varianceEffects)
           })
 
-# ======================================================================================================
 #' Set the matrix of the variance effects.
 #'
 #' @name setVarianceEffects
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return Update the matrix of the variance effects.
-# ======================================================================================================
+#' @export
 
 setGeneric("setVarianceEffects",
            function(object)
@@ -231,48 +236,49 @@ setGeneric("setVarianceEffects",
              standardGeneric("setVarianceEffects")
            })
 
-setMethod(
-  "setVarianceEffects",
-  "Fim",
-  definition = function ( object )
-  {
-    omega = "\u03c9\u00B2_"
-    sigma = "\u03c3_"
+#' @rdname setVarianceEffects
+#' @export
 
-    fisherMatrix = getFisherMatrix( object )
-    colnamesFim = colnames( fisherMatrix )
+setMethod( "setVarianceEffects",
+           "Fim",
+           definition = function ( object )
+           {
+             omega = "\u03c9\u00B2_"
+             sigma = "\u03c3_"
 
-    indexOmega = which( grepl( omega, colnamesFim ) == TRUE )
-    indexSigma = which( grepl( sigma, colnamesFim ) == TRUE )
+             fisherMatrix = getFisherMatrix( object )
+             colnamesFim = colnames( fisherMatrix )
 
-    indexOmegaSigma = c( indexOmega, indexSigma )
+             indexOmega = which( grepl( omega, colnamesFim ) == TRUE )
+             indexSigma = which( grepl( sigma, colnamesFim ) == TRUE )
 
-    if ( length( indexOmegaSigma ) !=0 )
-    {
-      # ==============================
-      # population & individual fim
-      # ==============================
+             indexOmegaSigma = c( indexOmega, indexSigma )
 
-      object@varianceEffects = as.matrix( fisherMatrix[ indexOmegaSigma, indexOmegaSigma ] )
+             if ( length( indexOmegaSigma ) !=0 )
+             {
+               # ==============================
+               # population & individual fim
+               # ==============================
 
-    }else{
-      # ==============================
-      # Bayesian fim
-      # ==============================
+               object@varianceEffects = as.matrix( fisherMatrix[ indexOmegaSigma, indexOmegaSigma ] )
 
-      object@varianceEffects = as.matrix(NA)
-    }
+             }else{
+               # ==============================
+               # Bayesian fim
+               # ==============================
 
-    return( object )
-  })
+               object@varianceEffects = as.matrix(NA)
+             }
 
-# ======================================================================================================
+             return( object )
+           })
+
 #' Get the determinant of the fim.
 #'
 #' @name getDeterminant
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return A numeric giving the determinant of the fim.
-# ======================================================================================================
+#' @export
 
 setGeneric("getDeterminant",
            function(object)
@@ -280,23 +286,24 @@ setGeneric("getDeterminant",
              standardGeneric("getDeterminant")
            })
 
-setMethod(
-  "getDeterminant",
-  signature = "Fim",
-  definition = function ( object )
-  {
-    fisherMatrix = getFisherMatrix( object )
-    determinant = det( fisherMatrix )
-    return(determinant)
-  })
+#' @rdname getDeterminant
+#' @export
 
-# ======================================================================================================
+setMethod( "getDeterminant",
+           signature = "Fim",
+           definition = function ( object )
+           {
+             fisherMatrix = getFisherMatrix( object )
+             determinant = det( fisherMatrix )
+             return(determinant)
+           })
+
 #' Get the D criterion of the fim.
 #'
 #' @name getDcriterion
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return  A numeric giving the D criterion of the fim.
-# ======================================================================================================
+#' @export
 
 setGeneric("getDcriterion",
            function(object)
@@ -304,23 +311,24 @@ setGeneric("getDcriterion",
              standardGeneric("getDcriterion")
            })
 
-setMethod(
-  "getDcriterion",
-  signature = "Fim",
-  definition = function(object)
-  {
-    fisherMatrix = getFisherMatrix( object )
-    Dcriterion = det(fisherMatrix)**(1/dim(fisherMatrix)[1])
-    return(Dcriterion)
-  })
+#' @rdname getDcriterion
+#' @export
 
-# ======================================================================================================
+setMethod( "getDcriterion",
+           signature = "Fim",
+           definition = function(object)
+           {
+             fisherMatrix = getFisherMatrix( object )
+             Dcriterion = det(fisherMatrix)**(1/dim(fisherMatrix)[1])
+             return(Dcriterion)
+           })
+
 #' Get the correlation matrix.
 #'
 #' @name getCorrelationMatrix
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return The correlation matrix of the fim.
-# ======================================================================================================
+#' @export
 
 setGeneric("getCorrelationMatrix",
            function(object)
@@ -328,67 +336,68 @@ setGeneric("getCorrelationMatrix",
              standardGeneric("getCorrelationMatrix")
            })
 
-setMethod(
-  "getCorrelationMatrix",
-  signature = "Fim",
-  definition = function (object)
-  {
-    # ==============================
-    # correlation Matrix
-    # ==============================
+#' @rdname getCorrelationMatrix
+#' @export
 
-    fisherMatrix = getFisherMatrix( object )
-    colnamesFim = colnames( fisherMatrix )
+setMethod( "getCorrelationMatrix",
+           signature = "Fim",
+           definition = function (object)
+           {
+             # ==============================
+             # correlation Matrix
+             # ==============================
 
-    if ( rcond( fisherMatrix ) <= .Machine$double.eps )
-    {
-      correlationMatrix = cov2cor( pinv( fisherMatrix ) )
-      colnames( correlationMatrix ) = colnames( fisherMatrix )
-      rownames( correlationMatrix ) = rownames( fisherMatrix )
-    }else{
-      correlationMatrix = cov2cor(solve( fisherMatrix ) )
-    }
+             fisherMatrix = getFisherMatrix( object )
+             colnamesFim = colnames( fisherMatrix )
 
-    # ==============================
-    # fixed effects
-    # ==============================
+             if ( rcond( fisherMatrix ) <= .Machine$double.eps )
+             {
+               correlationMatrix = cov2cor( pinv( fisherMatrix ) )
+               colnames( correlationMatrix ) = colnames( fisherMatrix )
+               rownames( correlationMatrix ) = rownames( fisherMatrix )
+             }else{
+               correlationMatrix = cov2cor(solve( fisherMatrix ) )
+             }
 
-    mu = "\u03bc_"
-    indexMu = which( grepl( mu, colnamesFim ) == TRUE )
-    fixedEffects = correlationMatrix[indexMu,indexMu]
-    fixedEffects = as.matrix( fixedEffects )
-    colnames( fixedEffects ) = colnamesFim[indexMu]
-    rownames( fixedEffects ) = colnames( fixedEffects )
+             # ==============================
+             # fixed effects
+             # ==============================
 
-    # ==============================
-    # variance effects
-    # ==============================
+             mu = "\u03bc_"
+             indexMu = which( grepl( mu, colnamesFim ) == TRUE )
+             fixedEffects = correlationMatrix[indexMu,indexMu]
+             fixedEffects = as.matrix( fixedEffects )
+             colnames( fixedEffects ) = colnamesFim[indexMu]
+             rownames( fixedEffects ) = colnames( fixedEffects )
 
-    omega = "\u03c9\u00B2_"
-    sigma = "\u03c3_"
+             # ==============================
+             # variance effects
+             # ==============================
 
-    indexOmega = which( grepl( omega, colnamesFim ) == TRUE )
-    indexSigma = which( grepl( sigma, colnamesFim ) == TRUE )
+             omega = "\u03c9\u00B2_"
+             sigma = "\u03c3_"
 
-    indexOmegaSigma = c( indexOmega, indexSigma )
+             indexOmega = which( grepl( omega, colnamesFim ) == TRUE )
+             indexSigma = which( grepl( sigma, colnamesFim ) == TRUE )
 
-    if ( length( indexOmegaSigma ) !=0 )
-    {
-      varianceEffects = correlationMatrix[indexOmegaSigma,indexOmegaSigma]
-    }else{
-      varianceEffects = NULL
-    }
+             indexOmegaSigma = c( indexOmega, indexSigma )
 
-    return( list( correlationMatrix = correlationMatrix, fixedEffects = fixedEffects, varianceEffects = varianceEffects ) )
-  })
+             if ( length( indexOmegaSigma ) !=0 )
+             {
+               varianceEffects = correlationMatrix[indexOmegaSigma,indexOmegaSigma]
+             }else{
+               varianceEffects = NULL
+             }
 
-# ======================================================================================================
+             return( list( correlationMatrix = correlationMatrix, fixedEffects = fixedEffects, varianceEffects = varianceEffects ) )
+           })
+
 #' Get the SE.
 #'
 #' @name getSE
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return A vector giving the SE.
-# ======================================================================================================
+#' @export
 
 setGeneric("getSE",
            function(object)
@@ -396,33 +405,34 @@ setGeneric("getSE",
              standardGeneric("getSE")
            })
 
-setMethod(
-  "getSE",
-  signature = "Fim",
-  definition = function (object)
-  {
-    fisherMatrix = getFisherMatrix( object )
-    fisherMatrixTmp = fisherMatrix
+#' @rdname getSE
+#' @export
 
-    if ( rcond( fisherMatrixTmp ) <= .Machine$double.eps )
-    {
-      SE = sqrt(diag(pinv(fisherMatrixTmp)))
-      names(SE) = colnames( fisherMatrixTmp )
-    }else{
-      SE = sqrt(diag(solve(fisherMatrix)))
-    }
+setMethod( "getSE",
+           signature = "Fim",
+           definition = function (object)
+           {
+             fisherMatrix = getFisherMatrix( object )
+             fisherMatrixTmp = fisherMatrix
 
-    return(SE)
-  })
+             if ( rcond( fisherMatrixTmp ) <= .Machine$double.eps )
+             {
+               SE = sqrt(diag(pinv(fisherMatrixTmp)))
+               names(SE) = colnames( fisherMatrixTmp )
+             }else{
+               SE = sqrt(diag(solve(fisherMatrix)))
+             }
 
-# ======================================================================================================
+             return(SE)
+           })
+
 #' Get the RSE
 #'
 #' @name getRSE
 #' @param object An object from the class \linkS4class{Fim}.
 #' @param model An object from the class \linkS4class{Model}.
 #' @return A vector giving the RSE.
-# ======================================================================================================
+#' @export
 
 setGeneric("getRSE",
            function(object, model)
@@ -430,13 +440,12 @@ setGeneric("getRSE",
              standardGeneric("getRSE")
            })
 
-# ======================================================================================================
 #' Get the shrinkage.
 #'
 #' @name getShrinkage
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return A vector giving the shrinkage of the Bayesian fim.
-# ======================================================================================================
+#' @export
 
 setGeneric("getShrinkage",
            function(object)
@@ -444,14 +453,13 @@ setGeneric("getShrinkage",
              standardGeneric("getShrinkage")
            })
 
-# ======================================================================================================
 #' Set the shrinkage.
 #'
 #' @name setShrinkage
 #' @param object An object from the class \linkS4class{Fim}.
 #' @param value A vector giving the shrinkage of the Bayesian fim.
 #' @return The object with the updated shrinkage.
-# ======================================================================================================
+#' @export
 
 setGeneric("setShrinkage",
            function(object, value)
@@ -459,13 +467,12 @@ setGeneric("setShrinkage",
              standardGeneric("setShrinkage")
            })
 
-# ======================================================================================================
 #' Get the eigenvalues of the fim.
 #'
 #' @name getEigenValues
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return A vector giving the eigenvalues of the fim.
-# ======================================================================================================
+#' @export
 
 setGeneric("getEigenValues",
            function(object)
@@ -473,23 +480,24 @@ setGeneric("getEigenValues",
              standardGeneric("getEigenValues")
            })
 
-setMethod(
-  "getEigenValues",
-  signature = "Fim",
-  definition = function (object)
-  {
-    fisherMatrix = getFisherMatrix( object )
-    eigenValues = eigen(fisherMatrix)$values
-    return(eigenValues)
-  })
+#' @rdname getEigenValues
+#' @export
+#'
+setMethod( "getEigenValues",
+           signature = "Fim",
+           definition = function (object)
+           {
+             fisherMatrix = getFisherMatrix( object )
+             eigenValues = eigen(fisherMatrix)$values
+             return(eigenValues)
+           })
 
-# ======================================================================================================
 #' Get the condition number of the matrix of the fixed effects.
 #'
 #' @name getConditionNumberFixedEffects
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return A numeric giving the condition number of the matrix of the fixed effects.
-# ======================================================================================================
+#' @export
 
 setGeneric("getConditionNumberFixedEffects",
            function(object)
@@ -497,23 +505,24 @@ setGeneric("getConditionNumberFixedEffects",
              standardGeneric("getConditionNumberFixedEffects")
            })
 
-setMethod(
-  "getConditionNumberFixedEffects",
-  signature = "Fim",
-  definition = function (object)
-  {
-    fisherMatrix = getFixedEffects( object )
-    conditionNumberFixedEffects = cond(fisherMatrix)
-    return(conditionNumberFixedEffects)
-  })
+#' @rdname getConditionNumberFixedEffects
+#' @export
 
-# ======================================================================================================
+setMethod( "getConditionNumberFixedEffects",
+           signature = "Fim",
+           definition = function (object)
+           {
+             fisherMatrix = getFixedEffects( object )
+             conditionNumberFixedEffects = cond(fisherMatrix)
+             return(conditionNumberFixedEffects)
+           })
+
 #' Get the condition number of the matrix of the variance effects.
 #'
 #' @name getConditionNumberVarianceEffects
 #' @param object An object from the class \linkS4class{Fim}..
 #' @return A numeric giving the condition number of the matrix of the variance effects.
-# ======================================================================================================
+#' @export
 
 setGeneric("getConditionNumberVarianceEffects",
            function(object)
@@ -521,24 +530,25 @@ setGeneric("getConditionNumberVarianceEffects",
              standardGeneric("getConditionNumberVarianceEffects")
            })
 
-setMethod(
-  "getConditionNumberVarianceEffects",
-  signature = "Fim",
-  definition = function (object)
-  {
-    varianceEffects = getVarianceEffects( object )
-    conditionNumberVarianceEffects = cond( varianceEffects )
-    return( conditionNumberVarianceEffects )
-  })
+#' @rdname getConditionNumberVarianceEffects
+#' @export
 
-# ======================================================================================================
+setMethod( "getConditionNumberVarianceEffects",
+           signature = "Fim",
+           definition = function (object)
+           {
+             varianceEffects = getVarianceEffects( object )
+             conditionNumberVarianceEffects = cond( varianceEffects )
+             return( conditionNumberVarianceEffects )
+           })
+
 #' Get the names of the names of the parameters associated to each column of the fim.
 #'
 #' @name getColumnAndParametersNamesFIM
 #' @param object An object from the class \linkS4class{Fim}.
 #' @param model An object from the class \linkS4class{Model}.
 #' @return A list giving the names of the parameters associated to each column of the fim.
-# ======================================================================================================
+#' @export
 
 setGeneric("getColumnAndParametersNamesFIM",
            function(object, model )
@@ -546,14 +556,13 @@ setGeneric("getColumnAndParametersNamesFIM",
              standardGeneric("getColumnAndParametersNamesFIM")
            })
 
-# ======================================================================================================
-#' #' Get the names of the names of the parameters associated to each column of the fim in Latex format.
+#' Get the names of the names of the parameters associated to each column of the fim in Latex format.
 #'
 #' @name getColumnAndParametersNamesFIMInLatex
 #' @param object An object from the class \linkS4class{Fim}.
 #' @param model An object from the class \linkS4class{Model}.
 #' @return A list giving the names of the parameters associated to each column of the fim in Latex format.
-# ======================================================================================================
+#' @export
 
 setGeneric("getColumnAndParametersNamesFIMInLatex",
            function(object, model )
@@ -561,15 +570,13 @@ setGeneric("getColumnAndParametersNamesFIMInLatex",
              standardGeneric("getColumnAndParametersNamesFIMInLatex")
            })
 
-
-# ======================================================================================================
 #' Generate the tables for the report.
 #'
 #' @name reportTablesFIM
 #' @param object An object from the class \linkS4class{Fim}.
 #' @param evaluationObject A list giving the results of the evaluation of the model.
 #' @return A list giving the table in kable format for the report.
-# ======================================================================================================
+#' @export
 
 setGeneric("reportTablesFIM",
            function( object, evaluationObject )
@@ -577,7 +584,6 @@ setGeneric("reportTablesFIM",
              standardGeneric("reportTablesFIM")
            })
 
-# ======================================================================================================
 #' Generate the report for the evaluation
 #'
 #' @name generateReportEvaluation
@@ -587,7 +593,7 @@ setGeneric("reportTablesFIM",
 #' @param outputFile A string giving the name of the output file.
 #' @param plotOptions A list giving the plot options.
 #' @return Return the report for the evaluation in html.
-# ======================================================================================================
+#' @export
 
 setGeneric("generateReportEvaluation",
            function( object, evaluationObject, outputPath, outputFile, plotOptions )
@@ -595,13 +601,12 @@ setGeneric("generateReportEvaluation",
              standardGeneric("generateReportEvaluation")
            })
 
-# ======================================================================================================
 #' Convert the type of the object fim to a string.
 #'
 #' @name setFimTypeToString
 #' @param object An object from the class \linkS4class{Fim}.
 #' @return The type of the object fim convert as a string.
-# ======================================================================================================
+#' @export
 
 setGeneric("setFimTypeToString",
            function( object )
@@ -609,25 +614,27 @@ setGeneric("setFimTypeToString",
              standardGeneric("setFimTypeToString")
            })
 
-setMethod(
-  "setFimTypeToString",
-  signature = "Fim",
-  definition = function( object )
-  {
-    if ( is( object, "PopulationFim" ) )
-    {
-      object = "population"
-    }
-    else if ( is( object, "IndividualFim" ) )
-    {
-      object = "individual"
-    }
-    else if ( is( object, "BayesianFim" ) )
-    {
-      object = "Bayesian"
-    }
-    return( object )
-  })
+#' @rdname setFimTypeToString
+#' @export
+
+setMethod( "setFimTypeToString",
+           signature = "Fim",
+           definition = function( object )
+           {
+             if ( is( object, "PopulationFim" ) )
+             {
+               object = "population"
+             }
+             else if ( is( object, "IndividualFim" ) )
+             {
+               object = "individual"
+             }
+             else if ( is( object, "BayesianFim" ) )
+             {
+               object = "Bayesian"
+             }
+             return( object )
+           })
 
 ##########################################################################################################
 # End Class "Fim"

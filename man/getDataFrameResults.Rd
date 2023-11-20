@@ -2,9 +2,12 @@
 % Please edit documentation in R/MultiplicativeAlgorithm.R
 \name{getDataFrameResults}
 \alias{getDataFrameResults}
+\alias{getDataFrameResults,MultiplicativeAlgorithm-method}
 \title{Get the dataframe of the results.}
 \usage{
 getDataFrameResults(object, threshold)
+
+\S4method{getDataFrameResults}{MultiplicativeAlgorithm}(object, threshold)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{MultiplicativeAlgorithm}.}

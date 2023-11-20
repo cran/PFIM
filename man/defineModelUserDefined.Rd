@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{defineModelUserDefined}
 \alias{defineModelUserDefined}
+\alias{defineModelUserDefined,Model-method}
 \title{Define a user defined model.}
 \usage{
 defineModelUserDefined(object, designs)
+
+\S4method{defineModelUserDefined}{Model}(object, designs)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

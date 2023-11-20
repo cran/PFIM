@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{defineModel}
 \alias{defineModel}
+\alias{defineModel,Model-method}
 \title{Define a model.}
 \usage{
 defineModel(object, designs)
+
+\S4method{defineModel}{Model}(object, designs)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

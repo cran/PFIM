@@ -32,52 +32,54 @@ SamplingTimeConstraints = setClass("SamplingTimeConstraints",
                                                                     samplingsWindows = "list",
                                                                     numberOfTimesByWindows = "vector",
                                                                     minSampling = "numeric" ) )
-setMethod(
-  f="initialize",
-  signature="SamplingTimeConstraints",
-  definition= function (.Object, outcome, initialSamplings, fixedTimes, numberOfsamplingsOptimisable,  samplingsWindows, numberOfTimesByWindows, minSampling )
-  {
-    if(!missing(outcome))
-    {
-      .Object@outcome = outcome
-    }
-    if(!missing(initialSamplings))
-    {
-      .Object@initialSamplings = initialSamplings
-    }
-    if(!missing(fixedTimes))
-    {
-      .Object@fixedTimes = fixedTimes
-    }else
-    {
-      .Object@fixedTimes = rep(NA,0)
-    }
-    if(!missing(numberOfTimesByWindows))
-    {
-      .Object@numberOfTimesByWindows = numberOfTimesByWindows
-    }
-    if(!missing(numberOfsamplingsOptimisable))
-    {
-      .Object@numberOfsamplingsOptimisable = numberOfsamplingsOptimisable
-    }
-    if(!missing(minSampling))
-    {
-      .Object@minSampling = minSampling
-    }
-    if(!missing(samplingsWindows))
-    {
-      .Object@samplingsWindows = samplingsWindows
-    }
+setMethod( f="initialize",
+           signature="SamplingTimeConstraints",
+           definition= function (.Object, outcome, initialSamplings, fixedTimes, numberOfsamplingsOptimisable,  samplingsWindows, numberOfTimesByWindows, minSampling )
+           {
+             if(!missing(outcome))
+             {
+               .Object@outcome = outcome
+             }
+             if(!missing(initialSamplings))
+             {
+               .Object@initialSamplings = initialSamplings
+             }
+             if(!missing(fixedTimes))
+             {
+               .Object@fixedTimes = fixedTimes
+             }else
+             {
+               .Object@fixedTimes = rep(NA,0)
+             }
+             if(!missing(numberOfTimesByWindows))
+             {
+               .Object@numberOfTimesByWindows = numberOfTimesByWindows
+             }
+             if(!missing(numberOfsamplingsOptimisable))
+             {
+               .Object@numberOfsamplingsOptimisable = numberOfsamplingsOptimisable
+             }
+             if(!missing(minSampling))
+             {
+               .Object@minSampling = minSampling
+             }
+             if(!missing(samplingsWindows))
+             {
+               .Object@samplingsWindows = samplingsWindows
+             }
 
-    validObject(.Object)
-    return (.Object )
-  }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
 # ======================================================================================================
 # getOutcome
 # ======================================================================================================
 
+#' @rdname getOutcome
+#' @export
+#'
 setMethod(f="getOutcome",
           signature="SamplingTimeConstraints",
           definition = function(object)
@@ -90,6 +92,9 @@ setMethod(f="getOutcome",
 # getSamplings
 # ======================================================================================================
 
+#' @rdname getSamplings
+#' @export
+#'
 setMethod(f="getSamplings",
           signature="SamplingTimeConstraints",
           definition = function(object)
@@ -98,13 +103,12 @@ setMethod(f="getSamplings",
           }
 )
 
-# ======================================================================================================
 #' Get the fixed sampling times.
 #'
 #' @name getFixedTimes
 #' @param object An object from the class \linkS4class{SamplingTimeConstraints}.
 #' @return A vector giving the foxed sampling times.
-# ======================================================================================================
+#' @export
 
 setGeneric("getFixedTimes",
            function(object)
@@ -113,6 +117,9 @@ setGeneric("getFixedTimes",
            }
 )
 
+#' @rdname getFixedTimes
+#' @export
+#'
 setMethod(f="getFixedTimes",
           signature="SamplingTimeConstraints",
           definition = function(object)
@@ -121,13 +128,12 @@ setMethod(f="getFixedTimes",
           }
 )
 
-# ======================================================================================================
 #' Get the number of sampling times by windows.
 #'
 #' @name getNumberOfTimesByWindows
 #' @param object An object from the class \linkS4class{SamplingTimeConstraints}.
 #' @return A vector giving the number of sampling times by windows.
-# ======================================================================================================
+#' @export
 
 setGeneric("getNumberOfTimesByWindows",
            function(object)
@@ -136,6 +142,9 @@ setGeneric("getNumberOfTimesByWindows",
            }
 )
 
+#' @rdname getNumberOfTimesByWindows
+#' @export
+#'
 setMethod(f="getNumberOfTimesByWindows",
           signature="SamplingTimeConstraints",
           definition = function(object)
@@ -144,13 +153,12 @@ setMethod(f="getNumberOfTimesByWindows",
           }
 )
 
-# ======================================================================================================
 #' Get the minimal sampling times.
 #'
 #' @name getMinSampling
 #' @param object An object from the class \linkS4class{SamplingTimeConstraints}.
 #' @return A numeric giving the minimal sampling times.
-# ======================================================================================================
+#' @export
 
 setGeneric("getMinSampling",
            function(object)
@@ -159,6 +167,9 @@ setGeneric("getMinSampling",
            }
 )
 
+#' @rdname getMinSampling
+#' @export
+#'
 setMethod(f="getMinSampling",
           signature="SamplingTimeConstraints",
           definition = function(object)
@@ -167,13 +178,12 @@ setMethod(f="getMinSampling",
           }
 )
 
-# ======================================================================================================
 #' Get the windows for the sampling times.
 #'
 #' @name getSamplingsWindows
 #' @param object An object from the class \linkS4class{SamplingTimeConstraints}.
 #' @return A list giving the vector of the windows for the sampling times.
-# ======================================================================================================
+#' @export
 
 setGeneric("getSamplingsWindows",
            function(object)
@@ -182,6 +192,9 @@ setGeneric("getSamplingsWindows",
            }
 )
 
+#' @rdname getSamplingsWindows
+#' @export
+#'
 setMethod(f="getSamplingsWindows",
           signature="SamplingTimeConstraints",
           definition = function(object)
@@ -190,13 +203,12 @@ setMethod(f="getSamplingsWindows",
           }
 )
 
-# ======================================================================================================
 #' Get the number of sampling times that are optimisable.
 #'
 #' @name getNumberOfsamplingsOptimisable
 #' @param object An object from the class \linkS4class{SamplingTimeConstraints}.
 #' @return A vector giving the number of sampling times that are optimisable.
-# ======================================================================================================
+#' @export
 
 setGeneric("getNumberOfsamplingsOptimisable",
            function(object)
@@ -205,6 +217,9 @@ setGeneric("getNumberOfsamplingsOptimisable",
            }
 )
 
+#' @rdname getNumberOfsamplingsOptimisable
+#' @export
+#'
 setMethod(f="getNumberOfsamplingsOptimisable",
           signature = "SamplingTimeConstraints",
           definition = function(object)
@@ -213,7 +228,6 @@ setMethod(f="getNumberOfsamplingsOptimisable",
           }
 )
 
-# =======================================================================================================================
 #' Check for the samplingTime constraints for continuous optimization
 #'
 #' @name checkSamplingTimeConstraintsForContinuousOptimization
@@ -224,8 +238,8 @@ setMethod(f="getNumberOfsamplingsOptimisable",
 #' @return A list of Boolean giving true if
 #' the minimal sampling times is in the vector of sampling times & the number of sampling for each windows is respected
 #' false otherwise.
-# =======================================================================================================================
-
+#' @export
+#'
 setGeneric("checkSamplingTimeConstraintsForContinuousOptimization",
            function( object, arm, newSamplings, outcome )
            {
@@ -233,6 +247,9 @@ setGeneric("checkSamplingTimeConstraintsForContinuousOptimization",
            }
 )
 
+#' @rdname checkSamplingTimeConstraintsForContinuousOptimization
+#' @export
+#'
 setMethod(f="checkSamplingTimeConstraintsForContinuousOptimization",
           signature = "SamplingTimeConstraints",
           definition = function( object, arm, newSamplings, outcome )
@@ -329,13 +346,12 @@ setMethod(f="checkSamplingTimeConstraintsForContinuousOptimization",
           }
 )
 
-# ==============================================================================
 #' Generate samplings from sampling constraints
 #'
 #' @name generateSamplingsFromSamplingConstraints
 #' @param object An object from the class \linkS4class{SamplingTimeConstraints}.
 #' @return A list of sampling times generated from the sampling constraints.
-# ==============================================================================
+#' @export
 
 setGeneric("generateSamplingsFromSamplingConstraints",
            function( object )
@@ -343,6 +359,9 @@ setGeneric("generateSamplingsFromSamplingConstraints",
              standardGeneric("generateSamplingsFromSamplingConstraints")
            })
 
+#' @rdname generateSamplingsFromSamplingConstraints
+#' @export
+#'
 setMethod(f="generateSamplingsFromSamplingConstraints",
           signature = "SamplingTimeConstraints",
           definition = function( object )

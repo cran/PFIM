@@ -2,9 +2,12 @@
 % Please edit documentation in R/MultiplicativeAlgorithm.R
 \name{setOptimalWeights}
 \alias{setOptimalWeights}
+\alias{setOptimalWeights,MultiplicativeAlgorithm-method}
 \title{Set the optimal weights.}
 \usage{
 setOptimalWeights(object, optimalWeights)
+
+\S4method{setOptimalWeights}{MultiplicativeAlgorithm}(object, optimalWeights)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{MultiplicativeAlgorithm}.}

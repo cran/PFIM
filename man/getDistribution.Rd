@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelParameter.R
 \name{getDistribution}
 \alias{getDistribution}
+\alias{getDistribution,ModelParameter-method}
 \title{Get the distribution.}
 \usage{
 getDistribution(object)
+
+\S4method{getDistribution}{ModelParameter}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelParameter}.}

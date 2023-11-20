@@ -23,54 +23,53 @@
 #' }
 
 Constant = setClass(Class = "Constant",
-                     contains = "ModelError",
-                     representation = representation
-                     (
-                       outcome = "character",
-                       equation = "expression",
-                       derivatives = "list",
-                       sigmaInter = "numeric",
-                       sigmaSlope = "numeric",
-                       cError = "numeric"
-                     ),
-                     prototype = prototype( cError = 1,
-                                            sigmaSlope = 0,
-                                            equation =  parse(text = "sigmaInter")
-                     ))
+                    contains = "ModelError",
+                    representation = representation
+                    (
+                      outcome = "character",
+                      equation = "expression",
+                      derivatives = "list",
+                      sigmaInter = "numeric",
+                      sigmaSlope = "numeric",
+                      cError = "numeric"
+                    ),
+                    prototype = prototype( cError = 1,
+                                           sigmaSlope = 0,
+                                           equation =  parse(text = "sigmaInter")
+                    ))
 
-setMethod(
-  f="initialize",
-  signature="Constant",
-  definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )
-  {
-    if(!missing(outcome))
-    {
-      .Object@outcome = outcome
-    }
-    if(!missing(equation))
-    {
-      .Object@equation = equation
-    }
-    if(!missing(derivatives))
-    {
-      .Object@derivatives = derivatives
-    }
-    if(!missing(sigmaInter))
-    {
-      .Object@sigmaInter = sigmaInter
-    }
-    if(!missing(sigmaSlope))
-    {
-      .Object@sigmaSlope = sigmaSlope
-    }
-    if( !missing( cError ) )
-    {
-      .Object@cError = cError
-    }
+setMethod( f="initialize",
+           signature="Constant",
+           definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )
+           {
+             if(!missing(outcome))
+             {
+               .Object@outcome = outcome
+             }
+             if(!missing(equation))
+             {
+               .Object@equation = equation
+             }
+             if(!missing(derivatives))
+             {
+               .Object@derivatives = derivatives
+             }
+             if(!missing(sigmaInter))
+             {
+               .Object@sigmaInter = sigmaInter
+             }
+             if(!missing(sigmaSlope))
+             {
+               .Object@sigmaSlope = sigmaSlope
+             }
+             if( !missing( cError ) )
+             {
+               .Object@cError = cError
+             }
 
-    validObject(.Object)
-    return (.Object )
-  }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
 ##########################################################################################################

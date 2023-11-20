@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{reportTablesModelError}
 \alias{reportTablesModelError}
+\alias{reportTablesModelError,Model-method}
 \title{Generate the tables for model errors for the evaluation report.}
 \usage{
 reportTablesModelError(object)
+
+\S4method{reportTablesModelError}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{setSigmaInter}
 \alias{setSigmaInter}
+\alias{setSigmaInter,ModelError-method}
 \title{Set the parameter sigma inter.}
 \usage{
 setSigmaInter(object, sigmaInter)
+
+\S4method{setSigmaInter}{ModelError}(object, sigmaInter)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

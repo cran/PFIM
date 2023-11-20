@@ -2,9 +2,12 @@
 % Please edit documentation in R/Administration.R
 \name{getTau}
 \alias{getTau}
-\title{Get the frequency \code{tau}.}
+\alias{getTau,Administration-method}
+\title{getTau}
 \usage{
 getTau(object)
+
+\S4method{getTau}{Administration}(object)
 }
 \arguments{
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}

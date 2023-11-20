@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{parametersForComputingGradient}
 \alias{parametersForComputingGradient}
+\alias{parametersForComputingGradient,Model-method}
 \title{Define the parameters for computing the gradients of a model.}
 \usage{
 parametersForComputingGradient(object)
+
+\S4method{parametersForComputingGradient}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

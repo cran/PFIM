@@ -2,9 +2,12 @@
 % Please edit documentation in R/Arm.R
 \name{getSamplingTime}
 \alias{getSamplingTime}
-\title{Get the sampling times by outcome.}
+\alias{getSamplingTime,Arm-method}
+\title{getSamplingTime}
 \usage{
 getSamplingTime(object, outcome)
+
+\S4method{getSamplingTime}{Arm}(object, outcome)
 }
 \arguments{
 \item{object}{An object \code{Arm} from the class \linkS4class{Arm}.}

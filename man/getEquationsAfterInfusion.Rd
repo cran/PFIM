@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelInfusion.R
 \name{getEquationsAfterInfusion}
 \alias{getEquationsAfterInfusion}
+\alias{getEquationsAfterInfusion,Model-method}
 \title{Get the equations after infusion.}
 \usage{
 getEquationsAfterInfusion(object)
+
+\S4method{getEquationsAfterInfusion}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

@@ -16,7 +16,7 @@
 #' @include Design.R
 #' @include GenericMethods.R
 #' @export
-
+#'
 #' @section Objects from the Class \code{PGBOAlgorithm}:
 #' Objects form the Class \code{PGBOAlgorithm} can be created by calls of the form \code{PGBOAlgorithm(...)} where
 #' (...) are the parameters for the \code{PGBOAlgorithm} objects.
@@ -50,76 +50,78 @@ PGBOAlgorithm = setClass(
   )
 )
 
-setMethod(
-  f="initialize",
-  signature="PGBOAlgorithm",
-  definition= function ( .Object,
-                         N,
-                         muteEffect,
-                         maxIteration,
-                         purgeIteration,
-                         seed,
-                         showProcess,
-                         optimalDesign,
-                         iterationAndCriteria )
-  {
-    # ===================
-    # values by default
-    # ===================
+setMethod( f="initialize",
+           signature="PGBOAlgorithm",
+           definition= function ( .Object,
+                                  N,
+                                  muteEffect,
+                                  maxIteration,
+                                  purgeIteration,
+                                  seed,
+                                  showProcess,
+                                  optimalDesign,
+                                  iterationAndCriteria )
+           {
+             # ===================
+             # values by default
+             # ===================
 
-    .Object@N = 50
-    .Object@muteEffect = 0.2
-    .Object@maxIteration = 10e4
-    .Object@purgeIteration = 1000
-    .Object@seed = -1
+             .Object@N = 50
+             .Object@muteEffect = 0.2
+             .Object@maxIteration = 10e4
+             .Object@purgeIteration = 1000
+             .Object@seed = -1
 
-    if ( !missing( N ) )
-    {
-      .Object@N = N
-    }
+             if ( !missing( N ) )
+             {
+               .Object@N = N
+             }
 
-    if ( !missing( muteEffect ) )
-    {
-      .Object@muteEffect = muteEffect
-    }
-    if ( !missing( maxIteration ) )
-    {
-      .Object@maxIteration = maxIteration
-    }
+             if ( !missing( muteEffect ) )
+             {
+               .Object@muteEffect = muteEffect
+             }
+             if ( !missing( maxIteration ) )
+             {
+               .Object@maxIteration = maxIteration
+             }
 
-    if ( !missing( purgeIteration ) )
-    {
-      .Object@purgeIteration = purgeIteration
-    }
+             if ( !missing( purgeIteration ) )
+             {
+               .Object@purgeIteration = purgeIteration
+             }
 
-    if ( !missing( seed ) )
-    {
-      .Object@seed = seed
-    }
+             if ( !missing( seed ) )
+             {
+               .Object@seed = seed
+             }
 
-    if ( !missing( showProcess ) )
-    {
-      .Object@showProcess = showProcess
-    }
+             if ( !missing( showProcess ) )
+             {
+               .Object@showProcess = showProcess
+             }
 
-    if ( !missing( optimalDesign ) )
-    {
-      .Object@optimalDesign = optimalDesign
-    }
+             if ( !missing( optimalDesign ) )
+             {
+               .Object@optimalDesign = optimalDesign
+             }
 
-    if ( !missing( iterationAndCriteria ) )
-    {
-      .Object@iterationAndCriteria = iterationAndCriteria
-    }
+             if ( !missing( iterationAndCriteria ) )
+             {
+               .Object@iterationAndCriteria = iterationAndCriteria
+             }
 
-    validObject( .Object )
-    return ( .Object )
-  }
+             validObject( .Object )
+             return ( .Object )
+           }
 )
 
 # ======================================================================================================
 # setParameters
 # ======================================================================================================
+
+#' @rdname setParameters
+#' @export
 
 setMethod("setParameters",
           "PGBOAlgorithm",
@@ -136,6 +138,9 @@ setMethod("setParameters",
 # ======================================================================================================
 # optimize
 # ======================================================================================================
+
+#' @rdname optimize
+#' @export
 
 setMethod(f = "optimize",
           signature = "PGBOAlgorithm",
@@ -553,6 +558,11 @@ setMethod(f = "optimize",
 # show
 # ======================================================================================================
 
+#' @title show
+#' @rdname show
+#' @param object object
+#' @export
+
 setMethod(f="show",
           signature = "PGBOAlgorithm",
           definition = function( object )
@@ -577,46 +587,48 @@ setMethod(f="show",
 # generateReportOptimization
 # ======================================================================================================
 
-setMethod(
-  "generateReportOptimization",
-  signature = "PGBOAlgorithm",
-  definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
-  {
-    # ===================================================
-    # projectName and outputs tables
-    # ===================================================
+#' @rdname generateReportOptimization
+#' @export
 
-    projectName = getName( optimizationObject )
+setMethod( "generateReportOptimization",
+           signature = "PGBOAlgorithm",
+           definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
+           {
+             # ===================================================
+             # projectName and outputs tables
+             # ===================================================
 
-    evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
-    fimType = is( getFim( evaluationFIMResults ) )[1]
+             projectName = getName( optimizationObject )
 
-    evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
+             evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
+             fimType = is( getFim( evaluationFIMResults ) )[1]
 
-    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
+             evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
 
-    tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
+             tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
 
-    # ========================================
-    # markdown template
-    # ========================================
+             tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
 
-    path = system.file(package = "PFIM")
-    path = paste0( path, "/rmarkdown/templates/skeleton/" )
-    nameInputFile = paste0( path, "template_PGBOAlgorithm.rmd" )
+             # ========================================
+             # markdown template
+             # ========================================
 
-    rmarkdown::render( input = nameInputFile,
-                       output_file = outputFile,
-                       output_dir = outputPath,
-                       params = list(
-                         object = "object",
-                         plotOptions = "plotOptions",
-                         projectName = "projectName",
-                         fimType = "fimType",
-                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
-                         tablesOptimizationObject = "tablesOptimizationObject" ) )
+             path = system.file(package = "PFIM")
+             path = paste0( path, "/rmarkdown/templates/skeleton/" )
+             nameInputFile = paste0( path, "template_PGBOAlgorithm.rmd" )
 
-  })
+             rmarkdown::render( input = nameInputFile,
+                                output_file = outputFile,
+                                output_dir = outputPath,
+                                params = list(
+                                  object = "object",
+                                  plotOptions = "plotOptions",
+                                  projectName = "projectName",
+                                  fimType = "fimType",
+                                  tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
+                                  tablesOptimizationObject = "tablesOptimizationObject" ) )
+
+           })
 
 ##############################################################################
 # END Class PGBOAlgorithm

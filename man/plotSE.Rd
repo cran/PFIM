@@ -2,9 +2,12 @@
 % Please edit documentation in R/PlotEvaluation.R
 \name{plotSE}
 \alias{plotSE}
+\alias{plotSE,PFIMProject-method}
 \title{Graph the SE.}
 \usage{
 plotSE(object, plotOptions)
+
+\S4method{plotSE}{PFIMProject}(object, plotOptions)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Evaluation}.}

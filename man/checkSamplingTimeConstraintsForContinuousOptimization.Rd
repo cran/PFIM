@@ -2,9 +2,17 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{checkSamplingTimeConstraintsForContinuousOptimization}
 \alias{checkSamplingTimeConstraintsForContinuousOptimization}
+\alias{checkSamplingTimeConstraintsForContinuousOptimization,SamplingTimeConstraints-method}
 \title{Check for the samplingTime constraints for continuous optimization}
 \usage{
 checkSamplingTimeConstraintsForContinuousOptimization(
+  object,
+  arm,
+  newSamplings,
+  outcome
+)
+
+\S4method{checkSamplingTimeConstraintsForContinuousOptimization}{SamplingTimeConstraints}(
   object,
   arm,
   newSamplings,

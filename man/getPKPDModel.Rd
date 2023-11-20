@@ -2,9 +2,12 @@
 % Please edit documentation in R/LibraryOfPKPDModels.R
 \name{getPKPDModel}
 \alias{getPKPDModel}
+\alias{getPKPDModel,LibraryOfPKPDModels-method}
 \title{Get a PKPD model.}
 \usage{
 getPKPDModel(object, namesModel)
+
+\S4method{getPKPDModel}{LibraryOfPKPDModels}(object, namesModel)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{LibraryOfPKPDModels}.}

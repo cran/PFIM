@@ -1,11 +1,10 @@
-# ======================================================================================================
 #' Get the plot options for graphs responses and SI
 #'
 #' @name getPlotOptions
 #' @param plotOptions A list giving the plots options.
 #' @param outcomesNames A list giving the output names.
 #' @return The list containing the plot options.
-# ======================================================================================================
+#' @export
 
 getPlotOptions = function( plotOptions, outcomesNames )
 {
@@ -35,13 +34,12 @@ getPlotOptions = function( plotOptions, outcomesNames )
                 unitYAxis = unitYAxis ) )
 }
 
-# ======================================================================================================
 #' Get the name of an object
 #'
-#' @name getName
+#' @title getName
 #' @param object An object defined form a class of PFIM.
 #' @return A character string \code{name} giving the name of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getName",
@@ -49,19 +47,21 @@ setGeneric(
     standardGeneric("getName")
   })
 
-# ======================================================================================================
 #' Get the names of an object.
 #'
-#' @name getNames
+#' @title getNames
 #' @param object An object defined form a class of PFIM.
 #' @return A vector giving the names of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getNames",
   function(object) {
     standardGeneric("getNames")
   })
+
+#' @rdname getNames
+#' @export
 
 setMethod(f="getNames",
           "list",
@@ -72,13 +72,12 @@ setMethod(f="getNames",
           }
 )
 
-# ======================================================================================================
 #' Get the size of an object.
 #'
-#' @name getSize
+#' @title getSize
 #' @param object An object defined form a class of PFIM.
 #' @return A numeric giving the size of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getSize",
@@ -86,14 +85,13 @@ setGeneric(
     standardGeneric("getSize")
   })
 
-# ======================================================================================================
 #' Set the size of an object.
 #'
-#' @name setSize
+#' @title setSize
 #' @param object An object defined form a class of PFIM.
 #' @param size A numeric giving the size of the object.
 #' @return The object with its size updated.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setSize",
@@ -101,13 +99,12 @@ setGeneric(
     standardGeneric("setSize")
   })
 
-# ======================================================================================================
 #' Get the outcome of an object.
 #'
-#' @name getOutcome
+#' @title getOutcome
 #' @param object An object defined from a class of PFIM.
 #' @return A string giving the outcome of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getOutcome",
@@ -115,14 +112,13 @@ setGeneric(
     standardGeneric("getOutcome")
   })
 
-# ======================================================================================================
 #' Set the outcome of an object.
 #'
-#' @name setOutcome
+#' @title setOutcome
 #' @param object An object defined form a class of PFIM.
 #' @param outcome A string defined the outcome.
 #' @return A string giving the updated outcome of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setOutcome",
@@ -130,13 +126,12 @@ setGeneric(
     standardGeneric("setOutcome")
   })
 
-# ======================================================================================================
 #' Get the fim of an of an object.
 #'
-#' @name getFim
+#' @title getFim
 #' @param object An object defined form a class of PFIM.
 #' @return The \code{FIM} of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getFim",
@@ -145,13 +140,12 @@ setGeneric(
     standardGeneric("getFim")
   })
 
-# ======================================================================================================
 #' Get the parameters for the ode solvers of an object.
 #'
-#' @name getOdeSolverParameters
+#' @title getOdeSolverParameters
 #' @param object An object defined form a class of PFIM.
 #' @return The list giving the parameters for the ode solvers.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getOdeSolverParameters",
@@ -159,13 +153,12 @@ setGeneric(
     standardGeneric("getOdeSolverParameters")
   })
 
-# ======================================================================================================
 #' Get the fixed effect of an object.
 #'
-#' @name getMu
+#' @title getMu
 #' @param object An object defined form a class of PFIM.
 #' @return The object with the updated fixed effect.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getMu",
@@ -173,14 +166,13 @@ setGeneric(
     standardGeneric("getMu")
   })
 
-# ======================================================================================================
 #' Set the value of the fixed effect mu of an object.
 #'
 #' @name setMu
 #' @param object An object defined form a class of PFIM.
 #' @param value The value of the fixed effect mu.
 #' @return The object with the updated fixed effect mu.
-# ======================================================================================================
+#' @export
 
 setGeneric("setMu",
            function(object,value)
@@ -188,13 +180,12 @@ setGeneric("setMu",
              standardGeneric("setMu")
            })
 
-# ======================================================================================================
 #' Get the matrix omega of an object.
 #'
 #' @name getOmega
 #' @param object An object defined form a class of PFIM.
 #' @return The matrix omega of an object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getOmega",
@@ -202,14 +193,13 @@ setGeneric(
     standardGeneric("getOmega")
   })
 
-# ======================================================================================================
 #' Set the matrix omega of an object.
 #'
 #' @name setOmega
 #' @param object An object defined form a class of PFIM.
 #' @param value The matrix omega.
 #' @return The object with the updated matrix omega.
-# ======================================================================================================
+#' @export
 
 setGeneric("setOmega",
            function(object,value)
@@ -217,13 +207,12 @@ setGeneric("setOmega",
              standardGeneric("setOmega")
            })
 
-# ======================================================================================================
 #' Get the parameters of an object.
 #'
 #' @name getParameters
 #' @param object An object defined form a class of PFIM.
 #' @return Return the list of the parameters of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getParameters",
@@ -231,14 +220,13 @@ setGeneric(
     standardGeneric("getParameters")
   })
 
-# ======================================================================================================
 #' Set the parameters of an object.
 #'
 #' @name setParameters
 #' @param object An object defined form a class of PFIM.
 #' @param parameters A list of parameters.
 #' @return The object with the updated list of parameters.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setParameters",
@@ -246,13 +234,12 @@ setGeneric(
     standardGeneric("setParameters")
   })
 
-# ======================================================================================================
 #' Get the model error.
 #'
 #' @name getModelError
 #' @param object An object defined form a class of PFIM.
 #' @return The model error of the object.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getModelError",
@@ -260,15 +247,13 @@ setGeneric(
     standardGeneric("getModelError")
   })
 
-# ======================================================================================================
 #' Get the sampling of an object.
 #'
 #' @name getSamplings
 #' @param object An object defined form a class of PFIM.
 #' @return A list of the samplings of the object.
-# ======================================================================================================
+#' @export
 
-# getSamplings
 setGeneric("getSamplings",
            function(object)
            {
@@ -276,15 +261,13 @@ setGeneric("getSamplings",
            }
 )
 
-# ======================================================================================================
 #' Get the fim of an object.
 #'
 #' @name getFim
 #' @param object An object defined form a class of PFIM.
 #' @return The fim of the object.
-# ======================================================================================================
+#' @export
 
-# getFim
 setGeneric("getFim",
            function(object)
            {
@@ -292,32 +275,28 @@ setGeneric("getFim",
            }
 )
 
-# ======================================================================================================
 #' Set the name of an object.
 #'
 #' @name setName
 #' @param object An object defined form a class of PFIM.
 #' @param name A string giving the name of the object.
 #' @return The object with the updated name.
-# ======================================================================================================
+#' @export
 
-# setName
 setGeneric(
   "setName",
   function(object, name) {
     standardGeneric("setName")
   })
 
-# ======================================================================================================
 #' Set the arms of an object.
 #'
 #' @name setArms
 #' @param object An object defined form a class of PFIM.
 #' @param arms A list of arms.
 #' @return The object with the updated arms.
-# ======================================================================================================
+#' @export
 
-# setArms
 setGeneric("setArms",
            function(object,arms)
            {
@@ -325,15 +304,13 @@ setGeneric("setArms",
            }
 )
 
-# ======================================================================================================
 #' Get the arms of an object.
 #'
 #' @name getArms
 #' @param object An object defined form a class of PFIM.
 #' @return A list containing the arms of the object.
-# ======================================================================================================
+#' @export
 
-# getArms
 setGeneric("getArms",
            function(object)
            {
@@ -341,7 +318,21 @@ setGeneric("getArms",
            }
 )
 
-##########################################################################################################
+#' Set the initial conditions of a ode model.
+#'
+#' @title setInitialConditions
+#' @param object An object from the class \linkS4class{Model}.
+#' @param initialConditions A list giving the initial conditions.
+#' @return The model with the updated initial conditions.
+#' @export
+
+setGeneric(
+  "setInitialConditions",
+  function(object, initialConditions) {
+    standardGeneric("setInitialConditions")
+  })
+
+#########################################################################################################
 # END Class "GenericMethods"
 ##########################################################################################################
 

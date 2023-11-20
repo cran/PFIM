@@ -22,42 +22,43 @@
 #'  }
 
 AdministrationConstraints = setClass("AdministrationConstraints",
-                       representation = representation(
-                         outcome = "character",
-                         doses = "numeric") )
-setMethod(
-  f="initialize",
-  signature="AdministrationConstraints",
-  definition= function (.Object, outcome, doses  )
-  {
-    if(!missing(outcome))
-    {
-      .Object@outcome = outcome
-    }
-    if(!missing(doses))
-    {
-      .Object@doses = doses
-    }
-    validObject(.Object)
-    return (.Object )
-  }
+                                     representation = representation(
+                                       outcome = "character",
+                                       doses = "numeric") )
+setMethod( f="initialize",
+           signature="AdministrationConstraints",
+           definition= function (.Object, outcome, doses  )
+           {
+             if(!missing(outcome))
+             {
+               .Object@outcome = outcome
+             }
+             if(!missing(doses))
+             {
+               .Object@doses = doses
+             }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
-# ======================================================================================================
-# getOutcome
-# ======================================================================================================
+#'  getOutcome
+#'
+#' @rdname getOutcome
+#' @export
 
 setMethod("getOutcome",
-          "AdministrationConstraints",
-          function(object)
+          signature="AdministrationConstraints",
+          definition = function(object)
           {
             return(object@outcome)
           }
 )
 
-# ======================================================================================================
-# getDose
-# ======================================================================================================
+#' getDose
+#'
+#' @rdname getDose
+#' @export
 
 setMethod(f="getDose",
           signature="AdministrationConstraints",

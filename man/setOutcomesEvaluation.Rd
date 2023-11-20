@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{setOutcomesEvaluation}
 \alias{setOutcomesEvaluation}
-\title{Set the results of the evaluation of the outcomes.}
+\alias{setOutcomesEvaluation,Design-method}
+\title{setOutcomesEvaluation}
 \usage{
 setOutcomesEvaluation(object, outcomesEvaluation)
+
+\S4method{setOutcomesEvaluation}{Design}(object, outcomesEvaluation)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

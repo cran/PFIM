@@ -2,9 +2,12 @@
 % Please edit documentation in R/Administration.R
 \name{setTau}
 \alias{setTau}
-\title{Set the frequency \code{tau}.}
+\alias{setTau,Administration-method}
+\title{setTau}
 \usage{
 setTau(object, tau)
+
+\S4method{setTau}{Administration}(object, tau)
 }
 \arguments{
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}

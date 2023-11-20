@@ -40,61 +40,63 @@ Model = setClass("Model",
                    odeSolverParameters = "list",
                    modelFromLibrary = "list"))
 
-setMethod(
-  f="initialize",
-  signature="Model",
-  definition= function (.Object, name, description, equations, outcomes, outcomesForEvaluation, parameters,
-                        modelError, initialConditions, odeSolverParameters,modelFromLibrary )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
-    if(!missing( description ) )
-    {
-      .Object@description = description
-    }
-    if(!missing( equations ) )
-    {
-      .Object@equations = equations
-    }
-    if(!missing( outcomes ) )
-    {
-      .Object@outcomes = outcomes
-    }
-    if(!missing( outcomesForEvaluation ) )
-    {
-      .Object@outcomesForEvaluation = outcomesForEvaluation
-    }
-    if(!missing( parameters ) )
-    {
-      .Object@parameters = parameters
-    }
-    if(!missing( initialConditions ) )
-    {
-      .Object@initialConditions = initialConditions
-    }
-    if(!missing( modelError ) )
-    {
-      .Object@modelError = modelError
-    }
-    if(!missing( odeSolverParameters ) )
-    {
-      .Object@odeSolverParameters = odeSolverParameters
-    }
-    if(!missing( modelFromLibrary ) )
-    {
-      .Object@modelFromLibrary = modelFromLibrary
-    }
+setMethod( f="initialize",
+           signature="Model",
+           definition= function (.Object, name, description, equations, outcomes, outcomesForEvaluation, parameters,
+                                 modelError, initialConditions, odeSolverParameters,modelFromLibrary )
+           {
+             if(!missing(name))
+             {
+               .Object@name = name
+             }
+             if(!missing( description ) )
+             {
+               .Object@description = description
+             }
+             if(!missing( equations ) )
+             {
+               .Object@equations = equations
+             }
+             if(!missing( outcomes ) )
+             {
+               .Object@outcomes = outcomes
+             }
+             if(!missing( outcomesForEvaluation ) )
+             {
+               .Object@outcomesForEvaluation = outcomesForEvaluation
+             }
+             if(!missing( parameters ) )
+             {
+               .Object@parameters = parameters
+             }
+             if(!missing( initialConditions ) )
+             {
+               .Object@initialConditions = initialConditions
+             }
+             if(!missing( modelError ) )
+             {
+               .Object@modelError = modelError
+             }
+             if(!missing( odeSolverParameters ) )
+             {
+               .Object@odeSolverParameters = odeSolverParameters
+             }
+             if(!missing( modelFromLibrary ) )
+             {
+               .Object@modelFromLibrary = modelFromLibrary
+             }
 
-    validObject(.Object)
-    return (.Object )
-  }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
 # ======================================================================================================
 # getName
 # ======================================================================================================
+
+#' @rdname getName
+#' @export
 
 setMethod("getName",
           "Model",
@@ -106,6 +108,9 @@ setMethod("getName",
 # setName
 # ======================================================================================================
 
+#' @rdname setName
+#' @export
+
 setMethod("setName",
           "Model",
           function(object, name) {
@@ -113,13 +118,12 @@ setMethod("setName",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the description of a model.
 #'
 #' @name getDescription
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the description of a model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getDescription",
@@ -127,26 +131,31 @@ setGeneric(
     standardGeneric("getDescription")
   })
 
+#' @rdname getDescription
+#' @export
+
 setMethod("getDescription",
           "Model",
           function(object) {
             return( object@description )
           })
 
-# ======================================================================================================
 #' Set the description of a model.
 #'
 #' @name setDescription
 #' @param object An object from the class \linkS4class{Model}.
 #' @param description A list giving the description of a model.
 #' @return The model with the updated description.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setDescription",
   function(object, description) {
     standardGeneric("setDescription")
   })
+
+#' @rdname setDescription
+#' @export
 
 setMethod("setDescription",
           "Model",
@@ -155,13 +164,12 @@ setMethod("setDescription",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the equations of a model.
 #'
 #' @name getEquations
 #' @param object An object from the class \linkS4class{Model}.
 #' @return The list giving the equations of the model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getEquations",
@@ -169,26 +177,31 @@ setGeneric(
     standardGeneric("getEquations")
   })
 
+#' @rdname getEquations
+#' @export
+
 setMethod("getEquations",
           "Model",
           function(object) {
             return( object@equations )
           })
 
-# ======================================================================================================
 #' Set the equations of a model.
 #'
 #' @name setEquations
 #' @param object An object from the class \linkS4class{Model}.
 #' @param equations A list giving the equations of the model.
 #' @return The model with the updated equations.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setEquations",
   function(object,equations) {
     standardGeneric("setEquations")
   })
+
+#' @rdname setEquations
+#' @export
 
 setMethod("setEquations",
           "Model",
@@ -203,20 +216,22 @@ setMethod("setEquations",
             return( object )
           })
 
-# ======================================================================================================
 #' Set  a model from the library of model
 #'
 #' @name setModelFromLibrary
 #' @param object An object from the class \linkS4class{Model}.
 #' @param modelFromLibrary An object from the class \linkS4class{Model}.
 #' @return The model with the updated model from library of models.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setModelFromLibrary",
   function( object, modelFromLibrary ) {
     standardGeneric("setModelFromLibrary")
   })
+
+#' @rdname setModelFromLibrary
+#' @export
 
 setMethod("setModelFromLibrary",
           "Model",
@@ -231,13 +246,13 @@ setMethod("setModelFromLibrary",
             return( object )
           })
 
-# ======================================================================================================
+
 #' Get the outcomes of a model.
 #'
 #' @name getOutcomes
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the outcomes of the model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getOutcomes",
@@ -245,26 +260,31 @@ setGeneric(
     standardGeneric("getOutcomes")
   })
 
+#' @rdname getOutcomes
+#' @export
+
 setMethod("getOutcomes",
           "Model",
           function(object) {
             return( object@outcomes )
           })
 
-# ======================================================================================================
 #' Set the outcomes of a model.
 #'
 #' @name setOutcomes
 #' @param object An object from the class \linkS4class{Model}.
 #' @param outcomes A list giving the outcomes of the model.
 #' @return The model with the updated outcomes.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setOutcomes",
   function(object,outcomes) {
     standardGeneric("setOutcomes")
   })
+
+#' @rdname setOutcomes
+#' @export
 
 setMethod("setOutcomes",
           "Model",
@@ -285,13 +305,12 @@ setMethod("setOutcomes",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the outcomes of a model used for the evaluation (is scales outcomes).
 #'
 #' @name getOutcomesForEvaluation
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the outcomes of a model used for the evaluation (is scales outcomes).
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getOutcomesForEvaluation",
@@ -299,26 +318,31 @@ setGeneric(
     standardGeneric("getOutcomesForEvaluation")
   })
 
+#' @rdname getOutcomesForEvaluation
+#' @export
+
 setMethod("getOutcomesForEvaluation",
           "Model",
           function(object) {
             return( object@outcomesForEvaluation )
           })
 
-# ======================================================================================================
 #' Set the outcomes of a model used for the evaluation (is scales outcomes).
 #'
 #' @name setOutcomesForEvaluation
 #' @param object An object from the class \linkS4class{Model}.
 #' @param outcomes A list giving the outcomes of a model used for the evaluation (is scales outcomes).
 #' @return The model with the updated outcomes for the evaluation.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setOutcomesForEvaluation",
   function(object,outcomes) {
     standardGeneric("setOutcomesForEvaluation")
   })
+
+#' @rdname setOutcomesForEvaluation
+#' @export
 
 setMethod("setOutcomesForEvaluation",
           "Model",
@@ -331,6 +355,9 @@ setMethod("setOutcomesForEvaluation",
 # getParameters
 # ======================================================================================================
 
+#' @rdname getParameters
+#' @export
+
 setMethod("getParameters",
           "Model",
           function(object) {
@@ -340,6 +367,9 @@ setMethod("getParameters",
 # ======================================================================================================
 # setParameters
 # ======================================================================================================
+
+#' @rdname setParameters
+#' @export
 
 setMethod("setParameters",
           "Model",
@@ -352,26 +382,31 @@ setMethod("setParameters",
 # getModelError
 # ======================================================================================================
 
+#' @rdname getModelError
+#' @export
+
 setMethod("getModelError",
           "Model",
           function(object) {
             return( object@modelError )
           })
 
-# ======================================================================================================
 #' Set the model error.
 #'
 #' @name setModelError
 #' @param object An object from the class \linkS4class{Model}.
 #' @param modelError  An object from the class \linkS4class{ModelError}.
 #' @return The model with the updated model error.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setModelError",
   function(object, modelError) {
     standardGeneric("setModelError")
   })
+
+#' @rdname setModelError
+#' @export
 
 setMethod("setModelError",
           "Model",
@@ -384,30 +419,18 @@ setMethod("setModelError",
 # getInitialConditions
 # ======================================================================================================
 
+#' @rdname getInitialConditions
+#' @export
+
 setMethod("getInitialConditions",
           "Model",
           function(object) {
             return( object@initialConditions )
           })
 
-# ======================================================================================================
-#' Set the initial conditions of a ode model.
-#'
-#' @name setInitialConditions
-#' @param object An object from the class \linkS4class{Model}.
-#' @param initialConditions A list giving the initial conditions.
-#' @return The model with the updated initial conditions.
-# ======================================================================================================
 
-setGeneric(
-  "setInitialConditions",
-  function(object, initialConditions) {
-    standardGeneric("setInitialConditions")
-  })
-
-# ======================================================================================================
-# setInitialConditions
-# ======================================================================================================
+#' @rdname setInitialConditions
+#' @export
 
 setMethod("setInitialConditions",
           "Model",
@@ -420,26 +443,31 @@ setMethod("setInitialConditions",
 # getOdeSolverParameters
 # ======================================================================================================
 
+#' @rdname getOdeSolverParameters
+#' @export
+
 setMethod("getOdeSolverParameters",
           "Model",
           function(object) {
             return( object@odeSolverParameters )
           })
 
-# ======================================================================================================
 #' Set the parameters of the ode solver.
 #'
 #' @name setOdeSolverParameters
 #' @param object An object from the class \linkS4class{Model}.
 #' @param odeSolverParameters A list giving the parameters of the ode solver.
 #' @return The model with the updated parameters of the ode solver.
-# ======================================================================================================
+#' @export
 
 setGeneric("setOdeSolverParameters",
            function(object,odeSolverParameters)
            {
              standardGeneric("setOdeSolverParameters")
            })
+
+#' @rdname setOdeSolverParameters
+#' @export
 
 setMethod("setOdeSolverParameters",
           "Model",
@@ -448,13 +476,12 @@ setMethod("setOdeSolverParameters",
             return( object )
           })
 
-# ======================================================================================================
 #' Get a model from the library of models.
 #'
 #' @name getModelFromLibrary
 #' @param object An object from the class \linkS4class{Model}.
 #' @return Return a model from the the library of models.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getModelFromLibrary",
@@ -462,19 +489,21 @@ setGeneric(
     standardGeneric("getModelFromLibrary")
   })
 
+#' @rdname getModelFromLibrary
+#' @export
+
 setMethod("getModelFromLibrary",
           "Model",
           function(object) {
             return( object@modelFromLibrary )
           })
 
-# ======================================================================================================
 #' Convert an analytic model to a ode model.
 #'
 #' @name convertPKModelAnalyticToPKModelODE
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A ode model.
-# ======================================================================================================
+#' @export
 
 setGeneric("convertPKModelAnalyticToPKModelODE",
            function( object )
@@ -482,19 +511,21 @@ setGeneric("convertPKModelAnalyticToPKModelODE",
              standardGeneric("convertPKModelAnalyticToPKModelODE")
            })
 
-# ======================================================================================================
 #' Get the number of parameters.
 #'
 #' @name getNumberOfParameters
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A numeric giving the number of parameters of the model.
-# ======================================================================================================
+#' @export
 
 setGeneric("getNumberOfParameters",
            function(object)
            {
              standardGeneric("getNumberOfParameters")
            })
+
+#' @rdname getNumberOfParameters
+#' @export
 
 setMethod("getNumberOfParameters",
           signature("Model"),
@@ -503,19 +534,21 @@ setMethod("getNumberOfParameters",
             return(length(object@parameters))
           })
 
-# ======================================================================================================
 #' Test if a mode is ode.
 #'
 #' @name isModelODE
 #' @param object An object from the class \linkS4class{Model}.
 #' @return Return a Boolean giving if the mode is ode or not.
-# ======================================================================================================
+#' @export
 
 setGeneric("isModelODE",
            function(object)
            {
              standardGeneric("isModelODE")
            })
+
+#' @rdname isModelODE
+#' @export
 
 setMethod(f="isModelODE",
           signature="Model",
@@ -526,19 +559,21 @@ setMethod(f="isModelODE",
             return(isModelODE)
           })
 
-# ======================================================================================================
 #' Test if a mode is analytic.
 #'
 #' @name isModelAnalytic
 #' @param object An object from the class \linkS4class{Model}.
 #' @return Return a Boolean giving if the mode is analytic or not.
-# ======================================================================================================
+#' @export
 
 setGeneric("isModelAnalytic",
            function(object)
            {
              standardGeneric("isModelAnalytic")
            })
+
+#' @rdname isModelAnalytic
+#' @export
 
 setMethod(f="isModelAnalytic",
           signature="Model",
@@ -549,19 +584,21 @@ setMethod(f="isModelAnalytic",
             return(isModelAnalytic)
           })
 
-# ======================================================================================================
 #' Test if the dose is in the equations of the model.
 #'
 #' @name isDoseInEquations
 #' @param object An object from the class \linkS4class{Model}.
 #' @return Return a Boolean giving if the dose is in the equations of the model.
-# ======================================================================================================
+#' @export
 
 setGeneric("isDoseInEquations",
            function(object)
            {
              standardGeneric("isDoseInEquations")
            })
+
+#' @rdname isDoseInEquations
+#' @export
 
 setMethod(f="isDoseInEquations",
           signature="Model",
@@ -572,19 +609,21 @@ setMethod(f="isDoseInEquations",
             return(isDoseInEquations)
           })
 
-# ======================================================================================================
 #' Test if a mode is infusion
 #'
 #' @name isModelInfusion
 #' @param object An object from the class \linkS4class{Model}.
 #' @return Return a Boolean giving if the mode is infusion or not.
-# ======================================================================================================
+#' @export
 
 setGeneric("isModelInfusion",
            function(object)
            {
              standardGeneric("isModelInfusion")
            })
+
+#' @rdname isModelInfusion
+#' @export
 
 setMethod(f="isModelInfusion",
           signature="Model",
@@ -595,19 +634,21 @@ setMethod(f="isModelInfusion",
             return(isInfusion)
           })
 
-# ======================================================================================================
 #' Test if a mode is steady state.
 #'
 #' @name isModelSteadyState
 #' @param object An object from the class \linkS4class{Model}.
 #' @return Return a Boolean giving if the mode is steady state or not.
-# ======================================================================================================
+#' @export
 
 setGeneric("isModelSteadyState",
            function(object)
            {
              standardGeneric("isModelSteadyState")
            })
+
+#' @rdname isModelSteadyState
+#' @export
 
 setMethod(f="isModelSteadyState",
           signature="Model",
@@ -618,20 +659,22 @@ setMethod(f="isModelSteadyState",
             return(isSteadyState)
           })
 
-# ======================================================================================================
 #' Test if a mode is bolus.
 #'
 #' @name isModelBolus
 #' @param object An object from the class \linkS4class{Model}.
 #' @param designs A list of objects from the class \linkS4class{Design}.
 #' @return Return a Boolean giving if the mode is bolus or not.
-# ======================================================================================================
+#' @export
 
 setGeneric("isModelBolus",
            function( object, designs )
            {
              standardGeneric("isModelBolus")
            })
+
+#' @rdname isModelBolus
+#' @export
 
 setMethod(f="isModelBolus",
           signature = "Model",
@@ -645,7 +688,6 @@ setMethod(f="isModelBolus",
             return(isModelBolus)
           })
 
-# ======================================================================================================
 #' Define a PKPD model.
 #'
 #' @name definePKPDModel
@@ -653,7 +695,7 @@ setMethod(f="isModelBolus",
 #' @param PDModel An object from the class \linkS4class{Model}.
 #' @param outcomes A list giving the outcomes of the  PKPD model.
 #' @return A model giving a PKPD model.
-# ======================================================================================================
+#' @export
 
 setGeneric("definePKPDModel",
            function( PKModel, PDModel, outcomes )
@@ -661,14 +703,13 @@ setGeneric("definePKPDModel",
              standardGeneric("definePKPDModel")
            })
 
-# ======================================================================================================
 #' Define a PK model.
 #'
 #' @name definePKModel
 #' @param object An object from the class \linkS4class{Model}.
 #' @param outcomes A list giving the outcomes of the  PK model.
 #' @return A model giving a PK model.
-# ======================================================================================================
+#' @export
 
 setGeneric("definePKModel",
            function( object, outcomes )
@@ -676,20 +717,22 @@ setGeneric("definePKModel",
              standardGeneric("definePKModel")
            })
 
-# ======================================================================================================
 #' Define a model.
 #'
 #' @name defineModel
 #' @param object An object from the class \linkS4class{Model}.
 #' @param designs A list of objects from the class \linkS4class{Design}.
 #' @return A model defined either from the library of models or user defined.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "defineModel",
   function(object, designs) {
     standardGeneric("defineModel")
   })
+
+#' @rdname defineModel
+#' @export
 
 setMethod("defineModel",
           "Model",
@@ -720,14 +763,13 @@ setMethod("defineModel",
             return( object )
           })
 
-# ======================================================================================================
 #' Define a model from the library of models.
 #'
 #' @name defineModelFromLibraryOfModels
 #' @param object An object from the class \linkS4class{Model}.
 #' @param designs A list of objects from the class \linkS4class{Design}.
 #' @return A model defined from the library of models.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "defineModelFromLibraryOfModels",
@@ -735,6 +777,9 @@ setGeneric(
 
     standardGeneric("defineModelFromLibraryOfModels")
   })
+
+#' @rdname defineModelFromLibraryOfModels
+#' @export
 
 setMethod(f = "defineModelFromLibraryOfModels",
           signature="Model",
@@ -791,20 +836,22 @@ setMethod(f = "defineModelFromLibraryOfModels",
             return( model )
           })
 
-# ======================================================================================================
 #' Define a user defined model.
 #'
 #' @name defineModelUserDefined
 #' @param object An object from the class \linkS4class{Model}.
 #' @param designs A list of objects from the class \linkS4class{Design}.
 #' @return A model giving a user defined model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "defineModelUserDefined",
   function(object, designs) {
     standardGeneric("defineModelUserDefined")
   })
+
+#' @rdname defineModelUserDefined
+#' @export
 
 setMethod(f = "defineModelUserDefined",
           signature="Model",
@@ -864,14 +911,13 @@ setMethod(f = "defineModelUserDefined",
             return( newModel )
           })
 
-# ======================================================================================================
 #' Define the type of a model.
 #'
 #' @name defineModelType
 #' @param object An object from the class \linkS4class{Model}.
 #' @param designs A list of objects from the class \linkS4class{Design}.
 #' @return Return a model defined as analytic, ode, etc.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "defineModelType",
@@ -879,6 +925,9 @@ setGeneric(
 
     standardGeneric("defineModelType")
   })
+
+#' @rdname defineModelType
+#' @export
 
 setMethod(f = "defineModelType",
           signature="Model",
@@ -959,14 +1008,13 @@ setMethod(f = "defineModelType",
             return( newModel )
           })
 
-# ======================================================================================================
 #' Evaluate a model.
 #'
 #' @name EvaluateModel
 #' @param object An object from the class \linkS4class{Model}.
 #' @param arm An object from the class \linkS4class{Arm}.
 #' @return A list giving the results of the model evaluation.
-# ======================================================================================================
+#' @export
 
 setGeneric("EvaluateModel",
            function( object, arm )
@@ -974,13 +1022,12 @@ setGeneric("EvaluateModel",
              standardGeneric("EvaluateModel")
            })
 
-# ======================================================================================================
 #' Define the parameters for computing the gradients of a model.
 #'
 #' @name parametersForComputingGradient
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the parameters for computing the gradients of a model.
-# ======================================================================================================
+#' @export
 
 setGeneric("parametersForComputingGradient",
            function(object)
@@ -988,6 +1035,9 @@ setGeneric("parametersForComputingGradient",
              standardGeneric("parametersForComputingGradient")
            }
 )
+
+#' @rdname parametersForComputingGradient
+#' @export
 
 setMethod(f = "parametersForComputingGradient",
           signature="Model",
@@ -1030,7 +1080,6 @@ setMethod(f = "parametersForComputingGradient",
             return( list( Xcols = Xcols, shifted = shifted, frac = frac ) )
           })
 
-# ======================================================================================================
 #' Evaluate the variance of a model.
 #'
 #' @name EvaluateVarianceModel
@@ -1038,7 +1087,7 @@ setMethod(f = "parametersForComputingGradient",
 #' @param arm An object from the class \linkS4class{Arm}.
 #' @param evaluationModel A list giving the outputs of the model evaluation.
 #' @return Return a list giving the results of the evaluation of the model variance.
-# ======================================================================================================
+#' @export
 
 setGeneric("EvaluateVarianceModel",
            function( object, arm, evaluationModel )
@@ -1046,6 +1095,9 @@ setGeneric("EvaluateVarianceModel",
              standardGeneric("EvaluateVarianceModel")
            }
 )
+
+#' @rdname EvaluateVarianceModel
+#' @export
 
 setMethod(f = "EvaluateVarianceModel",
           signature="Model",
@@ -1109,19 +1161,21 @@ setMethod(f = "EvaluateVarianceModel",
 
           })
 
-# ======================================================================================================
 #' Get the fixed parameters.
 #'
 #' @name getFixedParameters
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the fixed parameters of the model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getFixedParameters",
   function(object) {
     standardGeneric("getFixedParameters")
   })
+
+#' @rdname getFixedParameters
+#' @export
 
 setMethod("getFixedParameters",
           signature("Model"),
@@ -1171,19 +1225,21 @@ setMethod("getFixedParameters",
 
           })
 
-# ======================================================================================================
 #' Get the values of the model error parameters.
 #'
 #' @name getModelErrorParametersValues
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the values of the model error parameters.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getModelErrorParametersValues",
   function(object) {
     standardGeneric("getModelErrorParametersValues")
   })
+
+#' @rdname getModelErrorParametersValues
+#' @export
 
 setMethod("getModelErrorParametersValues",
           signature("Model"),
@@ -1205,19 +1261,21 @@ setMethod("getModelErrorParametersValues",
             return(sigmaInterSlope)
           })
 
-# ======================================================================================================
 #' Get the values of the model parameters.
 #'
 #' @name getModelParametersValues
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the values of the model parameters.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getModelParametersValues",
   function(object) {
     standardGeneric("getModelParametersValues")
   })
+
+#' @rdname getModelParametersValues
+#' @export
 
 setMethod("getModelParametersValues",
           signature("Model"),
@@ -1237,19 +1295,21 @@ setMethod("getModelParametersValues",
             return( modelParametersValues = list( mu = mu, omega = omega ) )
           })
 
-# ======================================================================================================
 #' Generate the tables for model parameters for the evaluation report.
 #'
 #' @name reportTablesModelParameters
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A kable table for the evaluation report.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "reportTablesModelParameters",
   function(object) {
     standardGeneric("reportTablesModelParameters")
   })
+
+#' @rdname reportTablesModelParameters
+#' @export
 
 setMethod("reportTablesModelParameters",
           signature("Model"),
@@ -1312,19 +1372,21 @@ setMethod("reportTablesModelParameters",
             return( tableParameters )
           })
 
-# ======================================================================================================
 #' Generate the tables for model errors for the evaluation report.
 #'
 #' @name reportTablesModelError
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A kable table for the evaluation report.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "reportTablesModelError",
   function(object) {
     standardGeneric("reportTablesModelError")
   })
+
+#' @rdname reportTablesModelError
+#' @export
 
 setMethod("reportTablesModelError",
           signature("Model"),

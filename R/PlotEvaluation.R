@@ -16,14 +16,13 @@ PlotEvaluation = setClass(
   contains = "Evaluation"
 )
 
-# ======================================================================================================
 #' Graphs of the results of the evaluation.
 #'
 #' @name plot
 #' @param object An object from the class \linkS4class{Evaluation}.
 #' @param plotOptions A list giving the plot options.
 #' @return A list giving the graphs for the evaluation of the responses and sensitivity indices.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "plot",
@@ -31,6 +30,9 @@ setGeneric(
   {
     standardGeneric("plot")
   })
+
+#' @rdname plot
+#' @export
 
 setMethod(f="plot",
           signature("Evaluation"),
@@ -94,14 +96,13 @@ setMethod(f="plot",
 
           })
 
-# ======================================================================================================
 #' Graph the SE.
 #'
 #' @name plotSE
 #' @param object An object from the class \linkS4class{Evaluation}.
 #' @param plotOptions A list giving the plot options.
 #' @return A graph of the SE.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "plotSE",
@@ -109,6 +110,9 @@ setGeneric(
   {
     standardGeneric("plotSE")
   })
+
+#' @rdname plotSE
+#' @export
 
 setMethod(f="plotSE",
           signature("PFIMProject"),
@@ -218,14 +222,13 @@ setMethod(f="plotSE",
             return( plotOutcome )
           })
 
-# ======================================================================================================
 #' Graph of the RSE.
 #'
 #' @name plotRSE
 #' @param object An object from the class \linkS4class{Evaluation}.
 #' @param plotOptions A list giving the plot options.
 #' @return A graph of the RSE.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "plotRSE",
@@ -233,6 +236,9 @@ setGeneric(
   {
     standardGeneric("plotRSE")
   })
+
+#' @rdname plotRSE
+#' @export
 
 setMethod(f="plotRSE",
           signature("PFIMProject"),
@@ -341,14 +347,13 @@ setMethod(f="plotRSE",
             return( plotOutcome )
           })
 
-# ======================================================================================================
 #' Graph of the shrinkage.
 #'
 #' @name plotShrinkage
 #' @param object An object from the class \linkS4class{Evaluation}.
 #' @param plotOptions A list giving the plot options.
 #' @return A graph of the shrinkage.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "plotShrinkage",
@@ -356,6 +361,9 @@ setGeneric(
   {
     standardGeneric("plotShrinkage")
   })
+
+#' @rdname plotShrinkage
+#' @export
 
 setMethod(f="plotShrinkage",
           signature("PFIMProject"),

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getSE}
 \alias{getSE}
+\alias{getSE,Fim-method}
 \title{Get the SE.}
 \usage{
 getSE(object)
+
+\S4method{getSE}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

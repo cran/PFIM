@@ -41,14 +41,13 @@ setMethod(f="initialize",
             return(.Object)
           })
 
-# ======================================================================================================
 #' Get a PK model.
 #'
 #' @name getPKModel
 #' @param object An object from the class \linkS4class{LibraryOfPKPDModels}.
 #' @param PKModelName A string giving the name of the PK model.
 #' @return Return a PK model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getPKModel",
@@ -56,6 +55,9 @@ setGeneric(
 
     standardGeneric("getPKModel")
   })
+
+#' @rdname getPKModel
+#' @export
 
 setMethod("getPKModel",
           "LibraryOfPKPDModels",
@@ -83,14 +85,13 @@ setMethod("getPKModel",
 
           })
 
-# ======================================================================================================
 #' Get a PD model.
 #'
 #' @name getPDModel
 #' @param object An object from the class \linkS4class{LibraryOfPKPDModels}.
 #' @param PDModelName A string giving the name of the PD model.
 #' @return Return a PD model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getPDModel",
@@ -98,6 +99,9 @@ setGeneric(
 
     standardGeneric("getPDModel")
   })
+
+#' @rdname getPDModel
+#' @export
 
 setMethod("getPDModel",
           "LibraryOfPKPDModels",
@@ -125,14 +129,13 @@ setMethod("getPDModel",
             return( PDModel )
           })
 
-# ======================================================================================================
 #' Get a PKPD model.
 #'
 #' @name getPKPDModel
 #' @param object An object from the class \linkS4class{LibraryOfPKPDModels}.
 #' @param namesModel A vector of strings giving the names of the PK and PD models.
 #' @return Return a PKPD model.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getPKPDModel",
@@ -140,6 +143,9 @@ setGeneric(
 
     standardGeneric("getPKPDModel")
   })
+
+#' @rdname getPKPDModel
+#' @export
 
 setMethod("getPKPDModel",
           "LibraryOfPKPDModels",

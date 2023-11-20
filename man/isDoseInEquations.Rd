@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{isDoseInEquations}
 \alias{isDoseInEquations}
+\alias{isDoseInEquations,Model-method}
 \title{Test if the dose is in the equations of the model.}
 \usage{
 isDoseInEquations(object)
+
+\S4method{isDoseInEquations}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

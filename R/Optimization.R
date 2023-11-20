@@ -55,133 +55,134 @@ Optimization = setClass(
 
   prototype = prototype( odeSolverParameters = list( atol = 1e-6, rtol = 1e-6 ) ) )
 
-setMethod(
-  f="initialize",
-  signature="Optimization",
-  definition=function(.Object, name, model, modelEquations, modelParameters, modelError, optimizer,
-                      optimizerParameters, outcomes, designs, fim, odeSolverParameters, optimizationResults, evaluationFIMResults, evaluationInitialDesignResults )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
+setMethod( f="initialize",
+           signature="Optimization",
+           definition=function(.Object, name, model, modelEquations, modelParameters, modelError, optimizer,
+                               optimizerParameters, outcomes, designs, fim, odeSolverParameters, optimizationResults, evaluationFIMResults, evaluationInitialDesignResults )
+           {
+             if(!missing(name))
+             {
+               .Object@name = name
+             }
 
-    if(!missing(model))
-    {
-      .Object@model = model
-    }
+             if(!missing(model))
+             {
+               .Object@model = model
+             }
 
-    if(!missing(modelEquations))
-    {
-      .Object@modelEquations = modelEquations
-    }
+             if(!missing(modelEquations))
+             {
+               .Object@modelEquations = modelEquations
+             }
 
-    if(!missing(modelParameters))
-    {
-      .Object@modelParameters = modelParameters
-    }
+             if(!missing(modelParameters))
+             {
+               .Object@modelParameters = modelParameters
+             }
 
-    if(!missing(modelError))
-    {
-      .Object@modelError = modelError
-    }
+             if(!missing(modelError))
+             {
+               .Object@modelError = modelError
+             }
 
-    if(!missing(optimizer))
-    {
-      if ( optimizer == "MultiplicativeAlgorithm")
-      {
-        .Object@optimizer = MultiplicativeAlgorithm()
+             if(!missing(optimizer))
+             {
+               if ( optimizer == "MultiplicativeAlgorithm")
+               {
+                 .Object@optimizer = MultiplicativeAlgorithm()
 
-      } else  if ( optimizer == "SimplexAlgorithm")
-      {
-        .Object@optimizer = SimplexAlgorithm()
+               } else  if ( optimizer == "SimplexAlgorithm")
+               {
+                 .Object@optimizer = SimplexAlgorithm()
 
-      } else  if ( optimizer == "PSOAlgorithm")
-      {
-        .Object@optimizer = PSOAlgorithm()
+               } else  if ( optimizer == "PSOAlgorithm")
+               {
+                 .Object@optimizer = PSOAlgorithm()
 
-      } else  if ( optimizer == "PGBOAlgorithm")
-      {
-        .Object@optimizer = PGBOAlgorithm()
+               } else  if ( optimizer == "PGBOAlgorithm")
+               {
+                 .Object@optimizer = PGBOAlgorithm()
 
-      }else  if ( optimizer == "FedorovWynnAlgorithm")
-      {
-        .Object@optimizer = FedorovWynnAlgorithm()
-      }
-    }
+               }else  if ( optimizer == "FedorovWynnAlgorithm")
+               {
+                 .Object@optimizer = FedorovWynnAlgorithm()
+               }
+             }
 
-    if(!missing(optimizerParameters))
-    {
-      .Object@optimizerParameters = optimizerParameters
-    }
+             if(!missing(optimizerParameters))
+             {
+               .Object@optimizerParameters = optimizerParameters
+             }
 
-    if(!missing(outcomes))
-    {
-      .Object@outcomes = outcomes
-    }
+             if(!missing(outcomes))
+             {
+               .Object@outcomes = outcomes
+             }
 
-    if(!missing(designs))
-    {
-      .Object@designs = designs
-    }
+             if(!missing(designs))
+             {
+               .Object@designs = designs
+             }
 
-    if(!missing(fim))
-    {
-      if ( fim == "population")
-      {
-        .Object@fim = PopulationFim()
-      }
-      else if ( fim == "individual")
-      {
-        .Object@fim = IndividualFim()
-      }
-      else if ( fim == "Bayesian")
-      {
-        .Object@fim = BayesianFim()
-      }
-    }
+             if(!missing(fim))
+             {
+               if ( fim == "population")
+               {
+                 .Object@fim = PopulationFim()
+               }
+               else if ( fim == "individual")
+               {
+                 .Object@fim = IndividualFim()
+               }
+               else if ( fim == "Bayesian")
+               {
+                 .Object@fim = BayesianFim()
+               }
+             }
 
-    if(!missing(odeSolverParameters))
-    {
-      .Object@odeSolverParameters = odeSolverParameters
-    }
+             if(!missing(odeSolverParameters))
+             {
+               .Object@odeSolverParameters = odeSolverParameters
+             }
 
-    # set the names of the designs
-    names(.Object@designs)= getNames( designs )
+             # set the names of the designs
+             names(.Object@designs)= getNames( designs )
 
-    if(!missing(optimizationResults))
-    {
-      .Object@optimizationResults = optimizationResults
-    }
+             if(!missing(optimizationResults))
+             {
+               .Object@optimizationResults = optimizationResults
+             }
 
-    if(!missing(evaluationFIMResults))
-    {
-      .Object@evaluationFIMResults = evaluationFIMResults
-    }
+             if(!missing(evaluationFIMResults))
+             {
+               .Object@evaluationFIMResults = evaluationFIMResults
+             }
 
-    if(!missing(evaluationInitialDesignResults))
-    {
-      .Object@evaluationInitialDesignResults = evaluationInitialDesignResults
-    }
+             if(!missing(evaluationInitialDesignResults))
+             {
+               .Object@evaluationInitialDesignResults = evaluationInitialDesignResults
+             }
 
-    validObject(.Object)
-    return (.Object )
-  }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
-# ======================================================================================================
 #' Set the designs.
 #' @name setDesigns
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @param designs A list of objects from the class \linkS4class{Design}.
 #' @return The object with the new designs.
-# ======================================================================================================
+#' @export setDesigns
 
 setGeneric("setDesigns",
            function( object, designs )
            {
              standardGeneric("setDesigns")
            })
+
+#' @rdname setDesigns
+#' @export
 
 setMethod(f="setDesigns",
           signature="Optimization",
@@ -192,19 +193,20 @@ setMethod(f="setDesigns",
             return( object )
           })
 
-
-# ======================================================================================================
 #' Get the proportion of subjects.
 #' @name getProportionsOfSubjects
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @return A vector giving the proportion of subjects.
-# ======================================================================================================
+#' @export
 
 setGeneric("getProportionsOfSubjects",
            function( object )
            {
              standardGeneric("getProportionsOfSubjects")
            })
+
+#' @rdname getProportionsOfSubjects
+#' @export
 
 setMethod(f="getProportionsOfSubjects",
           signature="Optimization",
@@ -215,18 +217,21 @@ setMethod(f="getProportionsOfSubjects",
             return( optimizerParameters$proportionsOfSubjects )
           })
 
-# ======================================================================================================
 #' Get the optimization results.
 #' @name getOptimizationResults
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @return An object from the class \linkS4class{OptimizationAlgorithm} giving the optimization results.
-# ======================================================================================================
+#' @export
 
 setGeneric("getOptimizationResults",
            function( object )
            {
              standardGeneric("getOptimizationResults")
            })
+
+
+#' @rdname getOptimizationResults
+#' @export
 
 setMethod(f="getOptimizationResults",
           signature="Optimization",
@@ -235,19 +240,21 @@ setMethod(f="getOptimizationResults",
             return( object@optimizationResults )
           })
 
-# ======================================================================================================
 #' Set the optimization results.
 #' @name setOptimizationResults
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @param value An object from the class \linkS4class{OptimizationAlgorithm} giving the optimization results.
 #' @return The object with the updated object from the class \linkS4class{OptimizationAlgorithm}.
-# ======================================================================================================
+#' @export
 
 setGeneric("setOptimizationResults",
            function( object, value )
            {
              standardGeneric("setOptimizationResults")
            })
+
+#' @rdname setOptimizationResults
+#' @export
 
 setMethod(f="setOptimizationResults",
           signature="Optimization",
@@ -257,18 +264,20 @@ setMethod(f="setOptimizationResults",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the results of the evaluation.
 #' @name getEvaluationFIMResults
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @return An object from the class \linkS4class{Evaluation} giving the evaluation results for the optimal design.
-# ======================================================================================================
+#' @export
 
 setGeneric("getEvaluationFIMResults",
            function( object )
            {
              standardGeneric("getEvaluationFIMResults")
            })
+
+#' @rdname getEvaluationFIMResults
+#' @export
 
 setMethod(f="getEvaluationFIMResults",
           signature="Optimization",
@@ -277,19 +286,21 @@ setMethod(f="getEvaluationFIMResults",
             return( object@evaluationFIMResults )
           })
 
-# ======================================================================================================
 #' Set the evaluation results.
 #' @name setEvaluationFIMResults
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @param value An object from the class \linkS4class{Evaluation} giving the evaluation results.
 #' @return The object with the updated object from the class \linkS4class{Evaluation}.
-# ======================================================================================================
+#' @export
 
 setGeneric("setEvaluationFIMResults",
            function( object, value )
            {
              standardGeneric("setEvaluationFIMResults")
            })
+
+#' @rdname setEvaluationFIMResults
+#' @export
 
 setMethod(f="setEvaluationFIMResults",
           signature="Optimization",
@@ -299,19 +310,21 @@ setMethod(f="setEvaluationFIMResults",
             return( object )
           })
 
-# ======================================================================================================
 #' Set the evaluation results of the initial design.
 #' @name setEvaluationInitialDesignResults
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @param value An object from the class \linkS4class{Evaluation} giving the evaluation results of the initial design.
 #' @return The object with the updated object from the class \linkS4class{Evaluation}.
-# ======================================================================================================
+#' @export
 
 setGeneric("setEvaluationInitialDesignResults",
            function( object, value )
            {
              standardGeneric("setEvaluationInitialDesignResults")
            })
+
+#' @rdname setEvaluationInitialDesignResults
+#' @export
 
 setMethod(f="setEvaluationInitialDesignResults",
           signature="Optimization",
@@ -321,18 +334,20 @@ setMethod(f="setEvaluationInitialDesignResults",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the evaluation results of the initial design.
 #' @name getEvaluationInitialDesignResults
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @return The object from the class \linkS4class{Evaluation} giving the results of the evaluation of the initial design.
-# ======================================================================================================
+#' @export
 
 setGeneric("getEvaluationInitialDesignResults",
            function( object )
            {
              standardGeneric("getEvaluationInitialDesignResults")
            })
+
+#' @rdname getEvaluationInitialDesignResults
+#' @export
 
 setMethod(f="getEvaluationInitialDesignResults",
           signature="Optimization",
@@ -341,20 +356,22 @@ setMethod(f="getEvaluationInitialDesignResults",
             return( object@evaluationInitialDesignResults )
           })
 
-# ======================================================================================================
 #' Get the elementary protocols.
 #' @name getElementaryProtocols
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @param fims A list of object from the class \linkS4class{Fim}.
 #' @return A list containing the results of the evaluation of the elementary protocols giving
 #' the numberOfTimes, nbOfDimensions, totalCost, samplingTimes and the fisherMatrices
-# ======================================================================================================
+#' @export
 
 setGeneric("getElementaryProtocols",
            function( object, fims )
            {
              standardGeneric("getElementaryProtocols")
            })
+
+#' @rdname getElementaryProtocols
+#' @export
 
 setMethod(f="getElementaryProtocols",
           signature="Optimization",
@@ -428,19 +445,21 @@ setMethod(f="getElementaryProtocols",
 
           })
 
-# ======================================================================================================
 #' Generate the fim from the constraints
 #' @name generateFimsFromConstraints
 #' @param object An object from the class \linkS4class{Optimization}.
 #' @param fims A list of object from the class \linkS4class{Fim}.
 #' @return A list giving the arms with their fims.
-# ======================================================================================================
+#' @export
 
 setGeneric("generateFimsFromConstraints",
            function( object, fims )
            {
              standardGeneric("generateFimsFromConstraints")
            })
+
+#' @rdname generateFimsFromConstraints
+#' @export
 
 setMethod(f="generateFimsFromConstraints",
           signature="Optimization",
@@ -629,6 +648,9 @@ setMethod(f="generateFimsFromConstraints",
 # run
 # ======================================================================================================
 
+#' @rdname run
+#' @export
+
 setMethod(f = "run",
           signature = "Optimization",
           definition = function( object )
@@ -747,6 +769,12 @@ setMethod(f = "run",
 # show
 # ======================================================================================================
 
+
+#' @title show
+#' @rdname show
+#' @param object object
+#' @export
+
 setMethod(f="show",
           signature = "Optimization",
           definition = function( object )
@@ -780,6 +808,9 @@ setMethod(f="show",
 # plotWeights
 # ======================================================================================================
 
+#' @rdname plotWeights
+#' @export
+
 setMethod(f="plotWeights",
           signature = "Optimization",
           definition = function( object, threshold )
@@ -793,6 +824,9 @@ setMethod(f="plotWeights",
 # ======================================================================================================
 # generateTables Optimization
 # ======================================================================================================
+
+#' @rdname generateTables
+#' @export
 
 setMethod(f="generateTables",
           signature("Optimization"),
@@ -894,6 +928,9 @@ setMethod(f="generateTables",
 # Report
 # ======================================================================================================
 
+#' @rdname Report
+#' @export
+
 setMethod(f="Report",
           signature("Optimization"),
           function( object, outputPath, outputFile, plotOptions )
@@ -905,8 +942,6 @@ setMethod(f="Report",
             optimizationAlgo = getOptimizer( object )
             optimizationResults = generateReportOptimization( optimizationAlgo, object,  outputPath, outputFile, plotOptions )
           })
-
-
 
 ##########################################################################################################
 # END Class Optimization

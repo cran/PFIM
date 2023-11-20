@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{EvaluateErrorModelDerivatives}
 \alias{EvaluateErrorModelDerivatives}
+\alias{EvaluateErrorModelDerivatives,ModelError-method}
 \title{Evaluate the error model derivatives.}
 \usage{
 EvaluateErrorModelDerivatives(object, evaluationOutcome)
+
+\S4method{EvaluateErrorModelDerivatives}{ModelError}(object, evaluationOutcome)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

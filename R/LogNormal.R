@@ -8,30 +8,33 @@
 #' @docType class
 #' @include Distribution.R
 #' @export
+
 LogNormal = setClass( Class = "LogNormal",
                       contains = "Distribution",
                       representation = representation())
 
-setMethod(
-  f = "initialize",
-  signature = "LogNormal",
-  definition = function( .Object, ... )
-  {
-    parameters = list(...)
+setMethod( f = "initialize",
+           signature = "LogNormal",
+           definition = function( .Object, ... )
+           {
+             parameters = list(...)
 
-    if( !missing( parameters ) )
-    {
-      .Object@parameters = list( mu = parameters$mu,
-                                 omega = parameters$omega)
-    }
+             if( !missing( parameters ) )
+             {
+               .Object@parameters = list( mu = parameters$mu,
+                                          omega = parameters$omega)
+             }
 
-    validObject(.Object)
-    return (.Object )
-  })
+             validObject(.Object)
+             return (.Object )
+           })
 
 # ======================================================================================================
 # getAdjustedGradient
 # ======================================================================================================
+
+#' @rdname getAdjustedGradient
+#' @export
 
 setMethod("getAdjustedGradient",
           "LogNormal",

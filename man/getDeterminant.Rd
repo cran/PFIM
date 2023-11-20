@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getDeterminant}
 \alias{getDeterminant}
+\alias{getDeterminant,Fim-method}
 \title{Get the determinant of the fim.}
 \usage{
 getDeterminant(object)
+
+\S4method{getDeterminant}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/PFIMProject.R
 \name{getModelEquations}
 \alias{getModelEquations}
+\alias{getModelEquations,PFIMProject-method}
 \title{Get the model equations.}
 \usage{
 getModelEquations(object)
+
+\S4method{getModelEquations}{PFIMProject}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{PFIMProject}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{setModelFromLibrary}
 \alias{setModelFromLibrary}
+\alias{setModelFromLibrary,Model-method}
 \title{Set  a model from the library of model}
 \usage{
 setModelFromLibrary(object, modelFromLibrary)
+
+\S4method{setModelFromLibrary}{Model}(object, modelFromLibrary)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

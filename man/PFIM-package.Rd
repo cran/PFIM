@@ -30,6 +30,11 @@ multiplicative algorithm [6], the Fedorov-Wynn algorithm [7], PSO (\emph{Particl
 Optimizer}) [9].
 }
 
+\section{Documentation}{
+
+Documentation and user guide are available at \url{http://www.pfim.biostat.fr/}
+}
+
 \section{Validation}{
 
 \pkg{PFIM 6.0} also provides quality control with tests and validation using the evaluated FIM to assess the validity of the new version  and its new
@@ -145,7 +150,6 @@ Class \code{\link{Design}}
     \item{} \code{\link{EvaluateDesign}}
     \item{} \code{\link{plotOutcomesEvaluation}}
     \item{} \code{\link{plotOutcomesGradient}}
-    \item{} \code{\link{show}}
     \item{} \code{\link{reportTablesAdministration}}
     \item{} \code{\link{reportTablesDesign}}
 }
@@ -168,7 +172,6 @@ Class \code{\link{Evaluation}}
 
   \itemize{
     \item{}\code{\link{run}}
-    \item{}\code{\link{show}}
     \item{}\code{\link{reportTablesPlot}}
     \item{}\code{\link{generateTables}}
     \item{}\code{\link{Report}}
@@ -182,7 +185,6 @@ Class \code{\link{FedorovWynnAlgorithm}}
     \item{}\code{\link{resizeFisherMatrix}}
     \item{}\code{\link{setParameters}}
     \item{}\code{\link{optimize}}
-    \item{}\code{\link{show}}
     \item{}\code{\link{generateReportOptimization}}
  }
 
@@ -195,7 +197,6 @@ Class \code{\link{FedorovWynnAlgorithm}}
     \item{}\code{\link{resizeFisherMatrix}}
     \item{}\code{\link{setParameters}}
     \item{}\code{\link{optimize}}
-    \item{}\code{\link{show}}
     \item{}\code{\link{generateReportOptimization}}
  }
 
@@ -251,7 +252,6 @@ Class \code{GenericMethods}
     \item{}\code{\link{setName}}
     \item{}\code{\link{setArms}}
     \item{}\code{\link{getArms}}
-    \item{}\code{\link{show}}
  }
 
 Class \code{\link{IndividualFim}}
@@ -498,7 +498,6 @@ Class \code{\link{MultiplicativeAlgorithm}}
      \item{} \code{\link{optimize}}
      \item{} \code{\link{getDataFrameResults}}
      \item{} \code{\link{plotWeights}}
-     \item{} \code{\link{show}}
      \item{} \code{\link{generateReportOptimization}}
  }
 
@@ -525,7 +524,6 @@ Class \code{\link{Optimization}}
      \item{} \code{\link{getElementaryProtocols}}
      \item{} \code{\link{generateFimsFromConstraints}}
      \item{} \code{\link{run}}
-     \item{} \code{\link{show}}
      \item{} \code{\link{plotWeights}}
      \item{} \code{\link{Report}}
  }
@@ -559,7 +557,6 @@ Class \code{\link{PGBOAlgorithm}}
   \itemize{
      \item{} \code{\link{setParameters}}
      \item{} \code{\link{optimize}}
-     \item{} \code{\link{show}}
      \item{} \code{\link{generateReportOptimization}}
  }
 
@@ -602,7 +599,6 @@ Class \code{\link{PSOAlgorithm}}
   \itemize{
      \item{} \code{\link{setParameters}}
      \item{} \code{\link{optimize}}
-     \item{} \code{\link{show}}
      \item{} \code{\link{generateReportOptimization}}
  }
 
@@ -641,7 +637,6 @@ Class \code{\link{SimplexAlgorithm}}
      \item{} \code{\link{fun.amoeba}}
      \item{} \code{\link{fisher.simplex}}
      \item{} \code{\link{optimize}}
-     \item{} \code{\link{show}}
      \item{} \code{\link{generateReportOptimization}}
  }
 }
@@ -667,6 +662,13 @@ nonlinear mixed-effect models. Comput Methods Programs Biomed. 2018;156:217-29.
 [9] Le Nagard H, Chao L, Tenaillon O. The emergence of complexity and restricted pleiotropy in adapting networks. BMC Evol Biol. 2011;11:326.
 
 [10] Wickham H. ggplot2: Elegant Graphics for Data Analysis, Springer-Verlag New York, 2016.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{http://www.pfim.biostat.fr/}
+}
+
 }
 \author{
 \strong{Maintainer}: Romain Leroux \email{romain.leroux@inserm.fr}

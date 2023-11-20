@@ -17,6 +17,9 @@ ModelODEBolus = setClass(
 # EvaluateModel
 # ======================================================================================================
 
+#' @rdname EvaluateModel
+#' @export
+
 setMethod(f="EvaluateModel",
           signature="ModelODEBolus",
           definition = function( object, arm )
@@ -454,6 +457,9 @@ setMethod(f="EvaluateModel",
 # ======================================================================================================
 # definePKPDModel
 # ======================================================================================================
+
+#' @rdname definePKPDModel
+#' @export
 
 setMethod("definePKPDModel",
           signature("ModelODEBolus","ModelODE"),

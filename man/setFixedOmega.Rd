@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelParameter.R
 \name{setFixedOmega}
 \alias{setFixedOmega}
+\alias{setFixedOmega,ModelParameter-method}
 \title{Set the omega as fixed of not.}
 \usage{
 setFixedOmega(object, value)
+
+\S4method{setFixedOmega}{ModelParameter}(object, value)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelParameter}.}

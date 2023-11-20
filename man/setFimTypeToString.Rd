@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{setFimTypeToString}
 \alias{setFimTypeToString}
+\alias{setFimTypeToString,Fim-method}
 \title{Convert the type of the object fim to a string.}
 \usage{
 setFimTypeToString(object)
+
+\S4method{setFimTypeToString}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

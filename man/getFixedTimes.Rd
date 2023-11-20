@@ -2,9 +2,12 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{getFixedTimes}
 \alias{getFixedTimes}
+\alias{getFixedTimes,SamplingTimeConstraints-method}
 \title{Get the fixed sampling times.}
 \usage{
 getFixedTimes(object)
+
+\S4method{getFixedTimes}{SamplingTimeConstraints}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{SamplingTimeConstraints}.}

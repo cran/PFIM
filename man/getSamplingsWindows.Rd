@@ -2,9 +2,12 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{getSamplingsWindows}
 \alias{getSamplingsWindows}
+\alias{getSamplingsWindows,SamplingTimeConstraints-method}
 \title{Get the windows for the sampling times.}
 \usage{
 getSamplingsWindows(object)
+
+\S4method{getSamplingsWindows}{SamplingTimeConstraints}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{SamplingTimeConstraints}.}

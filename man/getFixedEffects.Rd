@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getFixedEffects}
 \alias{getFixedEffects}
+\alias{getFixedEffects,Fim-method}
 \title{Get the matrix of fixed effects.}
 \usage{
 getFixedEffects(object)
+
+\S4method{getFixedEffects}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

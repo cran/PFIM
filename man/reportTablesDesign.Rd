@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{reportTablesDesign}
 \alias{reportTablesDesign}
-\title{Generate table for the report.}
+\alias{reportTablesDesign,Design-method}
+\title{reportTablesDesign}
 \usage{
 reportTablesDesign(object)
+
+\S4method{reportTablesDesign}{Design}(object)
 }
 \arguments{
 \item{object}{An object \code{design} from the class \linkS4class{Design}.}

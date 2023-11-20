@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{setEvaluationInitialDesignResults}
 \alias{setEvaluationInitialDesignResults}
+\alias{setEvaluationInitialDesignResults,Optimization-method}
 \title{Set the evaluation results of the initial design.}
 \usage{
 setEvaluationInitialDesignResults(object, value)
+
+\S4method{setEvaluationInitialDesignResults}{Optimization}(object, value)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

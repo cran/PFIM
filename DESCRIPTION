@@ -1,8 +1,7 @@
 Package: PFIM
 Type: Package
 Title: Population Fisher Information Matrix
-Version: 6.0
-Date: 2023-11-27
+Version: 6.0.1
 Authors@R: c(person(given = "France",
            family = "Mentré",
            role = c("aut"),
@@ -33,10 +32,11 @@ Description: Evaluate or optimize designs for nonlinear mixed effects models usi
     Le Nagard H, Chao L, Tenaillon O (2011) <doi:10.1186/1471-2148-11-326>,
     Combes FP, Retout S, Frey N, Mentré F (2013) <doi:10.1007/s11095-013-1079-3> and
     Seurat J, Tang Y, Mentré F, Nguyen TT (2021) <doi:10.1016/j.cmpb.2021.106126>.
+URL: http://www.pfim.biostat.fr/
 Depends: R (>= 4.0.0)
 License: GPL (>= 2)
 Encoding: UTF-8
-Imports: inline, utils, methods, deSolve, Deriv, devtools, scales,
+Imports: inline, utils, methods, deSolve, Deriv, scales, devtools,
         ggplot2, Matrix, pracma, stringr, Rcpp, knitr, rmarkdown,
         kableExtra
 RoxygenNote: 7.2.3
@@ -59,8 +59,8 @@ Collate: 'GenericMethods.R' 'Administration.R'
         'Normal.R' 'Optimization.R' 'PFIM-package.R' 'PGBOAlgorithm.R'
         'PSOAlgorithm.R' 'PlotEvaluation.R' 'PopulationFim.R'
         'Proportional.R' 'SamplingTimeConstraints.R' 'SamplingTimes.R'
-        'SimplexAlgorithm.R' 'globals.R'
-Packaged: 2023-11-07 23:43:31 UTC; Romai
+        'SimplexAlgorithm.R'
+Packaged: 2023-11-20 15:44:41 UTC; Romai
 Author: France Mentré [aut],
   Romain Leroux [aut, cre],
   Jérémy Seurat [aut],
@@ -69,4 +69,4 @@ Author: France Mentré [aut],
   Sylvie Retout [ctb]
 Maintainer: Romain Leroux <romain.leroux@inserm.fr>
 Repository: CRAN
-Date/Publication: 2023-11-08 00:00:06 UTC
+Date/Publication: 2023-11-20 16:00:05 UTC

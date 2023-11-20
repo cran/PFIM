@@ -1,4 +1,3 @@
-#####################################################################################################################################
 #' Class "Administration"
 #'
 #' @description
@@ -33,49 +32,49 @@ Administration = setClass(Class="Administration",
                             tau = "numeric"),
                           prototype=prototype( timeDose=c(0), Tinf=c(0), tau=c(0) ) )
 
-setMethod(
-  f = "initialize",
-  signature = "Administration",
-  definition = function (.Object, outcome, timeDose, dose, Tinf, tau)
-  {
-    if(!missing(outcome))
-    {
-      .Object@outcome = outcome
-    }
+setMethod( f = "initialize",
+           signature = "Administration",
+           definition = function (.Object, outcome, timeDose, dose, Tinf, tau)
+           {
+             if(!missing(outcome))
+             {
+               .Object@outcome = outcome
+             }
 
-    if(!missing(timeDose))
-    {
-      if ( is.vector( timeDose ) )
-        .Object@timeDose = timeDose
-      else
-        .Object@timeDose = c( timeDose )
-    }
-    if(!missing(dose))
-    {
-      if ( is.vector( dose ) )
-        .Object@dose = dose
-      else
-        .Object@dose = c( dose )
-    }
-    if(!missing(Tinf))
-    {
-      if ( is.vector( Tinf ) )
-        .Object@Tinf=Tinf
-      else
-        .Object@Tinf=c( Tinf )
-    }
+             if(!missing(timeDose))
+             {
+               if ( is.vector( timeDose ) )
+                 .Object@timeDose = timeDose
+               else
+                 .Object@timeDose = c( timeDose )
+             }
+             if(!missing(dose))
+             {
+               if ( is.vector( dose ) )
+                 .Object@dose = dose
+               else
+                 .Object@dose = c( dose )
+             }
+             if(!missing(Tinf))
+             {
+               if ( is.vector( Tinf ) )
+                 .Object@Tinf=Tinf
+               else
+                 .Object@Tinf=c( Tinf )
+             }
 
-    if(!missing(tau))
-    {
-      .Object@tau=tau
-    }
-    return (.Object )
-  }
+             if(!missing(tau))
+             {
+               .Object@tau=tau
+             }
+             return (.Object )
+           }
 )
 
-# ======================================================================================================
-# getOutcome
-# ======================================================================================================
+#'  getOutcome
+#'
+#' @rdname getOutcome
+#' @export
 
 setMethod(f="getOutcome",
           signature="Administration",
@@ -84,9 +83,10 @@ setMethod(f="getOutcome",
             return(object@outcome)
           })
 
-# ======================================================================================================
-# setOutcome
-# ======================================================================================================
+#' setOutcome
+#'
+#' @rdname setOutcome
+#' @export
 
 setMethod(f="setOutcome",
           signature="Administration",
@@ -96,19 +96,21 @@ setMethod(f="setOutcome",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the times vector when doses are given.
 #'
-#' @name getTimeDose
+#' @title getTimeDose
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @return The vector \code{timeDose} giving the times when the doses are given.
-# ======================================================================================================
+#' @export
 
 setGeneric("getTimeDose",
            function(object)
            {
              standardGeneric("getTimeDose")
            })
+
+#' @rdname getTimeDose
+#' @export
 
 setMethod(f="getTimeDose",
           signature="Administration",
@@ -117,20 +119,22 @@ setMethod(f="getTimeDose",
             return(object@timeDose)
           })
 
-# ======================================================================================================
 #' Set the times vector when doses are given.
 #'
-#' @name setTimeDose
+#' @title setTimeDose
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @param timeDose A numeric value of the time dose.
 #' @return The object \code{Administration} with its new times vector for doses.
-# ======================================================================================================
+#' @export
 
 setGeneric("setTimeDose",
            function(object,timeDose)
            {
              standardGeneric("setTimeDose")
            })
+
+#' @rdname setTimeDose
+#' @export
 
 setMethod(f="setTimeDose",
           signature="Administration",
@@ -140,19 +144,21 @@ setMethod(f="setTimeDose",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the amount of doses.
 #'
-#' @name getDose
+#' @title getDose
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @return The numeric \code{amount_dose} giving the amount of doses.
-# ======================================================================================================
+#' @export
 
 setGeneric("getDose",
            function(object)
            {
              standardGeneric("getDose")
            })
+
+#' @rdname getDose
+#' @export
 
 setMethod(f="getDose",
           signature="Administration",
@@ -161,20 +167,22 @@ setMethod(f="getDose",
             return(object@dose)
           })
 
-# ======================================================================================================
 #' Set the amount of dose
 #'
 #' @name setDose
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @param dose A numeric value of the amount of dose.
 #' @return The numeric \code{amount_dose} giving the new value of the amount of dose.
-# ======================================================================================================
+#' @export
 
 setGeneric("setDose",
            function(object,dose)
            {
              standardGeneric("setDose")
            })
+
+#' @rdname setDose
+#' @export
 
 setMethod(f="setDose",
           signature="Administration",
@@ -184,19 +192,21 @@ setMethod(f="setDose",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the infusion duration.
 #'
 #' @name getTinf
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @return The numeric \code{Tinf} giving the infusion duration Tinf.
-# ======================================================================================================
+#' @export
 
 setGeneric("getTinf",
            function(object)
            {
              standardGeneric("getTinf")
            })
+
+#' @rdname getTinf
+#' @export
 
 setMethod(f="getTinf",
           signature="Administration",
@@ -205,20 +215,22 @@ setMethod(f="getTinf",
             return(object@Tinf)
           })
 
-# ======================================================================================================
 #' Set the infusion duration.
 #'
 #' @name setTinf
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @param Tinf A numeric value for the infusion duration Tinf.
 #' @return The object \code{Administration} with its new value of the infusion duration Tinf.
-# ======================================================================================================
+#' @export
 
 setGeneric("setTinf",
            function(object,Tinf)
            {
              standardGeneric("setTinf")
            })
+
+#' @rdname setTinf
+#' @export
 
 setMethod(f="setTinf",
           signature="Administration",
@@ -228,18 +240,21 @@ setMethod(f="setTinf",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the frequency \code{tau}.
 #'
-#' @name getTau
+#' @title getTau
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @return The numeric \code{tau} giving the frequency \code{tau}.
-# ======================================================================================================
+#' @export
+
 setGeneric("getTau",
            function(object)
            {
              standardGeneric("getTau")
            })
+
+#' @rdname getTau
+#' @export
 
 setMethod(f="getTau",
           signature="Administration",
@@ -248,20 +263,22 @@ setMethod(f="getTau",
             return(object@tau)
           })
 
-# ======================================================================================================
 #' Set the frequency \code{tau}.
 #'
-#' @name setTau
+#' @title setTau
 #' @param object An object \code{Administration} from the class \linkS4class{Administration}.
 #' @param tau A numeric value for the infusion lag tau.
 #' @return The object \code{Administration} object with its new value of the infusion lag tau.
-# ======================================================================================================
+#' @export
 
 setGeneric("setTau",
            function(object,tau)
            {
              standardGeneric("setTau")
            })
+
+#' @rdname setTau
+#' @export
 
 setMethod(f="setTau",
           signature="Administration",
@@ -274,5 +291,4 @@ setMethod(f="setTau",
 ##########################################################################################################
 # END Class "Administration"
 ##########################################################################################################
-
 

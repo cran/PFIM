@@ -35,48 +35,50 @@ Arm = setClass(
     samplingTimesConstraints = "list"
   ))
 
-setMethod(
-  f="initialize",
-  signature="Arm",
-  definition= function (.Object, name, size, administrations, initialConditions, samplingTimes, administrationsConstraints, samplingTimesConstraints )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
-    if(!missing(size))
-    {
-      .Object@size = size
-    }
-    if(!missing(administrations))
-    {
-      .Object@administrations = unlist(administrations)
-    }
-    if(!missing(samplingTimes))
-    {
-      .Object@samplingTimes = unlist(samplingTimes)
-    }
-    if(!missing(initialConditions))
-    {
-      .Object@initialConditions = initialConditions
-    }
-    if(!missing(administrationsConstraints))
-    {
-      .Object@administrationsConstraints = administrationsConstraints
-    }
-    if(!missing(samplingTimesConstraints))
-    {
-      .Object@samplingTimesConstraints = samplingTimesConstraints
-    }
+setMethod(f="initialize",
+          signature="Arm",
+          definition= function (.Object, name, size, administrations, initialConditions, samplingTimes, administrationsConstraints, samplingTimesConstraints )
+          {
+            if(!missing(name))
+            {
+              .Object@name = name
+            }
+            if(!missing(size))
+            {
+              .Object@size = size
+            }
+            if(!missing(administrations))
+            {
+              .Object@administrations = unlist(administrations)
+            }
+            if(!missing(samplingTimes))
+            {
+              .Object@samplingTimes = unlist(samplingTimes)
+            }
+            if(!missing(initialConditions))
+            {
+              .Object@initialConditions = initialConditions
+            }
+            if(!missing(administrationsConstraints))
+            {
+              .Object@administrationsConstraints = administrationsConstraints
+            }
+            if(!missing(samplingTimesConstraints))
+            {
+              .Object@samplingTimesConstraints = samplingTimesConstraints
+            }
 
-    validObject(.Object)
-    return (.Object )
-  }
+            validObject(.Object)
+            return (.Object )
+          }
 )
 
 # ======================================================================================================
 # get, set the name of an arm
 # ======================================================================================================
+
+#' @rdname getName
+#' @export
 
 setMethod("getName",
           "Arm",
@@ -85,6 +87,9 @@ setMethod("getName",
             name = object@name
             return( name )
           })
+
+#' @rdname setName
+#' @export
 
 setMethod("setName",
           "Arm",
@@ -98,6 +103,9 @@ setMethod("setName",
 # get the size of an arm
 # ======================================================================================================
 
+#' @rdname getSize
+#' @export
+
 setMethod("getSize",
           "Arm",
           function( object )
@@ -106,14 +114,13 @@ setMethod("getSize",
           }
 )
 
-# ======================================================================================================
 #' Set the size of an arm.
 #'
-#' @name setSize
+#' @title setSize
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param size A numeric giving the new size of the object \code{Arm}.
 #' @return The object \code{Arm} object with its new size.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setSize",
@@ -121,6 +128,8 @@ setGeneric(
     standardGeneric("setSize")
   })
 
+#' @rdname setSize
+#' @export
 
 setMethod("setSize",
           "Arm",
@@ -131,20 +140,22 @@ setMethod("setSize",
           }
 )
 
-# ======================================================================================================
 #' Get all the administration for an arm.
 #'
-#' @name getAdministrations
+#' @title getAdministrations
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @return A list \code{administrations} of objects from the class \code{Administration} class giving
 #' the parameters of the administration for the object \code{Arm}.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getAdministrations",
   function(object) {
     standardGeneric("getAdministrations")
   })
+
+#' @rdname getAdministrations
+#' @export
 
 setMethod("getAdministrations",
           "Arm",
@@ -153,22 +164,24 @@ setMethod("getAdministrations",
             return( object@administrations )
           })
 
-# ======================================================================================================
 #' Set all the administration for an arm.
 #'
-#' @name setAdministrations
+#' @title setAdministrations
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param administrations A list \code{administrations} of objects from the class \code{Administration} class giving
 #' the parameters of the administration for the object \code{Arm}.
 #' @return The object \code{Arm} with the list \code{administrations} of objects from the class \code{Administration} class giving
 #' the parameters of the administration for the object \code{Arm}.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setAdministrations",
   function(object, administrations) {
     standardGeneric("setAdministrations")
   })
+
+#' @rdname setAdministrations
+#' @export
 
 setMethod("setAdministrations",
           "Arm",
@@ -178,19 +191,21 @@ setMethod("setAdministrations",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the vectors of sampling times for an arm.
 #'
-#' @name getSamplingTimes
+#' @title getSamplingTimes
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @return The list \code{samplingTimes} for the object \code{Arm}.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getSamplingTimes",
   function(object) {
     standardGeneric("getSamplingTimes")
   })
+
+#' @rdname getSamplingTimes
+#' @export
 
 setMethod("getSamplingTimes",
           "Arm",
@@ -199,20 +214,22 @@ setMethod("getSamplingTimes",
             return( object@samplingTimes )
           })
 
-# ======================================================================================================
 #' Set the vectors of sampling times for an arm.
 #'
-#' @name setSamplingTimes
+#' @title setSamplingTimes
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param samplingTimes The list containing the new sampling times.
 #' @return An object \code{Arm} from the class \linkS4class{Arm} with the new sampling times \code{samplingTimes}.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setSamplingTimes",
   function(object, samplingTimes) {
     standardGeneric("setSamplingTimes")
   })
+
+#' @rdname setSamplingTimes
+#' @export
 
 setMethod("setSamplingTimes",
           "Arm",
@@ -222,19 +239,21 @@ setMethod("setSamplingTimes",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the initial condition for the evaluation of an ode model.
 #'
-#' @name getInitialConditions
+#' @title getInitialConditions
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @return The list \code{initialConditions} for the object \code{Arm}.
-# ======================================================================================================
+#' @exportMethod getInitialConditions
 
 setGeneric(
   "getInitialConditions",
   function(object) {
     standardGeneric("getInitialConditions")
   })
+
+#' @rdname getInitialConditions
+#' @export
 
 setMethod("getInitialConditions",
           "Arm",
@@ -244,20 +263,8 @@ setMethod("getInitialConditions",
           }
 )
 
-# ======================================================================================================
-#' Set the initial condition for the evaluation of an ode model.
-#'
-#' @name setInitialConditions
-#' @param object An object \code{Arm} from the class \linkS4class{Arm}.
-#' @param initialConditions The list containing the new initial conditions.
-#' @return An object \code{Arm} from the class \linkS4class{Arm} with the new initial conditions \code{initialConditions}.
-# ======================================================================================================
-
-setGeneric(
-  "setInitialConditions",
-  function(object,initialConditions) {
-    standardGeneric("setInitialConditions")
-  })
+#' @rdname setInitialConditions
+#' @export
 
 setMethod("setInitialConditions",
           "Arm",
@@ -268,13 +275,12 @@ setMethod("setInitialConditions",
           }
 )
 
-# ======================================================================================================
 #' Get the administrations constraints.
 #'
-#' @name getAdministrationsConstraints
+#' @title getAdministrationsConstraints
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @return The list \code{administrationsConstraints}.
-# ======================================================================================================
+#' @export
 
 setGeneric("getAdministrationsConstraints",
            function(object)
@@ -282,6 +288,9 @@ setGeneric("getAdministrationsConstraints",
              standardGeneric("getAdministrationsConstraints")
            }
 )
+
+#' @rdname getAdministrationsConstraints
+#' @export
 
 setMethod(f="getAdministrationsConstraints",
           signature="Arm",
@@ -291,13 +300,12 @@ setMethod(f="getAdministrationsConstraints",
           }
 )
 
-# ======================================================================================================
 #' Get the sampling times constraints.
 #'
-#' @name getSamplingTimesConstraints
+#' @title getSamplingTimesConstraints
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @return The list \code{getSamplingTimesConstraints}.
-# ======================================================================================================
+#' @export
 
 setGeneric("getSamplingTimesConstraints",
            function(object)
@@ -305,6 +313,9 @@ setGeneric("getSamplingTimesConstraints",
              standardGeneric("getSamplingTimesConstraints")
            }
 )
+
+#' @rdname getSamplingTimesConstraints
+#' @export
 
 setMethod(f="getSamplingTimesConstraints",
           signature="Arm",
@@ -314,14 +325,16 @@ setMethod(f="getSamplingTimesConstraints",
           }
 )
 
-# ===================================================================================================================================
 #' Set the sampling times constraints.
 #'
-#' @name setSamplingTimesConstraints
+#' @title setSamplingTimesConstraints
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param samplingTimesConstraints  An object \code{SamplingTimeConstraints} from the class \linkS4class{SamplingTimeConstraints}.
 #' @return The arm with the new sampling time constraints.
-# ===================================================================================================================================
+#' @export
+
+#' @rdname setSamplingTimesConstraints
+#' @export
 
 setGeneric("setSamplingTimesConstraints",
            function( object, samplingTimesConstraints )
@@ -330,6 +343,9 @@ setGeneric("setSamplingTimesConstraints",
            }
 )
 
+#' @rdname setSamplingTimesConstraints
+#' @export
+#'
 setMethod(f="setSamplingTimesConstraints",
           signature="Arm",
           definition = function( object, samplingTimesConstraints )
@@ -339,20 +355,22 @@ setMethod(f="setSamplingTimesConstraints",
           }
 )
 
-# ======================================================================================================
 #' Get the sampling times by outcome.
 #'
-#' @name getSamplingTime
+#' @title getSamplingTime
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param outcome A string giving the name of the outcome.
 #' @return The element of the list \code{samplingTimes} containing the sampling times of the outcome \code{outcome}
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getSamplingTime",
   function(object,outcome) {
     standardGeneric("getSamplingTime")
   })
+
+#' @rdname getSamplingTime
+#' @export
 
 setMethod("getSamplingTime",
           "Arm",
@@ -370,20 +388,22 @@ setMethod("getSamplingTime",
           }
 )
 
-# ======================================================================================================
 #' Get the sampling times constraints by outcome.
 #'
-#' @name getSamplingTimeConstraint
+#' @title getSamplingTimeConstraint
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param outcome A string giving the name of the outcome.
 #' @return The element of the list \code{samplingTimesConstraints} containing the sampling times constraints of the outcome \code{outcome}
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getSamplingTimeConstraint",
   function(object,outcome) {
     standardGeneric("getSamplingTimeConstraint")
   })
+
+#' @rdname getSamplingTimeConstraint
+#' @export
 
 setMethod("getSamplingTimeConstraint",
           "Arm",
@@ -401,20 +421,22 @@ setMethod("getSamplingTimeConstraint",
           }
 )
 
-# ======================================================================================================
 #' Set the sampling time of an arm.
 #'
-#' @name setSamplingTime
+#' @title setSamplingTime
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param samplingTime An object \code{samplingTime} from the class \linkS4class{SamplingTimes}.
 #' @return An object \code{Arm} from the class \linkS4class{Arm} with the new sampling time \code{samplingTime}.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setSamplingTime",
   function(object, samplingTime ) {
     standardGeneric("setSamplingTime")
   })
+
+#' @rdname setSamplingTime
+#' @export
 
 setMethod("setSamplingTime",
           "Arm",
@@ -436,20 +458,22 @@ setMethod("setSamplingTime",
           }
 )
 
-# ======================================================================================================
 #' Get the administrations by outcome.
 #'
-#' @name getAdministration
+#' @title getAdministration
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param outcome A string giving the name of the outcome.
 #' @return The element of the list \code{administrations} containing the administration of the outcome \code{outcome}
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getAdministration",
   function(object, outcome) {
     standardGeneric("getAdministration")
   })
+
+#' @rdname getAdministration
+#' @export
 
 setMethod("getAdministration",
           "Arm",
@@ -473,20 +497,22 @@ setMethod("getAdministration",
           }
 )
 
-# ======================================================================================================
 #' Get the administration constraints by outcome.
 #'
-#' @name getAdministrationConstraint
+#' @title getAdministrationConstraint
 #' @param object An object \code{Arm} from the class \linkS4class{Arm}.
 #' @param outcome A string giving the name of the outcome.
 #' @return The element of the list \code{getAdministrationConstraint} containing the administration constraints of the outcome \code{outcome}
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getAdministrationConstraint",
   function(object, outcome) {
     standardGeneric("getAdministrationConstraint")
   })
+
+#' @rdname getAdministrationConstraint
+#' @export
 
 setMethod("getAdministrationConstraint",
           "Arm",
@@ -510,17 +536,18 @@ setMethod("getAdministrationConstraint",
           }
 )
 
-# ======================================================================================================
 #' Evaluate an arm.
-#'
-#' @name EvaluateArm
+#' @title EvaluateArm
 #' @param object An object \code{arm} from the class \linkS4class{Arm}.
 #' @param model An object \code{model} from the class \linkS4class{Model}.
 #' @param fim An object \code{fim} from the class \linkS4class{Fim}.
 #' @return The object \code{fim} containing the Fisher Information Matrix
 #' the two lists \code{evaluationOutcomes}, \code{outcomesGradient} containing the results of
 #' the evaluation of the outcome and the sensitivity indices.
-# ======================================================================================================
+#' @export
+
+#' @rdname EvaluateArm
+#' @export
 
 setGeneric("EvaluateArm",
            function( object, model, fim )
@@ -528,6 +555,9 @@ setGeneric("EvaluateArm",
              standardGeneric("EvaluateArm")
            }
 )
+
+#' @rdname EvaluateArm
+#' @export
 
 setMethod(f="EvaluateArm",
           signature = "Arm",

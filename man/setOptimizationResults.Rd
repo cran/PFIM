@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{setOptimizationResults}
 \alias{setOptimizationResults}
+\alias{setOptimizationResults,Optimization-method}
 \title{Set the optimization results.}
 \usage{
 setOptimizationResults(object, value)
+
+\S4method{setOptimizationResults}{Optimization}(object, value)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

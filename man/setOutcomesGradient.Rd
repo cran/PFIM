@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{setOutcomesGradient}
 \alias{setOutcomesGradient}
-\title{Set the results of the evaluation of the outcomes.}
+\alias{setOutcomesGradient,Design-method}
+\title{setOutcomesGradient}
 \usage{
 setOutcomesGradient(object, outcomesGradient)
+
+\S4method{setOutcomesGradient}{Design}(object, outcomesGradient)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

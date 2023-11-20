@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{getModelErrorParametersValues}
 \alias{getModelErrorParametersValues}
+\alias{getModelErrorParametersValues,Model-method}
 \title{Get the values of the model error parameters.}
 \usage{
 getModelErrorParametersValues(object)
+
+\S4method{getModelErrorParametersValues}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

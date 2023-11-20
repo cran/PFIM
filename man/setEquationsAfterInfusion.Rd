@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelInfusion.R
 \name{setEquationsAfterInfusion}
 \alias{setEquationsAfterInfusion}
+\alias{setEquationsAfterInfusion,Model-method}
 \title{Set the equations after infusion.}
 \usage{
 setEquationsAfterInfusion(object, equations)
+
+\S4method{setEquationsAfterInfusion}{Model}(object, equations)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

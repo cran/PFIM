@@ -2,9 +2,12 @@
 % Please edit documentation in R/OptimizationAlgorithm.R
 \name{setIterationAndCriteria}
 \alias{setIterationAndCriteria}
+\alias{setIterationAndCriteria,OptimizationAlgorithm-method}
 \title{Set the iteration with the convergence criteria.}
 \usage{
 setIterationAndCriteria(object, value)
+
+\S4method{setIterationAndCriteria}{OptimizationAlgorithm}(object, value)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{OptimizationAlgorithm}.}

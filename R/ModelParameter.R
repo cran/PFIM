@@ -37,35 +37,37 @@ ModelParameter = setClass(
 )
 
 # Initialize method
-setMethod(
-  f = "initialize",
-  signature = "ModelParameter",
-  definition = function( .Object, name, distribution, fixedMu, fixedOmega )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
-    if(!missing(distribution))
-    {
-      .Object@distribution = distribution
-    }
-    if(!missing(fixedMu))
-    {
-      .Object@fixedMu = fixedMu
-    }
-    if(!missing(fixedOmega))
-    {
-      .Object@fixedOmega = fixedOmega
-    }
-    validObject(.Object)
-    return(.Object)
-  }
+setMethod( f = "initialize",
+           signature = "ModelParameter",
+           definition = function( .Object, name, distribution, fixedMu, fixedOmega )
+           {
+             if(!missing(name))
+             {
+               .Object@name = name
+             }
+             if(!missing(distribution))
+             {
+               .Object@distribution = distribution
+             }
+             if(!missing(fixedMu))
+             {
+               .Object@fixedMu = fixedMu
+             }
+             if(!missing(fixedOmega))
+             {
+               .Object@fixedOmega = fixedOmega
+             }
+             validObject(.Object)
+             return(.Object)
+           }
 )
 
 # ======================================================================================================
 # getName
 # ======================================================================================================
+
+#' @rdname getName
+#' @export
 
 setMethod("getName",
           "ModelParameter",
@@ -75,19 +77,21 @@ setMethod("getName",
             return(name)
           })
 
-# ======================================================================================================
 #' Get the distribution.
 #'
 #' @name getDistribution
 #' @param object An object from the class \linkS4class{ModelParameter}.
 #' @return The parameter distribution.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getDistribution",
   function(object) {
     standardGeneric("getDistribution")
   })
+
+#' @rdname getDistribution
+#' @export
 
 setMethod("getDistribution",
           "ModelParameter",
@@ -97,20 +101,22 @@ setMethod("getDistribution",
             return(distribution)
           })
 
-# ======================================================================================================
 #' Set the distribution.
 #'
 #' @name setDistribution
 #' @param object An object from the class \linkS4class{ModelParameter}.
 #' @param distribution An object from the class \linkS4class{Distribution}.
 #' @return The model parameter with the updated distribution.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setDistribution",
   function(object,distribution) {
     standardGeneric("setDistribution")
   })
+
+#' @rdname setDistribution
+#' @export
 
 setMethod("setDistribution",
           "ModelParameter",
@@ -120,19 +126,21 @@ setMethod("setDistribution",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the fixed effect.
 #'
 #' @name getFixedMu
 #' @param object An object from the class \linkS4class{ModelParameter}.
 #' @return A boolean giving the fixed mu.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getFixedMu",
   function(object) {
     standardGeneric("getFixedMu")
   })
+
+#' @rdname getFixedMu
+#' @export
 
 setMethod("getFixedMu",
           signature("ModelParameter"),
@@ -141,20 +149,22 @@ setMethod("getFixedMu",
             return(object@fixedMu)
           })
 
-# ======================================================================================================
 #' Set the mu as fixed or not.
 #'
 #' @name setFixedMu
 #' @param object An object from the class \linkS4class{ModelParameter}.
 #' @param value A Boolean if fixed or not.
 #' @return The mode parameter with the the mu updated as fixed or not.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setFixedMu",
   function(object,value) {
     standardGeneric("setFixedMu")
   })
+
+#' @rdname setFixedMu
+#' @export
 
 setMethod("setFixedMu",
           signature("ModelParameter"),
@@ -164,19 +174,21 @@ setMethod("setFixedMu",
             return(object)
           })
 
-# ======================================================================================================
 #' Get the fixed variance.
 #'
 #' @name getFixedOmega
 #' @param object An object from the class \linkS4class{ModelParameter}.
 #' @return A boolean giving the fixed omega.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getFixedOmega",
   function(object) {
     standardGeneric("getFixedOmega")
   })
+
+#' @rdname getFixedOmega
+#' @export
 
 setMethod("getFixedOmega",
           signature("ModelParameter"),
@@ -185,20 +197,22 @@ setMethod("getFixedOmega",
             return(object@fixedOmega)
           })
 
-# ======================================================================================================
 #' Set the omega as fixed of not.
 #'
 #' @name setFixedOmega
 #' @param object An object from the class \linkS4class{ModelParameter}.
 #' @param value A Boolean fixed or not.
 #' @return The model parameter with the omega updated as fixed or not.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setFixedOmega",
   function(object,value) {
     standardGeneric("setFixedOmega")
   })
+
+#' @rdname setFixedOmega
+#' @export
 
 setMethod("setFixedOmega",
           signature("ModelParameter"),
@@ -211,6 +225,9 @@ setMethod("setFixedOmega",
 # ======================================================================================================
 # getMu
 # ======================================================================================================
+
+#' @rdname getMu
+#' @export
 
 setMethod("getMu",
           "ModelParameter",
@@ -226,6 +243,9 @@ setMethod("getMu",
 # setMu
 # ======================================================================================================
 
+#' @rdname setMu
+#' @export
+
 setMethod("setMu",
           "ModelParameter",
           function(object,value)
@@ -240,6 +260,9 @@ setMethod("setMu",
 # getOmega
 # ======================================================================================================
 
+#' @rdname getOmega
+#' @export
+
 setMethod("getOmega",
           "ModelParameter",
           function(object)
@@ -253,6 +276,9 @@ setMethod("getOmega",
 # ======================================================================================================
 # setOmega
 # ======================================================================================================
+
+#' @rdname setOmega
+#' @export
 
 setMethod("setOmega",
           "ModelParameter",

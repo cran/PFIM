@@ -11,7 +11,7 @@
 #' @include GenericMethods.R
 #' @export
 
-PopulationFim<-setClass(
+PopulationFim = setClass(
   Class="PopulationFim",
   contains = "Fim"
 )
@@ -20,6 +20,9 @@ PopulationFim<-setClass(
 # EvaluateFisherMatrix
 # ======================================================================================================
 
+#' @rdname EvaluateFisherMatrix
+#' @export
+#'
 setMethod("EvaluateFisherMatrix",
           "PopulationFim",
           function( object, model, arm, modelEvaluation, modelVariance )
@@ -99,6 +102,9 @@ setMethod("EvaluateFisherMatrix",
 # EvaluateVarianceFIM
 # ======================================================================================================
 
+#' @rdname EvaluateVarianceFIM
+#' @export
+#'
 setMethod("EvaluateVarianceFIM",
           "PopulationFim",
           function( object, model, arm, modelEvaluation, modelVariance )
@@ -208,8 +214,10 @@ setMethod("EvaluateVarianceFIM",
 # getRSE
 # ======================================================================================================
 
-setMethod(
-  "getRSE",
+#' @rdname getRSE
+#' @export
+#'
+setMethod( "getRSE",
   signature = "PopulationFim",
   definition = function (object, model)
   {
@@ -255,8 +263,10 @@ setMethod(
 # getShrinkage
 # ======================================================================================================
 
-setMethod(
-  "getShrinkage",
+#' @rdname getShrinkage
+#' @export
+#'
+setMethod( "getShrinkage",
   signature = "PopulationFim",
   definition = function (object)
   {
@@ -267,8 +277,10 @@ setMethod(
 # setShrinkage
 # ======================================================================================================
 
-setMethod(
-  "setShrinkage",
+#' @rdname setShrinkage
+#' @export
+#'
+setMethod( "setShrinkage",
   signature = "PopulationFim",
   definition = function (object,value)
   {
@@ -280,8 +292,10 @@ setMethod(
 # getColumnAndParametersNamesFIM
 # ======================================================================================================
 
-setMethod(
-  "getColumnAndParametersNamesFIM",
+#' @rdname getColumnAndParametersNamesFIM
+#' @export
+#'
+setMethod( "getColumnAndParametersNamesFIM",
   signature = "PopulationFim",
   definition = function( object, model )
   {
@@ -369,8 +383,10 @@ setMethod(
 # getColumnAndParametersNamesFIMInLatex
 # ======================================================================================================
 
-setMethod(
-  "getColumnAndParametersNamesFIMInLatex",
+#' @rdname getColumnAndParametersNamesFIMInLatex
+#' @export
+#'
+setMethod( "getColumnAndParametersNamesFIMInLatex",
   signature = "PopulationFim",
   definition = function( object, model )
   {
@@ -469,8 +485,10 @@ setMethod(
 # reportTablesFIM
 # ======================================================================================================
 
-setMethod(
-  "reportTablesFIM",
+#' @rdname reportTablesFIM
+#' @export
+#'
+setMethod( "reportTablesFIM",
   signature = "PopulationFim",
   definition = function( object, evaluationObject )
   {
@@ -645,8 +663,10 @@ setMethod(
 # generateReportEvaluation
 # ======================================================================================================
 
-setMethod(
-  "generateReportEvaluation",
+#' @rdname generateReportEvaluation
+#' @export
+#'
+setMethod( "generateReportEvaluation",
   signature = "PopulationFim",
   definition = function( object, evaluationObject, outputPath, outputFile, plotOptions )
   {

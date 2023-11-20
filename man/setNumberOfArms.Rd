@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{setNumberOfArms}
 \alias{setNumberOfArms}
-\title{Set the number of arms in a design.}
+\alias{setNumberOfArms,Design-method}
+\title{setNumberOfArms}
 \usage{
 setNumberOfArms(object, numberOfArms)
+
+\S4method{setNumberOfArms}{Design}(object, numberOfArms)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

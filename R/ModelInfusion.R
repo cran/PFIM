@@ -12,62 +12,64 @@ ModelInfusion = setClass("ModelInfusion",
                            equations = list(
                              duringInfusion = list(),
                              afterInfusion = list())))
-setMethod(
-  f="initialize",
-  signature="ModelInfusion",
-  definition= function (.Object, name, description, equations, outcomes, parameters,
-                        modelError, initialConditions, odeSolverParameters )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
-    if(!missing( description ) )
-    {
-      .Object@description = description
-    }
-    if(!missing( equations ) )
-    {
-      .Object@equations = equations
-    }
-    if(!missing( outcomes ) )
-    {
-      .Object@outcomes = outcomes
-    }
-    if(!missing( parameters ) )
-    {
-      .Object@parameters = parameters
-    }
-    if(!missing( initialConditions ) )
-    {
-      .Object@initialConditions = initialConditions
-    }
-    if(!missing( modelError ) )
-    {
-      .Object@modelError = modelError
-    }
-    if(!missing( odeSolverParameters ) )
-    {
-      .Object@odeSolverParameters = odeSolverParameters
-    }
-    validObject(.Object)
-    return (.Object )
-  }
+setMethod( f="initialize",
+           signature="ModelInfusion",
+           definition= function (.Object, name, description, equations, outcomes, parameters,
+                                 modelError, initialConditions, odeSolverParameters )
+           {
+             if(!missing(name))
+             {
+               .Object@name = name
+             }
+             if(!missing( description ) )
+             {
+               .Object@description = description
+             }
+             if(!missing( equations ) )
+             {
+               .Object@equations = equations
+             }
+             if(!missing( outcomes ) )
+             {
+               .Object@outcomes = outcomes
+             }
+             if(!missing( parameters ) )
+             {
+               .Object@parameters = parameters
+             }
+             if(!missing( initialConditions ) )
+             {
+               .Object@initialConditions = initialConditions
+             }
+             if(!missing( modelError ) )
+             {
+               .Object@modelError = modelError
+             }
+             if(!missing( odeSolverParameters ) )
+             {
+               .Object@odeSolverParameters = odeSolverParameters
+             }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
-# ======================================================================================================
 #' Get the equations during infusion.
 #'
 #' @name getEquationsDuringInfusion
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the equations during the infusion.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getEquationsDuringInfusion",
   function(object) {
     standardGeneric("getEquationsDuringInfusion")
   })
+
+
+#' @rdname getEquationsDuringInfusion
+#' @export
 
 setMethod("getEquationsDuringInfusion",
           "Model",
@@ -77,19 +79,21 @@ setMethod("getEquationsDuringInfusion",
             return( equations )
           })
 
-# ======================================================================================================
 #' Get the equations after infusion.
 #'
 #' @name getEquationsAfterInfusion
 #' @param object An object from the class \linkS4class{Model}.
 #' @return A list giving the equations after the infusion.
-# ======================================================================================================
+#' @export getEquationsAfterInfusion
 
 setGeneric(
   "getEquationsAfterInfusion",
   function(object) {
     standardGeneric("getEquationsAfterInfusion")
   })
+
+#' @rdname getEquationsAfterInfusion
+#' @export
 
 setMethod("getEquationsAfterInfusion",
           "Model",
@@ -99,20 +103,22 @@ setMethod("getEquationsAfterInfusion",
             return( equations )
           })
 
-# ======================================================================================================
 #' Set the equations after infusion.
 #'
 #' @name setEquationsAfterInfusion
 #' @param object An object from the class \linkS4class{Model}.
 #' @param equations A list giving the equations after the infusion.
 #' @return The model with the updated equations after the infusion.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setEquationsAfterInfusion",
   function(object, equations) {
     standardGeneric("setEquationsAfterInfusion")
   })
+
+#' @rdname setEquationsAfterInfusion
+#' @export
 
 setMethod("setEquationsAfterInfusion",
           "Model",
@@ -121,20 +127,22 @@ setMethod("setEquationsAfterInfusion",
             return( object )
           })
 
-# ======================================================================================================
 #' Set the equations during infusion.
 #'
 #' @name setEquationsDuringInfusion
 #' @param object An object from the class \linkS4class{Model}.
 #' @param equations A list giving the equations during the infusion.
 #' @return The model with the updated equations during the infusion.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setEquationsDuringInfusion",
   function(object, equations) {
     standardGeneric("setEquationsDuringInfusion")
   })
+
+#' @rdname setEquationsDuringInfusion
+#' @export
 
 setMethod("setEquationsDuringInfusion",
           "Model",

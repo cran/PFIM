@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{getElementaryProtocols}
 \alias{getElementaryProtocols}
+\alias{getElementaryProtocols,Optimization-method}
 \title{Get the elementary protocols.}
 \usage{
 getElementaryProtocols(object, fims)
+
+\S4method{getElementaryProtocols}{Optimization}(object, fims)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

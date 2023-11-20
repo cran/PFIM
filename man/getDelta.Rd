@@ -2,9 +2,12 @@
 % Please edit documentation in R/MultiplicativeAlgorithm.R
 \name{getDelta}
 \alias{getDelta}
+\alias{getDelta,MultiplicativeAlgorithm-method}
 \title{Get the parameter delta}
 \usage{
 getDelta(object)
+
+\S4method{getDelta}{MultiplicativeAlgorithm}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{MultiplicativeAlgorithm}.}

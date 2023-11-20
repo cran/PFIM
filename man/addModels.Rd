@@ -2,9 +2,12 @@
 % Please edit documentation in R/LibraryOfModels.R
 \name{addModels}
 \alias{addModels}
+\alias{addModels,LibraryOfModels-method}
 \title{Add a models to a library of models.}
 \usage{
 addModels(object, models)
+
+\S4method{addModels}{LibraryOfModels}(object, models)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{LibraryOfModels}.}

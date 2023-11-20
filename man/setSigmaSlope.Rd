@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{setSigmaSlope}
 \alias{setSigmaSlope}
+\alias{setSigmaSlope,ModelError-method}
 \title{Set the parameter sigma slope.}
 \usage{
 setSigmaSlope(object, sigmaSlope)
+
+\S4method{setSigmaSlope}{ModelError}(object, sigmaSlope)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

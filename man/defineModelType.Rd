@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{defineModelType}
 \alias{defineModelType}
+\alias{defineModelType,Model-method}
 \title{Define the type of a model.}
 \usage{
 defineModelType(object, designs)
+
+\S4method{defineModelType}{Model}(object, designs)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

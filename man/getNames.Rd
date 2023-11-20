@@ -2,9 +2,12 @@
 % Please edit documentation in R/GenericMethods.R
 \name{getNames}
 \alias{getNames}
-\title{Get the names of an object.}
+\alias{getNames,list-method}
+\title{getNames}
 \usage{
 getNames(object)
+
+\S4method{getNames}{list}(object)
 }
 \arguments{
 \item{object}{An object defined form a class of PFIM.}

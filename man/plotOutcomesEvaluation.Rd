@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{plotOutcomesEvaluation}
 \alias{plotOutcomesEvaluation}
-\title{Plot the evaluation of the outcomes.}
+\alias{plotOutcomesEvaluation,Design-method}
+\title{plotOutcomesEvaluation}
 \usage{
 plotOutcomesEvaluation(object, initialDesign, model, plotOptions)
+
+\S4method{plotOutcomesEvaluation}{Design}(object, initialDesign, model, plotOptions)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

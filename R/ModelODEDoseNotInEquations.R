@@ -12,6 +12,9 @@ ModelODEDoseNotInEquations = setClass("ModelODEDoseNotInEquations", contains = "
 # EvaluateModel
 # ======================================================================================================
 
+#' @rdname EvaluateModel
+#' @export
+
 setMethod(f = "EvaluateModel",
           signature = "ModelODEDoseNotInEquations",
           definition = function( object, arm )
@@ -356,6 +359,9 @@ setMethod(f = "EvaluateModel",
 # definePKModel
 # ======================================================================================================
 
+#' @rdname definePKModel
+#' @export
+#'
 setMethod("definePKModel",
           signature("ModelODE"),
           function( object, outcomes )
@@ -420,6 +426,9 @@ setMethod("definePKModel",
 # definePKPDModel
 # ======================================================================================================
 
+#' @rdname definePKPDModel
+#' @export
+#'
 setMethod("definePKPDModel",
           signature("ModelODEDoseNotInEquations","ModelODE"),
           function( PKModel, PDModel, outcomes )

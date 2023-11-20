@@ -2,9 +2,12 @@
 % Please edit documentation in R/Administration.R
 \name{setTimeDose}
 \alias{setTimeDose}
-\title{Set the times vector when doses are given.}
+\alias{setTimeDose,Administration-method}
+\title{setTimeDose}
 \usage{
 setTimeDose(object, timeDose)
+
+\S4method{setTimeDose}{Administration}(object, timeDose)
 }
 \arguments{
 \item{object}{An object \code{Administration} from the class \linkS4class{Administration}.}

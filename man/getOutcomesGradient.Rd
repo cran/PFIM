@@ -2,7 +2,7 @@
 % Please edit documentation in R/Design.R
 \name{getOutcomesGradient}
 \alias{getOutcomesGradient}
-\title{Get the results of the evaluation of the outcome gradients.}
+\title{getOutcomesGradient}
 \usage{
 getOutcomesGradient(object)
 }

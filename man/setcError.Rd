@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{setcError}
 \alias{setcError}
+\alias{setcError,ModelError-method}
 \title{Set the parameter c.}
 \usage{
 setcError(object, cError)
+
+\S4method{setcError}{ModelError}(object, cError)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

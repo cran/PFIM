@@ -36,39 +36,38 @@ Proportional = setClass(Class = "Proportional",
                                                equation =  parse(text = "sigmaSlope")
                         ))
 
-setMethod(
-  f="initialize",
-  signature="Proportional",
-  definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )
-  {
-    if(!missing(outcome))
-    {
-      .Object@outcome = outcome
-    }
-    if(!missing(equation))
-    {
-      .Object@equation = equation
-    }
-    if(!missing(derivatives))
-    {
-      .Object@derivatives = derivatives
-    }
-    if(!missing(sigmaInter))
-    {
-      .Object@sigmaInter = sigmaInter
-    }
-    if(!missing(sigmaSlope))
-    {
-      .Object@sigmaSlope = sigmaSlope
-    }
-    if( !missing( cError ) )
-    {
-      .Object@cError = cError
-    }
+setMethod( f="initialize",
+           signature="Proportional",
+           definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )
+           {
+             if(!missing(outcome))
+             {
+               .Object@outcome = outcome
+             }
+             if(!missing(equation))
+             {
+               .Object@equation = equation
+             }
+             if(!missing(derivatives))
+             {
+               .Object@derivatives = derivatives
+             }
+             if(!missing(sigmaInter))
+             {
+               .Object@sigmaInter = sigmaInter
+             }
+             if(!missing(sigmaSlope))
+             {
+               .Object@sigmaSlope = sigmaSlope
+             }
+             if( !missing( cError ) )
+             {
+               .Object@cError = cError
+             }
 
-    validObject(.Object)
-    return (.Object )
-  }
+             validObject(.Object)
+             return (.Object )
+           }
 )
 
 ##########################################################################################################

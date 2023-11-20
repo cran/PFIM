@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{setEquations}
 \alias{setEquations}
+\alias{setEquations,Model-method}
 \title{Set the equations of a model.}
 \usage{
 setEquations(object, equations)
+
+\S4method{setEquations}{Model}(object, equations)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

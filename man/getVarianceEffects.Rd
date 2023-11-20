@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getVarianceEffects}
 \alias{getVarianceEffects}
+\alias{getVarianceEffects,Fim-method}
 \title{Get the matrix of the variance effects.}
 \usage{
 getVarianceEffects(object)
+
+\S4method{getVarianceEffects}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

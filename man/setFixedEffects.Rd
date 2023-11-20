@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{setFixedEffects}
 \alias{setFixedEffects}
+\alias{setFixedEffects,Fim-method}
 \title{Set the fixed effects.}
 \usage{
 setFixedEffects(object)
+
+\S4method{setFixedEffects}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{getOptimizationResults}
 \alias{getOptimizationResults}
+\alias{getOptimizationResults,Optimization-method}
 \title{Get the optimization results.}
 \usage{
 getOptimizationResults(object)
+
+\S4method{getOptimizationResults}{Optimization}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

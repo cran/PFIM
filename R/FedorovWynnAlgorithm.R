@@ -42,26 +42,25 @@ FedorovWynnAlgorithm = setClass(
     optimalDoses = "vector")
 )
 
-setMethod(
-  f="initialize",
-  signature="FedorovWynnAlgorithm",
-  definition= function (.Object, elementaryProtocols, numberOfSubjects, proportionsOfSubjects, showProcess)
-  {
-    if(!missing(elementaryProtocols))
-      .Object@elementaryProtocols=elementaryProtocols
+setMethod(f="initialize",
+          signature="FedorovWynnAlgorithm",
+          definition= function (.Object, elementaryProtocols, numberOfSubjects, proportionsOfSubjects, showProcess)
+          {
+            if(!missing(elementaryProtocols))
+              .Object@elementaryProtocols=elementaryProtocols
 
-    if(!missing(numberOfSubjects))
-      .Object@numberOfSubjects=numberOfSubjects
+            if(!missing(numberOfSubjects))
+              .Object@numberOfSubjects=numberOfSubjects
 
-    if(!missing(proportionsOfSubjects))
-      .Object@proportionsOfSubjects=proportionsOfSubjects
+            if(!missing(proportionsOfSubjects))
+              .Object@proportionsOfSubjects=proportionsOfSubjects
 
-    if(!missing(showProcess))
-      .Object@showProcess=showProcess
+            if(!missing(showProcess))
+              .Object@showProcess=showProcess
 
-    validObject(.Object)
-    return (.Object )
-  }
+            validObject(.Object)
+            return (.Object )
+          }
 )
 
 ##########################################################################################################
@@ -81,6 +80,7 @@ setMethod(
 #' @param protdep_input parameter protdep_input
 #' @param freqdep_input parameter freqdep_input
 #' @return A list giving the results of the outputs of the FedorovWynn algorithm.
+#' @export
 
 FedorovWynnAlgorithm_Rcpp = function( protocols_input,  ndimen_input, nbprot_input,
                                       numprot_input, freq_input, nbdata_input,
@@ -1106,14 +1106,13 @@ return( output )
 
 }
 
-# ======================================================================================================
 #' Resize the fisher Matrix from a vector to a matrix.
 #'
 #' @name resizeFisherMatrix
 #' @param nbOfDimensions : a numeric for the dimensions of the fisher matrix.
 #' @param fisherMatrix : a vector that contain the low triangular Fisher matrix + its main diagonal.
 #' @return The Fisher matrix of size nbOfDimensions*nbOfDimensions
-# ======================================================================================================
+#' @export
 
 setGeneric("resizeFisherMatrix",
            function( nbOfDimensions, fisherMatrix )
@@ -1122,26 +1121,31 @@ setGeneric("resizeFisherMatrix",
            }
 )
 
-setMethod(
-  f="resizeFisherMatrix",
-  definition = function( nbOfDimensions, fisherMatrix )
-  {
-    M = matrix(0, nrow = nbOfDimensions, ncol = nbOfDimensions)
-    k=1
-    for (i in 1:nbOfDimensions){
-      for (j in 1:i) {
-        M[i,j] = fisherMatrix[k]
-        k=k+1
-      }}
-    M = (M+t(M))
-    diag(M) = diag(M)/2
+#' @rdname resizeFisherMatrix
+#' @export
 
-    return( M )
-  })
+setMethod( f="resizeFisherMatrix",
+           definition = function( nbOfDimensions, fisherMatrix )
+           {
+             M = matrix(0, nrow = nbOfDimensions, ncol = nbOfDimensions)
+             k=1
+             for (i in 1:nbOfDimensions){
+               for (j in 1:i) {
+                 M[i,j] = fisherMatrix[k]
+                 k=k+1
+               }}
+             M = (M+t(M))
+             diag(M) = diag(M)/2
+
+             return( M )
+           })
 
 # ======================================================================================================
 # setParameters
 # ======================================================================================================
+
+#' @rdname setParameters
+#' @export
 
 setMethod("setParameters",
           "FedorovWynnAlgorithm",
@@ -1157,6 +1161,9 @@ setMethod("setParameters",
 # ======================================================================================================
 # optimize
 # ======================================================================================================
+
+#' @rdname optimize
+#' @export
 
 setMethod(f = "optimize",
           signature = "FedorovWynnAlgorithm",
@@ -1178,7 +1185,7 @@ setMethod(f = "optimize",
             # generate initial elementary protocols
             # ===============================================
 
-             elementaryProtocolsFW = getElementaryProtocols( optimizationObject, fims )
+            elementaryProtocolsFW = getElementaryProtocols( optimizationObject, fims )
 
             # ===============================================
             # parameters for FedorovWynn algorithm in Rcpp
@@ -1453,9 +1460,11 @@ setMethod(f = "optimize",
 
           })
 
-# ======================================================================================================
-# show
-# ======================================================================================================
+
+#' @title show
+#' @rdname show
+#' @param object object
+#' @export
 
 setMethod(f="show",
           signature = "FedorovWynnAlgorithm",
@@ -1492,46 +1501,48 @@ setMethod(f="show",
 # generateReportOptimization
 # ======================================================================================================
 
-setMethod(
-  "generateReportOptimization",
-  signature = "FedorovWynnAlgorithm",
-  definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
-  {
-    # ===================================================
-    # projectName and outputs tables
-    # ===================================================
+#' @rdname generateReportOptimization
+#' @export
 
-    projectName = getName( optimizationObject )
+setMethod( "generateReportOptimization",
+           signature = "FedorovWynnAlgorithm",
+           definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
+           {
+             # ===================================================
+             # projectName and outputs tables
+             # ===================================================
 
-    evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
-    fimType = is( getFim( evaluationFIMResults ) )[1]
+             projectName = getName( optimizationObject )
 
-    evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
+             evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
+             fimType = is( getFim( evaluationFIMResults ) )[1]
 
-    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
+             evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
 
-    tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
+             tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
 
-    # =====================================
-    # markdown template
-    # =====================================
+             tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
 
-    path = system.file(package = "PFIM")
-    path = paste0( path, "/rmarkdown/templates/skeleton/" )
-    nameInputFile = paste0( path, "template_FedorovAlgorithm.rmd" )
+             # =====================================
+             # markdown template
+             # =====================================
 
-    rmarkdown::render( input = nameInputFile,
-                       output_file = outputFile,
-                       output_dir = outputPath,
-                       params = list(
-                         object = "object",
-                         plotOptions = "plotOptions",
-                         projectName = "projectName",
-                         fimType = "fimType",
-                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
-                         tablesOptimizationObject = "tablesOptimizationObject" ) )
+             path = system.file(package = "PFIM")
+             path = paste0( path, "/rmarkdown/templates/skeleton/" )
+             nameInputFile = paste0( path, "template_FedorovAlgorithm.rmd" )
 
-  })
+             rmarkdown::render( input = nameInputFile,
+                                output_file = outputFile,
+                                output_dir = outputPath,
+                                params = list(
+                                  object = "object",
+                                  plotOptions = "plotOptions",
+                                  projectName = "projectName",
+                                  fimType = "fimType",
+                                  tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
+                                  tablesOptimizationObject = "tablesOptimizationObject" ) )
+
+           })
 
 ##########################################################################################################
 # END Class "FedorovWynnAlgorithm"

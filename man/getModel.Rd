@@ -2,9 +2,12 @@
 % Please edit documentation in R/PFIMProject.R
 \name{getModel}
 \alias{getModel}
+\alias{getModel,PFIMProject-method}
 \title{Get the model.}
 \usage{
 getModel(object)
+
+\S4method{getModel}{PFIMProject}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{PFIMProject}.}

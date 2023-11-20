@@ -22,23 +22,25 @@ Distribution = setClass("Distribution",
                           parameters = "list"
                         ))
 
-setMethod(
-  f="initialize",
-  signature="Distribution",
-  definition= function (.Object, parameters)
-  {
-    if(!missing(parameters))
-    {
-      .Object@parameters = parameters
-    }
-    validObject(.Object)
-    return (.Object )
-  }
+setMethod(f="initialize",
+          signature="Distribution",
+          definition= function (.Object, parameters)
+          {
+            if(!missing(parameters))
+            {
+              .Object@parameters = parameters
+            }
+            validObject(.Object)
+            return (.Object )
+          }
 )
 
 # ======================================================================================================
 # getParameters
 # ======================================================================================================
+
+#' @rdname getParameters
+#' @export
 
 setMethod("getParameters",
           "Distribution",
@@ -52,17 +54,23 @@ setMethod("getParameters",
 # setParameters
 # ======================================================================================================
 
+#' @rdname setParameters
+#' @export
+
 setMethod("setParameters",
           "Distribution",
           function(object,parameters)
           {
-             object@parameters = parameters
+            object@parameters = parameters
             return(object)
           })
 
 # ======================================================================================================
 # getMu
 # ======================================================================================================
+
+#' @rdname getMu
+#' @export
 
 setMethod("getMu",
           "Distribution",
@@ -76,6 +84,9 @@ setMethod("getMu",
 # ======================================================================================================
 # setMu
 # ======================================================================================================
+
+#' @rdname setMu
+#' @export
 
 setMethod("setMu",
           "Distribution",
@@ -91,6 +102,9 @@ setMethod("setMu",
 # getOmega
 # ======================================================================================================
 
+#' @rdname getOmega
+#' @export
+
 setMethod("getOmega",
           "Distribution",
           function(object)
@@ -104,6 +118,9 @@ setMethod("getOmega",
 # setOmega
 # ======================================================================================================
 
+#' @rdname setOmega
+#' @export
+
 setMethod("setOmega",
           "Distribution",
           function(object,value)
@@ -115,14 +132,13 @@ setMethod("setOmega",
             return( object )
           })
 
-# ======================================================================================================
 #' Get the adjusted gradient.
 #'
-#' @name getAdjustedGradient
+#' @title getAdjustedGradient
 #' @param object An object \code{distribution} from the class \linkS4class{Distribution}.
 #' @param outcomesGradient A list containing the evaluation of the outcome gradients.
 #' @return A list giving the adjusted gradient.
-# ======================================================================================================
+#' @export
 
 setGeneric("getAdjustedGradient",
            function( object, outcomesGradient )

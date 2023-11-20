@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{isModelAnalytic}
 \alias{isModelAnalytic}
+\alias{isModelAnalytic,Model-method}
 \title{Test if a mode is analytic.}
 \usage{
 isModelAnalytic(object)
+
+\S4method{isModelAnalytic}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

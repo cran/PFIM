@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{setOdeSolverParameters}
 \alias{setOdeSolverParameters}
+\alias{setOdeSolverParameters,Model-method}
 \title{Set the parameters of the ode solver.}
 \usage{
 setOdeSolverParameters(object, odeSolverParameters)
+
+\S4method{setOdeSolverParameters}{Model}(object, odeSolverParameters)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

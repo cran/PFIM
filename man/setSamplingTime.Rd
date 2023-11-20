@@ -2,9 +2,12 @@
 % Please edit documentation in R/Arm.R
 \name{setSamplingTime}
 \alias{setSamplingTime}
-\title{Set the sampling time of an arm.}
+\alias{setSamplingTime,Arm-method}
+\title{setSamplingTime}
 \usage{
 setSamplingTime(object, samplingTime)
+
+\S4method{setSamplingTime}{Arm}(object, samplingTime)
 }
 \arguments{
 \item{object}{An object \code{Arm} from the class \linkS4class{Arm}.}

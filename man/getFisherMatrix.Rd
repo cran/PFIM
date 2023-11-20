@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getFisherMatrix}
 \alias{getFisherMatrix}
+\alias{getFisherMatrix,Fim-method}
 \title{Get the FIM.}
 \usage{
 getFisherMatrix(object)
+
+\S4method{getFisherMatrix}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

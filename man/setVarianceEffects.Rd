@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{setVarianceEffects}
 \alias{setVarianceEffects}
+\alias{setVarianceEffects,Fim-method}
 \title{Set the matrix of the variance effects.}
 \usage{
 setVarianceEffects(object)
+
+\S4method{setVarianceEffects}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}

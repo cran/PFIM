@@ -2,9 +2,12 @@
 % Please edit documentation in R/MultiplicativeAlgorithm.R
 \name{getNumberOfIterations}
 \alias{getNumberOfIterations}
+\alias{getNumberOfIterations,MultiplicativeAlgorithm-method}
 \title{Get the number of iterations.}
 \usage{
 getNumberOfIterations(object)
+
+\S4method{getNumberOfIterations}{MultiplicativeAlgorithm}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{MultiplicativeAlgorithm}.}

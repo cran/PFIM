@@ -2,9 +2,12 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{getMinSampling}
 \alias{getMinSampling}
+\alias{getMinSampling,SamplingTimeConstraints-method}
 \title{Get the minimal sampling times.}
 \usage{
 getMinSampling(object)
+
+\S4method{getMinSampling}{SamplingTimeConstraints}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{SamplingTimeConstraints}.}

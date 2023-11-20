@@ -2,9 +2,12 @@
 % Please edit documentation in R/OptimizationAlgorithm.R
 \name{setOptimalDesign}
 \alias{setOptimalDesign}
+\alias{setOptimalDesign,OptimizationAlgorithm-method}
 \title{Set the optimal design.}
 \usage{
 setOptimalDesign(object, optimalDesign)
+
+\S4method{setOptimalDesign}{OptimizationAlgorithm}(object, optimalDesign)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{OptimizationAlgorithm}.}

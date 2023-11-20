@@ -2,9 +2,12 @@
 % Please edit documentation in R/Optimization.R
 \name{getEvaluationInitialDesignResults}
 \alias{getEvaluationInitialDesignResults}
+\alias{getEvaluationInitialDesignResults,Optimization-method}
 \title{Get the evaluation results of the initial design.}
 \usage{
 getEvaluationInitialDesignResults(object)
+
+\S4method{getEvaluationInitialDesignResults}{Optimization}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Optimization}.}

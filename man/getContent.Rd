@@ -2,9 +2,12 @@
 % Please edit documentation in R/LibraryOfModels.R
 \name{getContent}
 \alias{getContent}
+\alias{getContent,LibraryOfModels-method}
 \title{Get content of a library of models.}
 \usage{
 getContent(object)
+
+\S4method{getContent}{LibraryOfModels}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{LibraryOfModels}.}

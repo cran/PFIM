@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelParameter.R
 \name{getFixedMu}
 \alias{getFixedMu}
+\alias{getFixedMu,ModelParameter-method}
 \title{Get the fixed effect.}
 \usage{
 getFixedMu(object)
+
+\S4method{getFixedMu}{ModelParameter}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelParameter}.}

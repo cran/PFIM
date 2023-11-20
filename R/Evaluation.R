@@ -44,81 +44,83 @@ Evaluation = setClass(
 
   prototype = prototype( odeSolverParameters = list( atol = 1e-6, rtol = 1e-6 ) ) )
 
-setMethod(
-  f="initialize",
-  signature="Evaluation",
-  definition=function(.Object, name, model, modelEquations, modelParameters, modelError, outcomes, designs, fim, odeSolverParameters )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
+setMethod(f="initialize",
+          signature="Evaluation",
+          definition=function(.Object, name, model, modelEquations, modelParameters, modelError, outcomes, designs, fim, odeSolverParameters )
+          {
+            if(!missing(name))
+            {
+              .Object@name = name
+            }
 
-    if(!missing(model))
-    {
-      .Object@model = model
-    }
+            if(!missing(model))
+            {
+              .Object@model = model
+            }
 
-    if(!missing(modelEquations))
-    {
-      .Object@modelEquations = modelEquations
-    }
+            if(!missing(modelEquations))
+            {
+              .Object@modelEquations = modelEquations
+            }
 
-    if(!missing(outcomes))
-    {
-      .Object@outcomes = outcomes
-    }
+            if(!missing(outcomes))
+            {
+              .Object@outcomes = outcomes
+            }
 
-    if(!missing(designs))
-    {
-      .Object@designs = designs
-    }
+            if(!missing(designs))
+            {
+              .Object@designs = designs
+            }
 
-    if(!missing(fim))
-    {
-      if ( fim == "population")
-      {
-        .Object@fim = PopulationFim()
-      }
-      else if ( fim == "individual")
-      {
-        .Object@fim = IndividualFim()
-      }
-      else if ( fim == "Bayesian")
-      {
-        .Object@fim = BayesianFim()
-      }
-    }
+            if(!missing(fim))
+            {
+              if ( fim == "population")
+              {
+                .Object@fim = PopulationFim()
+              }
+              else if ( fim == "individual")
+              {
+                .Object@fim = IndividualFim()
+              }
+              else if ( fim == "Bayesian")
+              {
+                .Object@fim = BayesianFim()
+              }
+            }
 
-    if(!missing(odeSolverParameters))
-    {
-      .Object@odeSolverParameters = odeSolverParameters
-    }
+            if(!missing(odeSolverParameters))
+            {
+              .Object@odeSolverParameters = odeSolverParameters
+            }
 
-    # ===========================================
-    # set the names of the designs
-    # ===========================================
+            # ===========================================
+            # set the names of the designs
+            # ===========================================
 
-    names(.Object@designs)= getNames( designs )
+            names(.Object@designs)= getNames( designs )
 
-    if(!missing(modelError))
-    {
-      .Object@modelError = modelError
-    }
+            if(!missing(modelError))
+            {
+              .Object@modelError = modelError
+            }
 
-    if(!missing(modelParameters))
-    {
-      .Object@modelParameters = modelParameters
-    }
+            if(!missing(modelParameters))
+            {
+              .Object@modelParameters = modelParameters
+            }
 
-    validObject(.Object)
-    return (.Object )
-  }
+            validObject(.Object)
+            return (.Object )
+          }
 )
 
 # ======================================================================================================
 # run
 # ======================================================================================================
+
+#' @rdname run
+#' @export
 
 setMethod(f = "run",
           signature = "Evaluation",
@@ -178,9 +180,10 @@ setMethod(f = "run",
             return( object )
           })
 
-# ======================================================================================================
-# show
-# ======================================================================================================
+#' @title show
+#' @rdname show
+#' @param object object
+#' @export
 
 setMethod(f="show",
           signature = "Evaluation",
@@ -320,20 +323,22 @@ setMethod(f="show",
             }
           })
 
-# ======================================================================================================
 #' Generate all the table for the evaluation report
 #'
-#' @name reportTablesPlot
+#' @title reportTablesPlot
 #' @param object An object \code{evaluation} from the class \linkS4class{Evaluation}.
 #' @param plotOptions A list containing the options for the plots.
 #' @return The list \code{tables} containing the tables for the evaluation report.
-# ======================================================================================================
+#' @export
 
 setGeneric("reportTablesPlot",
            function( object, plotOptions )
            {
              standardGeneric("reportTablesPlot")
            })
+
+#' @rdname reportTablesPlot
+#' @export
 
 setMethod(f="reportTablesPlot",
           signature("Evaluation"),
@@ -358,6 +363,9 @@ setMethod(f="reportTablesPlot",
 # ======================================================================================================
 # generateTables
 # ======================================================================================================
+
+#' @rdname generateTables
+#' @export
 
 setMethod(f="generateTables",
           signature("Evaluation"),
@@ -443,6 +451,9 @@ setMethod(f="generateTables",
 # ======================================================================================================
 # Report
 # ======================================================================================================
+
+#' @rdname Report
+#' @export
 
 setMethod(f="Report",
           signature("Evaluation"),

@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelParameter.R
 \name{setFixedMu}
 \alias{setFixedMu}
+\alias{setFixedMu,ModelParameter-method}
 \title{Set the mu as fixed or not.}
 \usage{
 setFixedMu(object, value)
+
+\S4method{setFixedMu}{ModelParameter}(object, value)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelParameter}.}

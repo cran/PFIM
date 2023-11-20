@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{isModelSteadyState}
 \alias{isModelSteadyState}
+\alias{isModelSteadyState,Model-method}
 \title{Test if a mode is steady state.}
 \usage{
 isModelSteadyState(object)
+
+\S4method{isModelSteadyState}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

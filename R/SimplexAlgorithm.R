@@ -39,49 +39,51 @@ SimplexAlgorithm = setClass(
     showProcess = F
   )
 )
-setMethod(
-  f="initialize",
-  signature="SimplexAlgorithm",
-  definition= function ( .Object,
-                         pctInitialSimplexBuilding,
-                         maxIteration,
-                         tolerance,
-                         optimalDesigns,
-                         iterationAndCriteria,
-                         showProcess )
-  {
-    .Object@pctInitialSimplexBuilding = 20
-    .Object@maxIteration = 5000
-    .Object@tolerance = 1e-6
-    .Object@showProcess = F
-    if ( !missing( pctInitialSimplexBuilding ) )
-    {
-      .Object@pctInitialSimplexBuilding = pctInitialSimplexBuilding
-    }
-    if ( !missing( maxIteration ) )
-    {
-      .Object@maxIteration = maxIteration
-    }
-    if ( !missing( tolerance ) )
-    {
-      .Object@tolerance = tolerance
-    }
-    if ( !missing( showProcess ) )
-    {
-      .Object@showProcess = showProcess
-    }
-    if ( !missing( optimalDesigns ) )
-    {
-      .Object@optimalDesigns = optimalDesigns
-    }
-    if ( !missing( iterationAndCriteria ) )
-    {
-      .Object@iterationAndCriteria = iterationAndCriteria
-    }
-    validObject( .Object )
-    return ( .Object )
-  }
+setMethod( f="initialize",
+           signature="SimplexAlgorithm",
+           definition= function ( .Object,
+                                  pctInitialSimplexBuilding,
+                                  maxIteration,
+                                  tolerance,
+                                  optimalDesigns,
+                                  iterationAndCriteria,
+                                  showProcess )
+           {
+             .Object@pctInitialSimplexBuilding = 20
+             .Object@maxIteration = 5000
+             .Object@tolerance = 1e-6
+             .Object@showProcess = F
+             if ( !missing( pctInitialSimplexBuilding ) )
+             {
+               .Object@pctInitialSimplexBuilding = pctInitialSimplexBuilding
+             }
+             if ( !missing( maxIteration ) )
+             {
+               .Object@maxIteration = maxIteration
+             }
+             if ( !missing( tolerance ) )
+             {
+               .Object@tolerance = tolerance
+             }
+             if ( !missing( showProcess ) )
+             {
+               .Object@showProcess = showProcess
+             }
+             if ( !missing( optimalDesigns ) )
+             {
+               .Object@optimalDesigns = optimalDesigns
+             }
+             if ( !missing( iterationAndCriteria ) )
+             {
+               .Object@iterationAndCriteria = iterationAndCriteria
+             }
+             validObject( .Object )
+             return ( .Object )
+           }
 )
+
+#' @rdname setParameters
+#' @export
 
 setMethod("setParameters",
           "SimplexAlgorithm",
@@ -93,7 +95,6 @@ setMethod("setParameters",
             return( object )
           })
 
-# ======================================================================================================
 # function nelder simplex amoeba
 #
 # add of a Splus function for the Simplex (taken on the Splus User Group)
@@ -113,7 +114,8 @@ setMethod("setParameters",
 #' @param data a fixed set of data.
 #' @param showProcess A boolean for showing the process or not.
 #' @return A list containing the components of the optimized simplex.
-# ======================================================================================================
+#' 'getColumnAndParametersNamesFIMInLatex.
+#' @export
 
 fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
   ## Multidimensional minimization of the function funk(x,data) where x
@@ -297,7 +299,6 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
   return(list(p=p,y=y,iter=iter,converge=converge, results = results ))
 } # end function amoeba
 
-# ======================================================================================================
 #' Compute the fisher.simplex
 #'
 #' @name fisher.simplex
@@ -305,7 +306,7 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
 #' @param optimizationObject An object from the class \linkS4class{Optimization}.
 #' @param outcomes A vector giving the outcomes of the arms.
 #' @return A list giving the results of the optimization.
-# ======================================================================================================
+#' @export
 
 fisher.simplex = function( simplex, optimizationObject, outcomes )
 {
@@ -439,6 +440,9 @@ fisher.simplex = function( simplex, optimizationObject, outcomes )
 
   return( Dcriterion )
 }
+
+#' @rdname optimize
+#' @export
 
 setMethod( f = "optimize",
            signature = "SimplexAlgorithm",
@@ -592,6 +596,11 @@ setMethod( f = "optimize",
              return( object )
            })
 
+#' @title show
+#' @rdname show
+#' @param object object
+#' @export
+
 setMethod(f="show",
           signature = "SimplexAlgorithm",
           definition = function( object )
@@ -621,46 +630,48 @@ setMethod(f="show",
 # generateReportOptimization
 # ======================================================================================================
 
-setMethod(
-  "generateReportOptimization",
-  signature = "SimplexAlgorithm",
-  definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
-  {
-    # ===================================================
-    # projectName and outputs tables
-    # ===================================================
+#' @rdname generateReportOptimization
+#' @export
 
-    projectName = getName( optimizationObject )
+setMethod( "generateReportOptimization",
+           signature = "SimplexAlgorithm",
+           definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
+           {
+             # ===================================================
+             # projectName and outputs tables
+             # ===================================================
 
-    evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
-    fimType = is( getFim( evaluationFIMResults ) )[1]
+             projectName = getName( optimizationObject )
 
-    evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
+             evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
+             fimType = is( getFim( evaluationFIMResults ) )[1]
 
-    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
+             evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
 
-    tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
+             tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
 
-    # ============================
-    # markdown template
-    # ============================
+             tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
 
-    path = system.file(package = "PFIM")
-    path = paste0( path, "/rmarkdown/templates/skeleton/" )
-    nameInputFile = paste0( path, "template_SimplexAlgorithm.rmd" )
+             # ============================
+             # markdown template
+             # ============================
 
-    rmarkdown::render( input = nameInputFile,
-                       output_file = outputFile,
-                       output_dir = outputPath,
-                       params = list(
-                         object = "object",
-                         plotOptions = "plotOptions",
-                         projectName = "projectName",
-                         fimType = "fimType",
-                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
-                         tablesOptimizationObject = "tablesOptimizationObject" ) )
+             path = system.file(package = "PFIM")
+             path = paste0( path, "/rmarkdown/templates/skeleton/" )
+             nameInputFile = paste0( path, "template_SimplexAlgorithm.rmd" )
 
-  })
+             rmarkdown::render( input = nameInputFile,
+                                output_file = outputFile,
+                                output_dir = outputPath,
+                                params = list(
+                                  object = "object",
+                                  plotOptions = "plotOptions",
+                                  projectName = "projectName",
+                                  fimType = "fimType",
+                                  tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
+                                  tablesOptimizationObject = "tablesOptimizationObject" ) )
+
+           })
 
 ##############################################################################
 # END Class SimplexAlgorithm

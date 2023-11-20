@@ -2,9 +2,12 @@
 % Please edit documentation in R/FedorovWynnAlgorithm.R
 \name{resizeFisherMatrix}
 \alias{resizeFisherMatrix}
+\alias{resizeFisherMatrix,ANY-method}
 \title{Resize the fisher Matrix from a vector to a matrix.}
 \usage{
 resizeFisherMatrix(nbOfDimensions, fisherMatrix)
+
+\S4method{resizeFisherMatrix}{ANY}(nbOfDimensions, fisherMatrix)
 }
 \arguments{
 \item{nbOfDimensions}{: a numeric for the dimensions of the fisher matrix.}

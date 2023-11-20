@@ -2,9 +2,12 @@
 % Please edit documentation in R/PFIMProject.R
 \name{getDesigns}
 \alias{getDesigns}
+\alias{getDesigns,PFIMProject-method}
 \title{Get the designs.}
 \usage{
 getDesigns(object)
+
+\S4method{getDesigns}{PFIMProject}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{PFIMProject}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{checkValiditySamplingConstraint}
 \alias{checkValiditySamplingConstraint}
-\title{Check the validity of he sampling times constraints}
+\alias{checkValiditySamplingConstraint,Design-method}
+\title{checkValiditySamplingConstraint}
 \usage{
 checkValiditySamplingConstraint(object)
+
+\S4method{checkValiditySamplingConstraint}{Design}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Design}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{setDescription}
 \alias{setDescription}
+\alias{setDescription,Model-method}
 \title{Set the description of a model.}
 \usage{
 setDescription(object, description)
+
+\S4method{setDescription}{Model}(object, description)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

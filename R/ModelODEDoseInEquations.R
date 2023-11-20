@@ -16,6 +16,9 @@ ModelODEDoseInEquations = setClass("ModelODEDoseInEquations",
 # EvaluateModel
 # ======================================================================================================
 
+#' @rdname EvaluateModel
+#' @export
+
 setMethod(f="EvaluateModel",
           signature="ModelODEDoseInEquations",
           definition = function( object, arm )
@@ -430,6 +433,9 @@ setMethod(f="EvaluateModel",
 # definePKModel
 # ======================================================================================================
 
+#' @rdname definePKModel
+#' @export
+
 setMethod("definePKModel",
           signature("ModelODEDoseInEquations"),
           function( object, outcomes )
@@ -534,6 +540,9 @@ setMethod("definePKModel",
 # ======================================================================================================
 # definePKPDModel
 # ======================================================================================================
+
+#' @rdname definePKPDModel
+#' @export
 
 setMethod("definePKPDModel",
           signature("ModelODEDoseInEquations","ModelODE"),

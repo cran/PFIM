@@ -33,47 +33,49 @@ Design = setClass("Design",
                     numberOfArms = "numeric",
                     fim = "Fim" ) )
 
-setMethod(
-  f="initialize",
-  signature="Design",
-  definition= function (.Object, name, size, arms, outcomesEvaluation, outcomesGradient, numberOfArms, fim )
-  {
-    if(!missing(name))
-    {
-      .Object@name = name
-    }
-    if(!missing(size))
-    {
-      .Object@size = size
-    }
-    if(!missing(arms))
-    {
-      .Object@arms = unlist(arms)
-    }
-    if(!missing(outcomesEvaluation))
-    {
-      .Object@outcomesEvaluation = outcomesEvaluation
-    }
-    if(!missing(outcomesGradient))
-    {
-      .Object@outcomesGradient = outcomesGradient
-    }
-    if(!missing(fim))
-    {
-      .Object@fim = fim
-    }
-    if(!missing(numberOfArms))
-    {
-      .Object@numberOfArms = numberOfArms
-    }
-    validObject(.Object)
-    return (.Object )
-  }
+setMethod(f="initialize",
+          signature="Design",
+          definition= function (.Object, name, size, arms, outcomesEvaluation, outcomesGradient, numberOfArms, fim )
+          {
+            if(!missing(name))
+            {
+              .Object@name = name
+            }
+            if(!missing(size))
+            {
+              .Object@size = size
+            }
+            if(!missing(arms))
+            {
+              .Object@arms = unlist(arms)
+            }
+            if(!missing(outcomesEvaluation))
+            {
+              .Object@outcomesEvaluation = outcomesEvaluation
+            }
+            if(!missing(outcomesGradient))
+            {
+              .Object@outcomesGradient = outcomesGradient
+            }
+            if(!missing(fim))
+            {
+              .Object@fim = fim
+            }
+            if(!missing(numberOfArms))
+            {
+              .Object@numberOfArms = numberOfArms
+            }
+            validObject(.Object)
+            return (.Object )
+          }
 )
 
 # ======================================================================================================
 # getName
 # ======================================================================================================
+
+#' @rdname getName
+#' @export
 
 setMethod(f="getName",
           signature="Design",
@@ -85,6 +87,9 @@ setMethod(f="getName",
 # ======================================================================================================
 # setName
 # ======================================================================================================
+
+#' @rdname setName
+#' @export
 
 setMethod(f="setName",
           signature="Design",
@@ -98,6 +103,9 @@ setMethod(f="setName",
 # getSize
 # ======================================================================================================
 
+#' @rdname getSize
+#' @export
+
 setMethod(f="getSize",
           signature="Design",
           definition = function(object)
@@ -109,6 +117,9 @@ setMethod(f="getSize",
 # ======================================================================================================
 # setSize
 # ======================================================================================================
+
+#' @rdname setSize
+#' @export
 
 setMethod(f="setSize",
           signature="Design",
@@ -122,6 +133,9 @@ setMethod(f="setSize",
 # getArms
 # ======================================================================================================
 
+#' @rdname getArms
+#' @export
+
 setMethod(f="getArms",
           signature="Design",
           definition = function(object)
@@ -134,6 +148,9 @@ setMethod(f="getArms",
 # setArms
 # ======================================================================================================
 
+#' @rdname setArms
+#' @export
+
 setMethod(f="setArms",
           signature="Design",
           definition = function(object,arms)
@@ -143,13 +160,12 @@ setMethod(f="setArms",
           }
 )
 
-# ======================================================================================================
 #' Get the results of the evaluation of the outcomes.
 #'
-#' @name getOutcomesEvaluation
+#' @title getOutcomesEvaluation
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @return The list \code{outcomesEvaluation} containing the results of the design evaluation for the outcomes.
-# ======================================================================================================
+#' @export
 
 setGeneric("getOutcomesEvaluation",
            function(object)
@@ -157,6 +173,9 @@ setGeneric("getOutcomesEvaluation",
              standardGeneric("getOutcomesEvaluation")
            }
 )
+
+#' @rdname getOutcomesEvaluation
+#' @export
 
 setMethod(f="getOutcomesEvaluation",
           signature="Design",
@@ -166,14 +185,13 @@ setMethod(f="getOutcomesEvaluation",
           }
 )
 
-# ======================================================================================================
 #' Set the results of the evaluation of the outcomes.
 #'
-#' @name setOutcomesEvaluation
+#' @title setOutcomesEvaluation
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @param outcomesEvaluation A list containing the evaluation of the outcomes.
 #' @return An object \code{Design} with the list \code{outcomesEvaluation} updated.
-# ======================================================================================================
+#' @export
 
 setGeneric("setOutcomesEvaluation",
            function( object, outcomesEvaluation )
@@ -181,6 +199,9 @@ setGeneric("setOutcomesEvaluation",
              standardGeneric("setOutcomesEvaluation")
            }
 )
+
+#' @rdname setOutcomesEvaluation
+#' @export
 
 setMethod(f="setOutcomesEvaluation",
           signature="Design",
@@ -191,13 +212,12 @@ setMethod(f="setOutcomesEvaluation",
           }
 )
 
-# ======================================================================================================
 #' Get the results of the evaluation of the outcome gradients.
 #'
-#' @name getOutcomesGradient
+#' @title getOutcomesGradient
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @return  The list \code{outcomesGradient} containing the results of the design evaluation for the outcome gradients.
-# ======================================================================================================
+#' @export
 
 setGeneric("getOutcomesGradient",
            function(object)
@@ -206,7 +226,10 @@ setGeneric("getOutcomesGradient",
            }
 )
 
-setMethod(f="getOutcomesGradient",
+#' @rdname getFim
+#' @export
+
+setMethod(f="getFim",
           signature="Design",
           definition = function(object)
           {
@@ -214,14 +237,13 @@ setMethod(f="getOutcomesGradient",
           }
 )
 
-# ======================================================================================================
 #' Set the results of the evaluation of the outcomes.
 #'
-#' @name setOutcomesGradient
+#' @title setOutcomesGradient
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @param outcomesGradient A list containing the evaluation of the outcome gradients.
 #' @return An object \code{Design} with the list \code{outcomesGradient} updated.
-# ======================================================================================================
+#' @export
 
 setGeneric("setOutcomesGradient",
            function(object,outcomesGradient)
@@ -229,6 +251,9 @@ setGeneric("setOutcomesGradient",
              standardGeneric("setOutcomesGradient")
            }
 )
+
+#' @rdname setOutcomesGradient
+#' @export
 
 setMethod(f="setOutcomesGradient",
           signature="Design",
@@ -239,6 +264,9 @@ setMethod(f="setOutcomesGradient",
           }
 )
 
+#' @rdname getFim
+#' @export
+
 setMethod(f="getFim",
           signature="Design",
           definition = function(object)
@@ -247,14 +275,13 @@ setMethod(f="getFim",
           }
 )
 
-# ======================================================================================================
 #' Set the fim of the design.
 #'
-#' @name setFim
+#' @title setFim
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @param fim An object \code{fim} from the class \linkS4class{Fim}.
 #' @return An object \code{Design} with the \code{fim} updated.
-# ======================================================================================================
+#' @export
 
 setGeneric("setFim",
            function(object,fim)
@@ -262,6 +289,9 @@ setGeneric("setFim",
              standardGeneric("setFim")
            }
 )
+
+#' @rdname setFim
+#' @export
 
 setMethod(f="setFim",
           signature="Design",
@@ -272,19 +302,21 @@ setMethod(f="setFim",
           }
 )
 
-# ======================================================================================================
 #' Get the number of arms in a design.
 #'
-#' @name getNumberOfArms
+#' @title getNumberOfArms
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @return A numeric \code{numberOfArms} giving the number of arms in the design.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "getNumberOfArms",
   function(object) {
     standardGeneric("getNumberOfArms")
   })
+
+#' @rdname getNumberOfArms
+#' @export
 
 setMethod("getNumberOfArms",
           "Design",
@@ -294,20 +326,22 @@ setMethod("getNumberOfArms",
           }
 )
 
-# ======================================================================================================
 #' Set the number of arms in a design.
 #'
-#' @name setNumberOfArms
+#' @title setNumberOfArms
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @param numberOfArms A numeric \code{numberOfArms} giving the new number of arms in the design.
 #' @return An object \code{Design} with the \code{numberOfArms} updated.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "setNumberOfArms",
   function( object , numberOfArms ) {
     standardGeneric("setNumberOfArms")
   })
+
+#' @rdname setNumberOfArms
+#' @export
 
 setMethod("setNumberOfArms",
           "Design",
@@ -318,14 +352,13 @@ setMethod("setNumberOfArms",
           }
 )
 
-# ======================================================================================================
 #' Set the arms in a design.
 #'
-#' @name setArm
+#' @title setArm
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @param arm A list of object \code{Arm} giving the arms of the design.
 #' @return An object \code{Design} with the list \code{Arm} updated.
-# ======================================================================================================
+#' @export
 
 setGeneric("setArm",
            function( object, arm )
@@ -333,6 +366,9 @@ setGeneric("setArm",
              standardGeneric("setArm")
            }
 )
+
+#' @rdname setArm
+#' @export
 
 setMethod(f="setArm",
           signature = "Design",
@@ -351,15 +387,14 @@ setMethod(f="setArm",
             return( object )
           })
 
-# ======================================================================================================
 #' Evaluate an design
 #'
-#' @name EvaluateDesign
+#' @title EvaluateDesign
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @param model An object \code{model} from the class \linkS4class{Model}.
 #' @param fim An object \code{fim} from the class \linkS4class{Fim}.
 #' @return The object \code{Design} with its slot \code{fim}, \code{evaluationOutcomes}, \code{outcomesGradient} updated.
-# ======================================================================================================
+#' @export
 
 setGeneric("EvaluateDesign",
            function( object, model, fim )
@@ -367,6 +402,9 @@ setGeneric("EvaluateDesign",
              standardGeneric("EvaluateDesign")
            }
 )
+
+#' @rdname EvaluateDesign
+#' @export
 
 setMethod(f="EvaluateDesign",
           signature = "Design",
@@ -423,22 +461,24 @@ setMethod(f="EvaluateDesign",
             return( object )
           })
 
-# ======================================================================================================
 #' Plot the evaluation of the outcomes.
 #'
-#' @name plotOutcomesEvaluation
+#' @title plotOutcomesEvaluation
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
 #' @param initialDesign An object \code{design} from the class \linkS4class{Design}.
 #' @param model An object \code{model} from the class \linkS4class{Model}.
 #' @param plotOptions A list containing the plot options.
 #' @return A list containing the plots the evaluation of the outcomes.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "plotOutcomesEvaluation",
   function( object, initialDesign, model, plotOptions ) {
     standardGeneric("plotOutcomesEvaluation")
   })
+
+#' @rdname plotOutcomesEvaluation
+#' @export
 
 setMethod(f="plotOutcomesEvaluation",
           signature("Design"),
@@ -529,22 +569,24 @@ setMethod(f="plotOutcomesEvaluation",
             return( plotOutcome )
           })
 
-# ======================================================================================================
 #' Plot the evaluation of the outcome gradients.
 #'
-#' @name plotOutcomesGradient
+#' @title plotOutcomesGradient
 #' @param object An object \code{design} from the class \linkS4class{Design}.
 #' @param initialDesign An object \code{design} from the class \linkS4class{Design}.
 #' @param model An object \code{model} from the class \linkS4class{Model}.
 #' @param plotOptions A list containing the plot options.
 #' @return A list containing the plots the evaluation of the outcome gradients..
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "plotOutcomesGradient",
   function( object, initialDesign, model, plotOptions ) {
     standardGeneric("plotOutcomesGradient")
   })
+
+#' @rdname plotOutcomesGradient
+#' @export
 
 setMethod(f="plotOutcomesGradient",
           signature("Design"),
@@ -642,9 +684,11 @@ setMethod(f="plotOutcomesGradient",
             return( plotOutcome )
           })
 
-# ======================================================================================================
-# show
-# ======================================================================================================
+
+#' @title show
+#' @rdname show
+#' @param object object
+#' @export
 
 setMethod(f="show",
           signature="Design",
@@ -697,19 +741,21 @@ setMethod(f="show",
           }
 )
 
-# ======================================================================================================
 #' Generate table for the report.
 #'
-#' @name reportTablesSamplingConstraints
+#' @title reportTablesSamplingConstraints
 #' @param object An object \code{design} from the class \linkS4class{Design}.
 #' @return A table of the sampling constraints parameters for the report.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "reportTablesSamplingConstraints",
   function(object) {
     standardGeneric("reportTablesSamplingConstraints")
   })
+
+#' @rdname reportTablesSamplingConstraints
+#' @export
 
 setMethod("reportTablesSamplingConstraints",
           signature("Design"),
@@ -809,19 +855,21 @@ setMethod("reportTablesSamplingConstraints",
             return( listSamplingConstraints )
           })
 
-# ======================================================================================================
 #' Generate table for the report.
 #'
-#' @name reportTablesAdministration
+#' @title reportTablesAdministration
 #' @param object An object \code{design} from the class \linkS4class{Design}.
 #' @return A table of the administration parameters for the report.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "reportTablesAdministration",
   function(object) {
     standardGeneric("reportTablesAdministration")
   })
+
+#' @rdname reportTablesAdministration
+#' @export
 
 setMethod("reportTablesAdministration",
           signature("Design"),
@@ -883,19 +931,21 @@ setMethod("reportTablesAdministration",
 
           })
 
-# ======================================================================================================
 #' Generate table for the report.
 #'
-#' @name reportTablesDesign
+#' @title reportTablesDesign
 #' @param object An object \code{design} from the class \linkS4class{Design}.
 #' @return A table of the design parameters for the report.
-# ======================================================================================================
+#' @export
 
 setGeneric(
   "reportTablesDesign",
   function(object) {
     standardGeneric("reportTablesDesign")
   })
+
+#' @rdname reportTablesDesign
+#' @export
 
 setMethod("reportTablesDesign",
           signature("Design"),
@@ -954,13 +1004,12 @@ setMethod("reportTablesDesign",
             return( designTable )
           })
 
-# ==========================================================
 #' Check the validity of he sampling times constraints
 #'
-#' @name checkValiditySamplingConstraint
+#' @title checkValiditySamplingConstraint
 #' @param object An object from the class \linkS4class{Design}.
 #' @return An error message if a constraint is not valid.
-# ==========================================================
+#' @export
 
 setGeneric("checkValiditySamplingConstraint",
            function( object  )
@@ -968,6 +1017,9 @@ setGeneric("checkValiditySamplingConstraint",
              standardGeneric("checkValiditySamplingConstraint")
            }
 )
+
+#' @rdname checkValiditySamplingConstraint
+#' @export
 
 setMethod(f="checkValiditySamplingConstraint",
           signature = "Design",
@@ -1054,13 +1106,12 @@ setMethod(f="checkValiditySamplingConstraint",
             }
           })
 
-# ===============================================================================
 #' Set the sampling times constraint for optimization with PSO, PGBO and Simplex
 #'
-#' @name setSamplingConstraintForOptimization
+#' @title setSamplingConstraintForOptimization
 #' @param object An object from the class \linkS4class{Design}.
 #' @return The arms with the sampling times constraints.
-# ===============================================================================
+#' @export
 
 setGeneric("setSamplingConstraintForOptimization",
            function( object )
@@ -1068,6 +1119,9 @@ setGeneric("setSamplingConstraintForOptimization",
              standardGeneric("setSamplingConstraintForOptimization")
            }
 )
+
+#' @rdname setSamplingConstraintForOptimization
+#' @export
 
 setMethod(f="setSamplingConstraintForOptimization",
           signature = "Design",

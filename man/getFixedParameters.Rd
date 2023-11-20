@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{getFixedParameters}
 \alias{getFixedParameters}
+\alias{getFixedParameters,Model-method}
 \title{Get the fixed parameters.}
 \usage{
 getFixedParameters(object)
+
+\S4method{getFixedParameters}{Model}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

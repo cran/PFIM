@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{getOutcomesEvaluation}
 \alias{getOutcomesEvaluation}
-\title{Get the results of the evaluation of the outcomes.}
+\alias{getOutcomesEvaluation,Design-method}
+\title{getOutcomesEvaluation}
 \usage{
 getOutcomesEvaluation(object)
+
+\S4method{getOutcomesEvaluation}{Design}(object)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

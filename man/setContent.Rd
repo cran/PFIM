@@ -2,9 +2,12 @@
 % Please edit documentation in R/LibraryOfModels.R
 \name{setContent}
 \alias{setContent}
+\alias{setContent,LibraryOfModels-method}
 \title{Set content of a library of models.}
 \usage{
 setContent(object, content)
+
+\S4method{setContent}{LibraryOfModels}(object, content)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{LibraryOfModels}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{setFim}
 \alias{setFim}
-\title{Set the fim of the design.}
+\alias{setFim,Design-method}
+\title{setFim}
 \usage{
 setFim(object, fim)
+
+\S4method{setFim}{Design}(object, fim)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

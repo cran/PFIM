@@ -2,9 +2,12 @@
 % Please edit documentation in R/PlotEvaluation.R
 \name{plotShrinkage}
 \alias{plotShrinkage}
+\alias{plotShrinkage,PFIMProject-method}
 \title{Graph of the shrinkage.}
 \usage{
 plotShrinkage(object, plotOptions)
+
+\S4method{plotShrinkage}{PFIMProject}(object, plotOptions)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Evaluation}.}

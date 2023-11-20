@@ -2,9 +2,12 @@
 % Please edit documentation in R/PFIMProject.R
 \name{setModel}
 \alias{setModel}
+\alias{setModel,PFIMProject-method}
 \title{Set the model.}
 \usage{
 setModel(object, model)
+
+\S4method{setModel}{PFIMProject}(object, model)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{PFIMProject}.}

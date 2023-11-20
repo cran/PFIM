@@ -2,9 +2,12 @@
 % Please edit documentation in R/Model.R
 \name{EvaluateVarianceModel}
 \alias{EvaluateVarianceModel}
+\alias{EvaluateVarianceModel,Model-method}
 \title{Evaluate the variance of a model.}
 \usage{
 EvaluateVarianceModel(object, arm, evaluationModel)
+
+\S4method{EvaluateVarianceModel}{Model}(object, arm, evaluationModel)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}

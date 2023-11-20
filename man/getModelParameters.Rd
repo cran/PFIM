@@ -2,9 +2,12 @@
 % Please edit documentation in R/PFIMProject.R
 \name{getModelParameters}
 \alias{getModelParameters}
+\alias{getModelParameters,PFIMProject-method}
 \title{Get the model parameters.}
 \usage{
 getModelParameters(object)
+
+\S4method{getModelParameters}{PFIMProject}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{PFIMProject}.}

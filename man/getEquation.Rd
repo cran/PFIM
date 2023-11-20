@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelError.R
 \name{getEquation}
 \alias{getEquation}
+\alias{getEquation,ModelError-method}
 \title{Get the equation of a model error.}
 \usage{
 getEquation(object)
+
+\S4method{getEquation}{ModelError}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelError}.}

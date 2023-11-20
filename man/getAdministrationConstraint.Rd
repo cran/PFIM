@@ -2,9 +2,12 @@
 % Please edit documentation in R/Arm.R
 \name{getAdministrationConstraint}
 \alias{getAdministrationConstraint}
-\title{Get the administration constraints by outcome.}
+\alias{getAdministrationConstraint,Arm-method}
+\title{getAdministrationConstraint}
 \usage{
 getAdministrationConstraint(object, outcome)
+
+\S4method{getAdministrationConstraint}{Arm}(object, outcome)
 }
 \arguments{
 \item{object}{An object \code{Arm} from the class \linkS4class{Arm}.}

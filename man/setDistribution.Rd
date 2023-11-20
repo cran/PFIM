@@ -2,9 +2,12 @@
 % Please edit documentation in R/ModelParameter.R
 \name{setDistribution}
 \alias{setDistribution}
+\alias{setDistribution,ModelParameter-method}
 \title{Set the distribution.}
 \usage{
 setDistribution(object, distribution)
+
+\S4method{setDistribution}{ModelParameter}(object, distribution)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{ModelParameter}.}

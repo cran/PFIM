@@ -2,9 +2,12 @@
 % Please edit documentation in R/Fim.R
 \name{getDcriterion}
 \alias{getDcriterion}
+\alias{getDcriterion,Fim-method}
 \title{Get the D criterion of the fim.}
 \usage{
 getDcriterion(object)
+
+\S4method{getDcriterion}{Fim}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Fim}.}
