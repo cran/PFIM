@@ -675,8 +675,8 @@ Useful links:
 
 Authors:
 \itemize{
-  \item France Mentré \email{france.mentre@inserm.fr}
-  \item Jérémy Seurat \email{jeremy.seurat@inserm.fr}
+  \item France MentrÃ© \email{france.mentre@inserm.fr}
+  \item JÃ©rÃ©my Seurat \email{jeremy.seurat@inserm.fr}
   \item Lucie Fayette \email{lucie.fayette@inserm.fr}
 }
 

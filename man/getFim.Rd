@@ -14,8 +14,6 @@ getFim(object)
 
 \S4method{getFim}{Design}(object)
 
-\S4method{getFim}{Design}(object)
-
 \S4method{getFim}{PFIMProject}(object)
 
 \S4method{getFim}{OptimizationAlgorithm}(object)

@@ -2,9 +2,12 @@
 % Please edit documentation in R/Design.R
 \name{getOutcomesGradient}
 \alias{getOutcomesGradient}
+\alias{getOutcomesGradient,Design-method}
 \title{getOutcomesGradient}
 \usage{
 getOutcomesGradient(object)
+
+\S4method{getOutcomesGradient}{Design}(object)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}

@@ -226,10 +226,10 @@ setGeneric("getOutcomesGradient",
            }
 )
 
-#' @rdname getFim
+#' @rdname getOutcomesGradient
 #' @export
 
-setMethod(f="getFim",
+setMethod(f="getOutcomesGradient",
           signature="Design",
           definition = function(object)
           {

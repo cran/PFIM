@@ -15,7 +15,7 @@
 #' @section Slots for the \code{Arm} objects:
 #' \describe{
 #' \item{\code{name}:}{A string giving the name of the arm.}
-#' \item{\code{size}:}{An integer the number of subjects in the arm. By default set to 1.}
+#' \item{\code{size}:}{An integer giving the number of subjects in the arm. By default set to 1.}
 #' \item{\code{administrations}:}{A list of the administrations.}
 #' \item{\code{initialConditions}:}{A list of the initial conditions.}
 #' \item{\code{samplingTimes}:}{A list of the sampling times.}
