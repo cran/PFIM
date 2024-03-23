@@ -1,16 +1,16 @@
 Package: PFIM
 Type: Package
 Title: Population Fisher Information Matrix
-Version: 6.0.2
+Version: 6.0.3
 Authors@R: c(person(given = "France",
-           family = "Mentré",
+           family = "Mentr\u00E9",
            role = c("aut"),
            email = "france.mentre@inserm.fr"),
     person(given = "Romain",
            family = "Leroux",
            role = c("aut","cre"),
            email = "romain.leroux@inserm.fr"),
-    person(given = "Jérémy",
+    person(given = "J\u00E9r\u00E9my",
            family = "Seurat",
            role = c("aut"),
            email = "jeremy.seurat@inserm.fr"),
@@ -60,7 +60,7 @@ Collate: 'GenericMethods.R' 'Administration.R'
         'PSOAlgorithm.R' 'PlotEvaluation.R' 'PopulationFim.R'
         'Proportional.R' 'SamplingTimeConstraints.R' 'SamplingTimes.R'
         'SimplexAlgorithm.R'
-Packaged: 2023-11-22 09:15:18 UTC; ADMIN Romain LEROUX
+Packaged: 2024-03-23 13:32:27 UTC; Romai
 Author: France Mentré [aut],
   Romain Leroux [aut, cre],
   Jérémy Seurat [aut],
@@ -69,4 +69,4 @@ Author: France Mentré [aut],
   Sylvie Retout [ctb]
 Maintainer: Romain Leroux <romain.leroux@inserm.fr>
 Repository: CRAN
-Date/Publication: 2023-11-24 11:50:02 UTC
+Date/Publication: 2024-03-23 14:30:02 UTC

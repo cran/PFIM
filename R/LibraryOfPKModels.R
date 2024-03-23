@@ -11,7 +11,7 @@ LibraryOfPKModels = function(){
   # -------------------------------------------------------------------------------------------------------------------------
 
   # -------------------------------------------------------------------------------------------------------------------------
-  # Linear elimination
+  # Linear
   # -------------------------------------------------------------------------------------------------------------------------
 
   # -------------------------------------------------------------------------------------------------------------------------
@@ -25,27 +25,27 @@ LibraryOfPKModels = function(){
   # 1.1.1 Single dose
 
   Linear1BolusSingleDose_kV = ModelAnalyticBolus( name = "Linear1BolusSingleDose_kV",
-                                                  description = list("Linear Elimination", "1 Compartment"," Bolus","Single Dose"),
+                                                  description = list("Linear", "1","Bolus","Single dose"),
                                                   outcomes = list("RespPK"),
                                                   equations = list("RespPK" = "dose/V * (exp(-k* t))"),
                                                   modelError = list())
 
   Linear1BolusSingleDose_ClV = ModelAnalyticBolus( name = "Linear1BolusSingleDose_ClV",
-                                                   description = list("Linear Elimination", "1 Compartment"," Bolus","Single Dose"),
+                                                   description = list("Linear", "1","Bolus","Single dose"),
                                                    outcomes = list("RespPK"),
                                                    equations = list("RespPK" = "dose/V * (exp(-Cl/V* t))"),
                                                    modelError = list())
   # 1.1.2 Steady state
 
   Linear1BolusSteadyState_ClVtau = ModelAnalyticBolusSteadyState( name = "Linear1BolusSteadyState_ClVtau",
-                                                                  description = list("Linear Elimination", "1 Compartment"," Bolus","Steady State"),
+                                                                  description = list("Linear", "1","Bolus","Steady state"),
                                                                   outcomes = list("RespPK"),
                                                                   equations = list("RespPK" = "dose/V * ( exp(-Cl/V*t)/(1-exp(-Cl/V*tau)))"),
                                                                   modelError = list())
 
 
   Linear1BolusSteadyState_kVtau = ModelAnalyticBolusSteadyState( name = "Linear1BolusSteadyState_kVtau",
-                                                                 description = list("Linear Elimination", "1 Compartment"," Bolus","Steady State"),
+                                                                 description = list("Linear", "1","Bolus","Steady state"),
                                                                  outcomes = list("RespPK"),
                                                                  equations = list("RespPK" = " dose/V * ( exp( -k*t )/( 1-exp( -k*tau ) ) )"),
                                                                  modelError = list())
@@ -58,61 +58,61 @@ LibraryOfPKModels = function(){
 
   Linear1InfusionSingleDose_ClV = ModelAnalyticInfusion( name = "Linear1InfusionSingleDose_ClV",
                                                          outcomes = list("RespPK"),
-                                                         description = list("Linear Elimination","1 Compartment", "Infusion", "Single Dose"),
+                                                         description = list("Linear","1", "Infusion", "Single dose"),
                                                          equations = list( duringInfusion = list( "RespPK" = "dose/Tinf/Cl * (1 - exp(-Cl/V * t ) )" ) ,
                                                                            afterInfusion  = list( "RespPK" = "dose/Tinf/Cl * (1 - exp(-Cl/V * Tinf)) * (exp(-Cl/V * (t - Tinf)))")),
                                                          modelError = list())
 
   Linear1InfusionSingleDose_kV = ModelAnalyticInfusion( name = "Linear1InfusionSingleDose_kV",
                                                         outcomes = list("RespPK"),
-                                                        description = list("Linear Elimination","1 Compartment", "Infusion", "Single Dose"),
+                                                        description = list("Linear","1", "Infusion", "Single dose"),
                                                         equations = list( duringInfusion = list( "RespPK" = "dose/Tinf/(k*V) * (1 - exp(-k * t ) )" ) ,
                                                                           afterInfusion  = list( "RespPK" = "(dose/Tinf)/(k*V) * (1 - exp(-k * Tinf)) * (exp(-k * (t - Tinf)))")),
                                                         modelError = list())
 
-  # 1.2.2 Steady State
+  # 1.2.2 Steady state
 
   Linear1InfusionSteadyState_kVtau = ModelAnalyticInfusionSteadyState( name = "Linear1InfusionSteadyState_kVtau",
                                                                        outcomes = list("RespPK"),
-                                                                       description = list("Linear Elimination","1 Compartment", "Infusion", "Steady State"),
+                                                                       description = list("Linear","1", "Infusion", "Steady state"),
                                                                        equations = list( duringInfusion = list( "RespPK" = "dose/Tinf/(k*V) * ( (1 - exp(-k * t)) + exp(-k*tau) * ( (1 - exp(-k*Tinf)) * exp(-k*(t-Tinf)) / (1-exp(-k*tau) ) ) )" ) ,
                                                                                          afterInfusion  = list( "RespPK" = "dose/Tinf/(k*V) * ( (1 - exp(-k*Tinf ) ) * exp(-k*(t-Tinf)) / (1-exp(-k*tau ) ) )")),
                                                                        modelError = list())
 
   Linear1InfusionSteadyState_ClVtau = ModelAnalyticInfusionSteadyState( name = "Linear1InfusionSteadyState_ClVtau",
                                                                         outcomes = list("RespPK"),
-                                                                        description = list("Linear Elimination","1 Compartment", "Infusion", "Steady State"),
+                                                                        description = list("Linear","1", "Infusion", "Steady state"),
                                                                         equations = list( duringInfusion = list( "RespPK" = "dose/Tinf/((Cl/V)*V) * ( ( 1 - exp(-(Cl/V) * t)) + exp(-(Cl/V)*tau) * ( (1 - exp(-(Cl/V)*Tinf)) * exp(-(Cl/V)*(t-Tinf)) / (1-exp(-(Cl/V)*tau) ) ) )" ) ,
                                                                                           afterInfusion  = list( "RespPK" = "dose/Tinf/((Cl/V)*V) * ( ( 1 - exp(-(Cl/V)*Tinf ) ) * exp(-(Cl/V)*(t-Tinf)) / (1-exp(-(Cl/V)*tau ) ) )" ) ),
                                                                         modelError = list())
 
   # -------------------------------------------------------------------------------------------------------------------------
-  # 1.3 First order absorption
+  # 1.3 First order
   # -------------------------------------------------------------------------------------------------------------------------
 
   # 1.3.1 Single dose
 
   Linear1FirstOrderSingleDose_kaClV = ModelAnalytic( name = "Linear1FirstOrderSingleDose_kaClV",
-                                                     description = list("Linear Elimination","1 Compartment", "First Order Absorption", "Single Dose"),
+                                                     description = list("Linear","1", "First order ", "Single dose"),
                                                      outcomes = list("RespPK"),
                                                      equations = list("RespPK" = "dose/V * ka/(ka - Cl/V) * (exp(-Cl/V * t) - exp(-ka * t))"),
                                                      modelError = list())
 
   Linear1FirstOrderSingleDose_kakV = ModelAnalytic( name = "Linear1FirstOrderSingleDose_kakV",
-                                                    description = list("Linear Elimination","1 Compartment", "First Order Absorption", "Single Dose"),
+                                                    description = list("Linear","1", "First order ", "Single dose"),
                                                     outcomes = list("RespPK"),
                                                     equations = list("RespPK" = "dose/V * ka/(ka - k) * (exp(-k * t) - exp(-ka * t))"),
                                                     modelError = list())
-  # 1.3.2 Steady State
+  # 1.3.2 Steady state
 
   Linear1FirstOrderSteadyState_kaClVtau = ModelAnalyticSteadyState( name = "Linear1FirstOrderSteadyState_kaClVtau",
-                                                                    description = list("Linear Elimination","1 Compartment", "First Order Absorption", "Steady State"),
+                                                                    description = list("Linear","1", "First order ", "Steady state"),
                                                                     outcomes = list("RespPK"),
                                                                     equations = list("RespPK" = "dose/V * ka/(ka - Cl/V) * (exp(-Cl/V * t)/(1-exp(-Cl/V * tau)) - exp(-ka * t)/(1-exp(-ka * tau)))"),
                                                                     modelError = list())
 
   Linear1FirstOrderSteadyState_kakVtau = ModelAnalyticSteadyState( name = "Linear1FirstOrderSteadyState_kakVtau",
-                                                                   description = list("Linear Elimination","1 Compartment", "First Order Absorption", "Steady State"),
+                                                                   description = list("Linear","1", "First order ", "Steady state"),
                                                                    outcomes = list("RespPK"),
                                                                    equations = list("RespPK" = "dose/V * ka/(ka - k) * (exp(-k * t)/(1-exp(-k * tau)) - exp(-ka * t)/(1-exp(-ka * tau)))"),
                                                                    modelError = list())
@@ -125,7 +125,7 @@ LibraryOfPKModels = function(){
   # 2.1 Bolus
   # -------------------------------------------------------------------------------------------------------------------------
 
-  # 2.1.1 Single Dose
+  # 2.1.1 Single dose
 
   # Linear2BolusSingleDose_ClQV1V2
 
@@ -161,7 +161,7 @@ LibraryOfPKModels = function(){
   model_expression = model_expression()
 
   Linear2BolusSingleDose_ClQV1V2 = ModelAnalyticBolus( name = "Linear2BolusSingleDose_ClQV1V2",
-                                                       description = list("Linear Elimination","2 Compartments", "Bolus", "Single Dose"),
+                                                       description = list("Linear","2", "Bolus", "Single dose"),
                                                        outcomes = list("RespPK"),
                                                        equations = list("RespPK" = model_expression),
                                                        modelError = list())
@@ -198,12 +198,12 @@ LibraryOfPKModels = function(){
   model_expression = model_expression()
 
   Linear2BolusSingleDose_kk12k21V = ModelAnalyticBolus( name = "Linear2BolusSingleDose_kk12k21V",
-                                                        description = list("Linear Elimination","2 Compartments", "Bolus", "Single Dose"),
+                                                        description = list("Linear","2", "Bolus", "Single dose"),
                                                         outcomes = list("RespPK"),
                                                         equations = list("RespPK" = model_expression),
                                                         modelError = list())
 
-  # 2.1.2 Steady State
+  # 2.1.2 Steady state
 
   # Linear2BolusSteadyState_ClQV1V2tau
 
@@ -236,7 +236,7 @@ LibraryOfPKModels = function(){
   model_expression = model_expression ()
 
   Linear2BolusSteadyState_ClQV1V2tau = ModelAnalyticBolusSteadyState( name = "Linear2BolusSteadyState_ClQV1V2tau",
-                                                                      description = list("Linear Elimination","2 Compartments", "Bolus", "Steady State"),
+                                                                      description = list("Linear","2", "Bolus", "Steady state"),
                                                                       outcomes = list("RespPK"),
                                                                       equations = list("RespPK" = model_expression ),
                                                                       modelError = list())
@@ -271,17 +271,17 @@ LibraryOfPKModels = function(){
   model_expression = model_expression ()
 
   Linear2BolusSteadyState_kk12k21Vtau = ModelAnalyticBolusSteadyState( name = "Linear2BolusSteadyState_kk12k21Vtau",
-                                                                       description = list("Linear Elimination","2 Compartments", "Bolus", "Steady State"),
+                                                                       description = list("Linear","2", "Bolus", "Steady state"),
                                                                        outcomes = list("RespPK"),
                                                                        equations = list("RespPK" = model_expression ),
                                                                        modelError = list())
 
   # -------------------------------------------------------------------------------------------------------------------------
-  # 2.2 First Order Absorption
+  # 2.2 First order
   # -------------------------------------------------------------------------------------------------------------------------
-  # 2.2.1 Single Dose
+  # 2.2.1 Single dose
 
-  # Linear2FirstOrderSingleDose_kaClQV1V2
+  # Linear2First orderSingleDose_kaClQV1V2
 
   model_expression = function(){
 
@@ -311,13 +311,13 @@ LibraryOfPKModels = function(){
 
 
   Linear2FirstOrderSingleDose_kaClQV1V2 = ModelAnalytic( name = "Linear2FirstOrderSingleDose_kaClQV1V2",
-                                                         description  = list("Linear Elimination","2 Compartments", "First Order Absorption", "Single Dose"),
+                                                         description  = list("Linear","2", "First order ", "Single dose"),
                                                          outcomes = list("RespPK"),
                                                          equations = list("RespPK" = model_expression ),
                                                          modelError = list())
 
 
-  # Linear2FirstOrderSingleDose_kakk12k21V
+  # Linear2First orderSingleDose_kakk12k21V
   model_expression = function(){
 
     alpha = expression((k21 * k)/beta)
@@ -345,13 +345,13 @@ LibraryOfPKModels = function(){
   model_expression = model_expression ()
 
   Linear2FirstOrderSingleDose_kakk12k21V = ModelAnalytic( name = "Linear2FirstOrderSingleDose_kakk12k21V",
-                                                          description = list("Linear Elimination","2 Compartments", "First Order Absorption", "Single Dose"),
+                                                          description = list("Linear","2", "First order ", "Single dose"),
                                                           outcomes = list("RespPK"),
                                                           equations = list("RespPK" = model_expression ),
                                                           modelError = list())
 
-  # 2.2.2 Steady State
-  # Linear2FirstOrderSteadyState_kaClQV1V2tau
+  # 2.2.2 Steady state
+  # Linear2First orderSteadyState_kaClQV1V2tau
   model_expression = function(){
 
     alpha = expression((Q/V2 * Cl/V1)/beta)
@@ -380,13 +380,13 @@ LibraryOfPKModels = function(){
   model_expression = model_expression ()
 
   Linear2FirstOrderSteadyState_kaClQV1V2tau = ModelAnalyticSteadyState( name = "Linear2FirstOrderSteadyState_kaClQV1V2tau",
-                                                                        description = list("Linear Elimination","2 Compartments", "First Order Absorption", "Steady State"),
+                                                                        description = list("Linear","2", "First order ", "Steady state"),
                                                                         outcomes = list("RespPK"),
                                                                         equations = list("RespPK" = model_expression ),
                                                                         modelError = list())
 
 
-  # Linear2FirstOrderSteadyState_kakk12k21V
+  # Linear2First orderSteadyState_kakk12k21V
 
   model_expression = function(){
 
@@ -416,7 +416,7 @@ LibraryOfPKModels = function(){
   model_expression = model_expression ()
 
   Linear2FirstOrderSteadyState_kakk12k21Vtau = ModelAnalyticSteadyState( name = "Linear2FirstOrderSteadyState_kakk12k21Vtau",
-                                                                         description = list("Linear Elimination","2 Compartments", "First Order Absorption", "Steady State"),
+                                                                         description = list("Linear","2", "First order ", "Steady state"),
                                                                          outcomes = list("RespPK"),
                                                                          equations = list("RespPK" = model_expression ),
                                                                          modelError = list())
@@ -472,7 +472,7 @@ LibraryOfPKModels = function(){
 
   Linear2InfusionSingleDose_kk12k21V = ModelAnalyticInfusion( name = "Linear2InfusionSingleDose_kk12k21V",
                                                               outcomes = list("RespPK"),
-                                                              description = list("Linear Elimination","2 Compartments", "Infusion", "Single Dose"),
+                                                              description = list("Linear","2", "Infusion", "Single dose"),
                                                               equations = model_expression,
                                                               modelError = list())
 
@@ -520,12 +520,12 @@ LibraryOfPKModels = function(){
 
   Linear2InfusionSingleDose_ClQV1V2 = ModelAnalyticInfusion( name = "Linear2InfusionSingleDose_ClQV1V2",
                                                              outcomes = list("RespPK"),
-                                                             description = list("Linear Elimination","2 Compartments", "Infusion", "Single Dose"),
+                                                             description = list("Linear","2", "Infusion", "Single dose"),
                                                              equations = model_expression,
                                                              modelError = list())
 
 
-  # 2.3.2 Steady State
+  # 2.3.2 Steady state
 
   # Linear2InfusionSteadyState_kk12k21Vtau
 
@@ -571,7 +571,7 @@ LibraryOfPKModels = function(){
 
   Linear2InfusionSteadyState_kk12k21Vtau =  ModelAnalyticInfusionSteadyState( name = "Linear2InfusionSteadyState_kk12k21Vtau",
                                                                               outcomes = list("RespPK"),
-                                                                              description = list("Linear Elimination","2 Compartments", "Infusion", "Steady State"),
+                                                                              description = list("Linear","2", "Infusion", "Steady state"),
                                                                               equations = model_expression,
                                                                               modelError = list())
 
@@ -619,7 +619,7 @@ LibraryOfPKModels = function(){
 
   Linear2InfusionSteadyState_ClQV1V2tau = ModelAnalyticInfusionSteadyState( name = "Linear2InfusionSteadyState_ClQV1V2tau",
                                                                             outcomes = list("RespPK"),
-                                                                            description = list("Linear Elimination","2 Compartments", "Infusion", "Steady State"),
+                                                                            description = list("Linear","2", "Infusion", "Steady state"),
                                                                             equations = model_expression,
                                                                             modelError = list())
 
@@ -636,28 +636,28 @@ LibraryOfPKModels = function(){
   # -------------------------------------------------------------------------------------------------------------------------
 
   MichaelisMenten1BolusSingleDose_VmKmV = ModelODEDoseNotInEquations( name = "MichaelisMenten1BolusSingleDose_VmKmV",
-                                                                      description =  list("Michaelis-Menten", "1 Compartment", "Bolus", "Single Dose"),
+                                                                      description =  list("Michaelis-Menten", "1", "Bolus", "Single dose"),
                                                                       outcomes = list("RespPK" = "C1"),
                                                                       equations = list("Deriv_C1" = "-Vm*C1/(Km+C1)"),
                                                                       modelError = list())
 
 
   # -------------------------------------------------------------------------------------------------------------------------
-  # 1.2 First Order Absorption
+  # 1.2 First order
   # -------------------------------------------------------------------------------------------------------------------------
 
   MichaelisMenten1FirstOrderSingleDose_kaVmKmV = ModelODEDoseInEquations( name = "MichaelisMenten1FirstOrderSingleDose_kaVmKmV",
-                                                                          description =  list("Michaelis-Menten", "1 Compartment", "FirstOrder", "Single Dose"),
+                                                                          description =  list("Michaelis-Menten", "1", "First order", "Single dose"),
                                                                           outcomes = list("RespPK" = "C1"),
                                                                           equations = list("Deriv_C1" = "-Vm*C1/(Km+C1) + dose/V*ka*exp(-ka*t)"),
                                                                           modelError = list())
 
   # -------------------------------------------------------------------------------------------------------------------------
-  # 1.2 First Order Absorption
+  # 1.2 First order
   # -------------------------------------------------------------------------------------------------------------------------
 
   MichaelisMenten2FirstOrderSingleDose_kaVmKmk12k21V1V2 = ModelODEDoseInEquations( name = "MichaelisMenten2FirstOrderSingleDose_kaVmKmk12k21V1V2",
-                                                                                   description =  list("Michaelis-Menten", "2 Compartments", "FirstOrder", "Single Dose"),
+                                                                                   description =  list("Michaelis-Menten", "2", "First order", "Single dose"),
                                                                                    outcomes = list("RespPK1" = "C1", "RespPK2" = "C2"),
                                                                                    equations = list("Deriv_C1" = "-Vm*C1/(Km+C1) - k12*C1 + k21*V2/V*C2 + dose/V*ka*exp(-ka*t)",
                                                                                                     "Deriv_C2" = "k12*V/V2*C1 - k21*C2"),
@@ -673,7 +673,7 @@ LibraryOfPKModels = function(){
 
       name = "MichaelisMenten2InfusionSingleDose_VmKmk12k21V1V2",
 
-      description = list("Michaelis-Menten","2 Compartments", "Infusion", "Single Dose"),
+      description = list("Michaelis-Menten","2", "Infusion", "Single dose"),
 
       outcomes = list("RespPK1" = "C1",
                       "RespPK2" = "C2"),
@@ -696,7 +696,7 @@ LibraryOfPKModels = function(){
 
   MichaelisMenten2BolusSingleDose_VmKmk12k21V1V2 = ModelODEDoseInEquations( name = "MichaelisMenten2BolusSingleDose_VmKmk12k21V1V2",
 
-                                                                            description =  list("Michaelis-Menten", "2 Compartments", "Bolus", "Single Dose"),
+                                                                            description =  list("Michaelis-Menten", "2", "Bolus", "Single dose"),
 
                                                                             outcomes = list("RespPK1" = "C1",
                                                                                             "RespPK2" = "C2"),
@@ -707,12 +707,12 @@ LibraryOfPKModels = function(){
                                                                             modelError = list())
 
   # -------------------------------------------------------------------------------------------------------------------------
-  # 2.2 First Order Absorption
+  # 2.2 First order
   # -------------------------------------------------------------------------------------------------------------------------
 
   MichaelisMenten2FirstOrderSingleDose_kaVmKmk12k21V1V2 = ModelODEDoseInEquations( name = "MichaelisMenten2FirstOrderSingleDose_kaVmKmk12k21V1V2",
 
-                                                                                   description =  list("Michaelis-Menten", "2 Compartments", "FirstOrder", "Single Dose"),
+                                                                                   description =  list("Michaelis-Menten", "2", "First order", "Single dose"),
 
                                                                                    outcomes = list("RespPK1" = "C1",
                                                                                                    "RespPK2" = "C2"),
@@ -732,7 +732,7 @@ LibraryOfPKModels = function(){
 
       name = "MichaelisMenten2InfusionSingleDose_VmKmk12k21V1V2",
 
-      description = list("Michaelis-Menten","2 Compartments", "Infusion", "Single Dose"),
+      description = list("Michaelis-Menten","2", "Infusion", "Single dose"),
 
       outcomes = list("RespPK1" = "C1",
                       "RespPK2" = "C2"),

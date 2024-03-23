@@ -18,23 +18,23 @@ PlotEvaluation = setClass(
 
 #' Graphs of the results of the evaluation.
 #'
-#' @name plot
+#' @name plotEvaluation
 #' @param object An object from the class \linkS4class{Evaluation}.
 #' @param plotOptions A list giving the plot options.
 #' @return A list giving the graphs for the evaluation of the responses and sensitivity indices.
 #' @export
 
 setGeneric(
-  "plot",
+  "plotEvaluation",
   function(object, plotOptions )
   {
-    standardGeneric("plot")
+    standardGeneric("plotEvaluation")
   })
 
-#' @rdname plot
+#' @rdname plotEvaluation
 #' @export
 
-setMethod(f="plot",
+setMethod(f="plotEvaluation",
           signature("Evaluation"),
           function( object, plotOptions )
           {
@@ -86,15 +86,89 @@ setMethod(f="plot",
               design = setOutcomesGradient( design, gradientArm )
 
               plotOutcomesEvaluation[[designName]] = plotOutcomesEvaluation( design, initialDesign, model, plotOptions )
+            }
+
+            return( plotOutcomesEvaluation )
+
+          })
+
+#' Graphs of the results of the evaluation.
+#'
+#' @name plotSensitivityIndice
+#' @param object An object from the class \linkS4class{Evaluation}.
+#' @param plotOptions A list giving the plot options.
+#' @return A list giving the graphs for the evaluation of the responses and sensitivity indices.
+#' @export
+
+setGeneric(
+  "plotSensitivityIndice",
+  function(object, plotOptions )
+  {
+    standardGeneric("plotSensitivityIndice")
+  })
+
+#' @rdname plotSensitivityIndice
+#' @export
+
+setMethod(f="plotSensitivityIndice",
+          signature("Evaluation"),
+          function( object, plotOptions )
+          {
+            evaluationInitialDesign = list()
+            evaluationDesign = list()
+            evaluationArm = list()
+            gradientArm = list()
+
+            plotOutcomesEvaluation = list()
+            plotOutcomesGradient = list()
+
+            model = getModel( object )
+            designs = getDesigns( object )
+
+            for ( design in designs )
+            {
+              initialDesign = design
+
+              designName = getName( design )
+              arms = getArms( design )
+
+              for ( arm in arms )
+              {
+                armName = getName( arm )
+
+                samplingTimes = getSamplingTimes( arm )
+
+                # =======================================================
+                # change sampling times for each outcomes in the designs
+                # =======================================================
+
+                for ( samplingTime in samplingTimes )
+                {
+                  samplings = getSamplings( samplingTime )
+                  samplings = sort( unique( c( samplings, linspace( 0, max( samplings ), 1000 ) ) ) )
+
+                  samplingTime = setSamplings( samplingTime, samplings )
+
+                  arm = setSamplingTime( arm, samplingTime )
+                }
+
+                evaluateModel=  EvaluateModel( model, arm )
+
+                evaluationArm[[armName]] = evaluateModel$evaluationOutcomes
+                gradientArm[[armName]] = evaluateModel$outcomesGradient
+              }
+
+              design = setOutcomesEvaluation( design, evaluationArm )
+              design = setOutcomesGradient( design, gradientArm )
+
               plotOutcomesGradient[[designName]] = plotOutcomesGradient( design, initialDesign, model, plotOptions )
 
             }
 
-
-            return( plotEvaluation = list( plotOutcomesEvaluation = plotOutcomesEvaluation,
-                                           plotOutcomesGradient = plotOutcomesGradient ) )
+            return( plotOutcomesGradient )
 
           })
+
 
 #' Graph the SE.
 #'
@@ -203,8 +277,12 @@ setMethod(f="plotSE",
               plotOutcome[[designName]] = ggplot( SEPlot, aes( x = parameters, y = SEValues ) ) +
 
                 theme(legend.position = "none",
-                      plot.title = element_text(size=12, hjust = 0.5),
-                      axis.text.x = element_text(size=10, angle = 90, vjust = 0.5))+
+                      plot.title = element_text(size=16, hjust = 0.5),
+                      axis.title.x = element_text(size=16),
+                      axis.title.y = element_text(size=16),
+                      axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
+                      axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+                      strip.text.x = element_text(size = 16)) +
 
                 geom_bar(stat="identity",
                          width = 0.5,
@@ -327,8 +405,12 @@ setMethod(f="plotRSE",
               plotOutcome[[designName]] = ggplot( RSEPlot, aes( x = parameters, y = RSEValues ) ) +
 
                 theme(legend.position = "none",
-                      plot.title = element_text(size=12, hjust = 0.5),
-                      axis.text.x = element_text(size=10, angle = 90, vjust = 0.5))+
+                      plot.title = element_text(size=16, hjust = 0.5),
+                      axis.title.x = element_text(size=16),
+                      axis.title.y = element_text(size=16),
+                      axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
+                      axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+                      strip.text.x = element_text(size = 16))+
 
                 geom_bar(stat="identity",
                          width = 0.5,
@@ -421,8 +503,12 @@ setMethod(f="plotShrinkage",
                 plotOutcome[[designName]] = ggplot( shrinkagePlot, aes( x = parameters, y = shrinkage ) ) +
 
                   theme(legend.position = "none",
-                        plot.title = element_text(size=12, hjust = 0.5),
-                        axis.text.x = element_text(size=10, angle = 90, vjust = 0.5))+
+                        plot.title = element_text(size=16, hjust = 0.5),
+                        axis.title.x = element_text(size=16),
+                        axis.title.y = element_text(size=16),
+                        axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
+                        axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+                        strip.text.x = element_text(size = 16))+
 
                   geom_bar(stat="identity",
                            width = 0.5,

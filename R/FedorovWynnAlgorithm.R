@@ -1159,6 +1159,33 @@ setMethod("setParameters",
           })
 
 # ======================================================================================================
+# Get the optimal frequencies
+# ======================================================================================================
+
+#' Get the optimal frequencies
+#' @name getOptimalFrequencies
+#' @param object An object from the class \linkS4class{FedorovWynnAlgorithm}.
+#' @return A vector giving the optimal frequencies
+#' @export
+
+setGeneric("getOptimalFrequencies",
+           function(object )
+           {
+             standardGeneric("getOptimalFrequencies")
+           })
+
+#' @rdname getOptimalFrequencies
+#' @export
+
+setMethod(f="getOptimalFrequencies",
+          signature="FedorovWynnAlgorithm",
+          definition = function( object )
+          {
+            return( object@optimalFrequencies )
+          }
+)
+
+# ======================================================================================================
 # optimize
 # ======================================================================================================
 
@@ -1267,8 +1294,7 @@ setMethod(f = "optimize",
             # optimal frequencies
             # ========================================================================
 
-            optimalFrequencies = output$freq
-            optimalFrequencies = optimalFrequencies[optimalFrequencies>0]
+            optimalFrequencies = output$freq[output$freq>0]
 
             # ========================================================================
             # indices optimalSamplingTimes in sampling Times
@@ -1299,11 +1325,15 @@ setMethod(f = "optimize",
             {
               for ( i in 1:length( indexOptimalSamplingTimes ) )
               {
-                splitOptimalSamplingTimes[[i]] = split(optimalSamplingTimes[i,], rep( 1:length(numberOfsamplingsOptimisable ), numberOfsamplingsOptimisable ) )
+                splitOptimalSamplingTimes[[i]] = split(optimalSamplingTimes[i,],
+                                                       rep( 1:length(numberOfsamplingsOptimisable ), numberOfsamplingsOptimisable ) )
+
                 names( splitOptimalSamplingTimes[[i]] ) = outcomes
               }
             }else {
-              splitOptimalSamplingTimes[[1]] = split( optimalSamplingTimes, rep( 1:length(numberOfsamplingsOptimisable ), numberOfsamplingsOptimisable ) )
+              splitOptimalSamplingTimes[[1]] = split( optimalSamplingTimes,
+                                                      rep( 1:length(numberOfsamplingsOptimisable ), numberOfsamplingsOptimisable ) )
+
               names( splitOptimalSamplingTimes[[1]] ) = outcomes
             }
 
@@ -1311,12 +1341,8 @@ setMethod(f = "optimize",
             # optimal doses
             # ========================================================================
 
-            administrationConstraints = getAdministrationsConstraints( arm )
-            doses = getDose( administrationConstraints[[1]] )
-            numberOfDoses = length( doses )
-            indicesDoses = rep( c( 1:numberOfDoses ), numberOfprotocols / numberOfDoses )
-            indicesDosesOptimalSamplingTimes = indicesDoses[ indexOptimalSamplingTime ]
-            optimalDoses = doses[ indicesDosesOptimalSamplingTimes ]
+            optimalDoses = unlist( fims$designArmDose )
+            optimalDoses = optimalDoses[indexOptimalSamplingTime]
 
             # ========================================================================
             # case : populationFIM
@@ -1452,14 +1478,86 @@ setMethod(f = "optimize",
             object = setOptimalDesign( object, design )
             object@optimalDoses = optimalDoses
             object@FisherMatrix = output$fisher
-            optimalFrequencies = list( listArms = listArms, optimalFrequencies = optimalFrequencies )
-            object@optimalFrequencies = optimalFrequencies
+            object@optimalFrequencies = list( listArms = listArms, optimalFrequencies = optimalFrequencies )
             object@optimalSamplingTimes = splitOptimalSamplingTimes
 
             return( object )
-
           })
 
+# ======================================================================================================
+# getDataFrameResults
+# ======================================================================================================
+
+#' @rdname getDataFrameResults
+#' @export
+
+setMethod(f="getDataFrameResults",
+          signature = "FedorovWynnAlgorithm",
+          definition = function( object, threshold )
+          {
+            optimalFrequenciesAndArms = getOptimalFrequencies( object )
+
+            optimalFrequencies = optimalFrequenciesAndArms$optimalFrequencies
+            optimalFrequencies = round( optimalFrequencies, 2 )
+
+            arms = optimalFrequenciesAndArms$listArms
+
+            armNames = unlist( lapply( arms, function(x) getName( x ) ) )
+            armSizes = unlist( lapply( arms, function(x) getSize( x ) ) )
+            armSizes = round( armSizes, 2 )
+
+            armNames = unique( armNames )
+            armSizes = unique( armSizes )
+
+            armsAndOptimalFrequencies = data.frame( armNames = armNames,
+                                                    armSizes = armSizes,
+                                                    optimalFrequencies = optimalFrequencies )
+
+            colnames( armsAndOptimalFrequencies ) = c("Arm", "Size", "Frequency" )
+            rownames( armsAndOptimalFrequencies ) = NULL
+
+            return( armsAndOptimalFrequencies )
+          })
+
+# ======================================================================================================
+# plotFrequencies
+# ======================================================================================================
+
+#' @rdname plotFrequencies
+#' @export
+
+setMethod(f="plotFrequencies",
+          signature = "FedorovWynnAlgorithm",
+          definition = function( object, threshold )
+          {
+            data = getDataFrameResults( object, threshold )
+
+            data = data[ order( data$Frequency, decreasing = FALSE ), ]
+
+            number = 1:dim( data )[[1]]
+
+            plotData = ggplot(data, aes( x = number, y = data[,3] ) ) +
+
+              theme(axis.text.x.top = element_text(angle = 90, hjust = 0,colour = "red")) +
+
+              geom_bar(width = 0.5,position = "identity", stat = "identity") +
+
+              scale_y_continuous(paste0("\n Frequencies \n", paste0("Threshold = ", threshold ) ), limits=c(0,1.05),
+                                 scales::pretty_breaks(n = 10), expand = c(0, 0)) +
+
+              scale_x_continuous("Arms \n",
+                                 breaks = number,
+                                 labels = data$Arm ) +
+
+              coord_flip()
+
+            return( plotData )
+          }
+)
+
+# ======================================================================================================
+# show
+# ======================================================================================================
 
 #' @title show
 #' @rdname show
@@ -1470,25 +1568,15 @@ setMethod(f="show",
           signature = "FedorovWynnAlgorithm",
           definition = function( object )
           {
-            optimalFrequencies = object@optimalFrequencies
-            arms = optimalFrequencies$listArms
-            optimalFrequencies = optimalFrequencies$optimalFrequencies
+            armsAndOptimalFrequencies = getDataFrameResults( object, threshold = 0.001 )
 
-            armNames = unlist( lapply( arms, function(x) getName( x ) ) )
-            armSizes = unlist( lapply( arms, function(x) getSize( x ) ) )
+            armsAndOptimalFrequencies = armsAndOptimalFrequencies[ order( armsAndOptimalFrequencies$Frequency, decreasing = TRUE ), ]
 
-            armSizes = round( armSizes, 2 )
-            optimalFrequencies = round( optimalFrequencies, 2 )
-
-            armsAndOptimalFrequencies = data.frame( armNames = armNames,
-                                                    armSizes = armSizes,
-                                                    optimalFrequencies = optimalFrequencies )
-
-            colnames( armsAndOptimalFrequencies ) = c("Arm","Arm size","Optimal frequencie")
+            colnames( armsAndOptimalFrequencies ) = c("Arm","Size", "Optimal frequency")
 
             cat( " ************************************************* ")
             cat("\n")
-            cat( " Arm, size and optimal frequencie  ")
+            cat( " Arm, size and optimal frequency")
             cat("\n")
             cat( " ************************************************* ")
             cat("\n\n")

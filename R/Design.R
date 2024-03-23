@@ -546,9 +546,15 @@ setMethod(f="plotOutcomesEvaluation",
                   geom_point( evaluationInitialDesignPlot,
                               mapping = aes_string( x = "time", y = outcomeName ), color = "red" ) +
 
-                  theme( legend.position = "none",plot.title = element_text(hjust = 0.5),
-                         axis.title.x.top = element_text(color = "red"),
-                         axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ) ) +
+                  theme(legend.position = "none",
+                        axis.title.x.top = element_text(color = "red" , vjust = 2.0),
+                        axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ),
+                        plot.title = element_text(size=16, hjust = 0.5),
+                        axis.title.x = element_text(size=16),
+                        axis.title.y = element_text(size=16),
+                        axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
+                        axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+                        strip.text.x = element_text(size = 16))+
 
                   labs(y = paste0( outcomeName," ", "(",unitYAxis[[outcomeName]],") \n"),
                        x = paste0( paste0("Time"," ", "(",unitXAxis,")"),
@@ -628,6 +634,7 @@ setMethod(f="plotOutcomesGradient",
             # ========================
 
             plotOptions = getPlotOptions( plotOptions, outcomesNames )
+
             unitXAxis = plotOptions$unitXAxis
             unitYAxis = plotOptions$unitYAxis
 
@@ -657,9 +664,15 @@ setMethod(f="plotOutcomesGradient",
                     geom_point( gradientInitialDesignPlot,
                                 mapping = aes_string( x = "time", y = parameterName ), color = "red" ) +
 
-                    theme( legend.position = "none",plot.title = element_text(hjust = 0.5),
-                           axis.title.x.top = element_text(color = "red"),
-                           axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ) ) +
+                    theme(legend.position = "none",
+                          axis.title.x.top = element_text(color = "red" , vjust = 2.0),
+                          axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ),
+                          plot.title = element_text(size=16, hjust = 0.5),
+                          axis.title.x = element_text(size=16),
+                          axis.title.y = element_text(size=16),
+                          axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
+                          axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+                          strip.text.x = element_text(size = 16))+
 
                     labs( y = paste("df/d", parameterName, sep=""),
                           x = paste0(paste0("Time"," ", "(",unitXAxis,")"),
@@ -733,13 +746,16 @@ setMethod(f="show",
               }
             }
 
-            dataFramOptimalDesign = t(data.frame(optimalDesignSamplingTimes))
-            rownames(dataFramOptimalDesign) = NULL
-            colnames(dataFramOptimalDesign) = c("Design","Arm","Arm size","Response","Dose", "Sampling times")
+            dataFrameOptimalDesign = t( data.frame(optimalDesignSamplingTimes ) )
+            rownames( dataFrameOptimalDesign ) = NULL
+            colnames( dataFrameOptimalDesign ) = c("Design","Arm","Arm size","Outcome","Dose", "Sampling times")
 
-            print( dataFramOptimalDesign )
-          }
-)
+            # sort by arm size decreasing order
+            tmp = -1.0*as.numeric( dataFrameOptimalDesign[,"Arm size"] )
+            dataFrameOptimalDesign = dataFrameOptimalDesign[ order( tmp ), ]
+
+            print( dataFrameOptimalDesign )
+          })
 
 #' Generate table for the report.
 #'
@@ -919,7 +935,7 @@ setMethod("reportTablesAdministration",
             }
 
             administrationTmp = do.call( rbind, administrationTmp )
-            colnames( administrationTmp ) = c("Design","Arm","Response","${\\tau}$","${T_{inf}}$","Time dose","Dose")
+            colnames( administrationTmp ) = c("Design","Arm","Outcome","${\\tau}$","${T_{inf}}$","Time dose","Dose")
             rownames( administrationTmp ) = NULL
 
             administrationTable = knitr::kable( administrationTmp ) %>%

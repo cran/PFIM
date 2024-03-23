@@ -344,9 +344,9 @@ setMethod(f="reportTablesPlot",
           signature("Evaluation"),
           function( object, plotOptions )
           {
-            plotEvaluationPopulation = plot( object, plotOptions )
-            plotOutcomesEvaluation = plotEvaluationPopulation$plotOutcomesEvaluation
-            plotOutcomesGradient = plotEvaluationPopulation$plotOutcomesGradient
+            plotOutcomesEvaluation = plotEvaluation( object, plotOptions )
+            plotOutcomesGradient = plotSensitivityIndice( object, plotOptions )
+
             plotSE = plotSE( object, plotOptions )
             plotRSE = plotRSE( object, plotOptions )
             plotShrinkage = plotShrinkage( object, plotOptions )
@@ -468,6 +468,207 @@ setMethod(f="Report",
             generateReportEvaluation( fim, object, outputPath, outputFile, plotOptions )
 
           })
+
+# ======================================================================================================
+# getFisherMatrix, getCorrelationMatrix, getRSE, getDcriterion, getDeterminant
+# ======================================================================================================
+
+#' @rdname getFisherMatrix
+#' @export
+
+setMethod("getFisherMatrix",
+          signature = "Evaluation",
+          definition = function (object)
+          {
+            designs = getDesigns( object )
+            designsNames = getNames( designs )
+
+            fisherMatrices = list()
+
+            for ( designName in designsNames )
+            {
+              design = designs[[designName]]
+
+              fim = getFim( design )
+
+              fisherMatrix = getFisherMatrix( fim )
+
+              fixedEffect = getFixedEffects( fim )
+
+              varianceEffects = getVarianceEffects( fim )
+
+              fisherMatrices[[designName]] = list( fisherMatrix = fisherMatrix,
+                                                   fixedEffect = fixedEffect,
+                                                   varianceEffects = varianceEffects )
+            }
+
+            return( fisherMatrices )
+
+          })
+
+#' @rdname getCorrelationMatrix
+#' @export
+
+setMethod("getCorrelationMatrix",
+          signature = "Evaluation",
+          definition = function (object)
+          {
+            designs = getDesigns( object )
+            designsNames = getNames( designs )
+
+            model = getModel( object )
+
+            correlationMatrix = list()
+
+            for ( designName in designsNames )
+            {
+              design = designs[[designName]]
+
+              fim = getFim( design )
+
+              correlationMatrix[[designName]] = getCorrelationMatrix( fim )
+            }
+            return( correlationMatrix )
+          })
+
+#' @rdname getSE
+#' @export
+
+setMethod("getSE",
+          signature = "Evaluation",
+          definition = function (object)
+          {
+            designs = getDesigns( object )
+
+            designsNames = getNames( designs )
+
+            model = getModel( object )
+
+            SE = list()
+
+            for ( designName in designsNames )
+            {
+              design = designs[[designName]]
+
+              fim = getFim( design )
+
+              SE[[designName]] = getSE( fim )
+            }
+            return( SE )
+          })
+
+#' @rdname getRSE
+#' @export
+
+setMethod("getRSE",
+          signature = "Evaluation",
+          definition = function ( object, model )
+          {
+            designs = getDesigns( object )
+            designsNames = getNames( designs )
+
+            model = getModel( object )
+
+            RSE = list()
+
+            for ( designName in designsNames )
+            {
+              design = designs[[designName]]
+
+              fim = getFim( design )
+
+              rseAndParametersValues = getRSE( fim, model )
+
+              RSE[[designName]] = rseAndParametersValues$RSE
+            }
+            return( RSE )
+          })
+
+#' @rdname getDcriterion
+#' @export
+
+setMethod( "getDcriterion",
+           signature = "Evaluation",
+           definition = function(object)
+           {
+             designs = getDesigns( object )
+             designsNames = getNames( designs )
+
+             model = getModel( object )
+
+             Dcriterion = list()
+
+             for ( designName in designsNames )
+             {
+               design = designs[[designName]]
+
+               fim = getFim( design )
+
+               Dcriterion[[designName]] = getDcriterion( fim )
+
+             }
+
+             return( Dcriterion )
+           })
+
+#' @rdname getShrinkage
+#' @export
+
+setMethod( "getShrinkage",
+           signature = "Evaluation",
+           definition = function(object)
+           {
+             designs = getDesigns( object )
+             designsNames = getNames( designs )
+
+             model = getModel( object )
+
+             shrinkage = list()
+
+             for ( designName in designsNames )
+             {
+               design = designs[[designName]]
+
+               fim = getFim( design )
+
+               shrinkage[[designName]] = getShrinkage( fim )
+
+               FIMFixedEffects = getFixedEffects( fim )
+
+               if ( !is.null( shrinkage[[designName]]  ) )
+               {
+                 names( shrinkage[[designName]]  ) = colnames( FIMFixedEffects )
+               }
+
+               return( shrinkage )
+             }
+           })
+
+#' @rdname getDeterminant
+#' @export
+
+setMethod( "getDeterminant",
+           signature = "Evaluation",
+           definition = function(object)
+           {
+             designs = getDesigns( object )
+             designsNames = getNames( designs )
+
+             model = getModel( object )
+
+             determinant = list()
+
+             for ( designName in designsNames )
+             {
+               design = designs[[designName]]
+
+               fim = getFim( design )
+
+               determinant[[designName]] = getDeterminant( fim )
+             }
+
+             return( determinant )
+           })
 
 ##########################################################################################################
 # END Class "Evaluation"

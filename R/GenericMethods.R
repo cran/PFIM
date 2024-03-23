@@ -140,6 +140,19 @@ setGeneric(
     standardGeneric("getFim")
   })
 
+#' Get the FIM.
+#'
+#' @name getFisherMatrix
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A matrix giving the FIM.
+#' @export
+
+setGeneric("getFisherMatrix",
+           function(object)
+           {
+             standardGeneric("getFisherMatrix")
+           })
+
 #' Get the parameters for the ode solvers of an object.
 #'
 #' @title getOdeSolverParameters
@@ -261,20 +274,6 @@ setGeneric("getSamplings",
            }
 )
 
-#' Get the fim of an object.
-#'
-#' @name getFim
-#' @param object An object defined form a class of PFIM.
-#' @return The fim of the object.
-#' @export
-
-setGeneric("getFim",
-           function(object)
-           {
-             standardGeneric("getFim")
-           }
-)
-
 #' Set the name of an object.
 #'
 #' @name setName
@@ -331,6 +330,85 @@ setGeneric(
   function(object, initialConditions) {
     standardGeneric("setInitialConditions")
   })
+
+#' Get the SE.
+#'
+#' @name getSE
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A vector giving the SE.
+#' @export
+
+setGeneric("getSE",
+           function(object)
+           {
+             standardGeneric("getSE")
+           })
+
+#' Get the RSE
+#'
+#' @name getRSE
+#' @param object An object from the class \linkS4class{Fim}.
+#' @param model An object from the class \linkS4class{Model}.
+#' @return A vector giving the RSE.
+#' @export
+
+setGeneric("getRSE",
+           function(object, model)
+           {
+             standardGeneric("getRSE")
+           })
+
+#' Get the D criterion of the fim.
+#'
+#' @name getDcriterion
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return  A numeric giving the D criterion of the fim.
+#' @export
+
+setGeneric("getDcriterion",
+           function(object)
+           {
+             standardGeneric("getDcriterion")
+           })
+
+#' Get the correlation matrix.
+#'
+#' @name getCorrelationMatrix
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return The correlation matrix of the fim.
+#' @export
+
+setGeneric("getCorrelationMatrix",
+           function(object)
+           {
+             standardGeneric("getCorrelationMatrix")
+           })
+
+#' Get the shrinkage.
+#'
+#' @name getShrinkage
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A vector giving the shrinkage of the Bayesian fim.
+#' @export
+
+setGeneric("getShrinkage",
+           function(object)
+           {
+             standardGeneric("getShrinkage")
+           })
+
+#' Get the determinant of the fim.
+#'
+#' @name getDeterminant
+#' @param object An object from the class \linkS4class{Fim}.
+#' @return A numeric giving the determinant of the fim.
+#' @export
+
+setGeneric("getDeterminant",
+           function(object)
+           {
+             standardGeneric("getDeterminant")
+           })
 
 #########################################################################################################
 # END Class "GenericMethods"

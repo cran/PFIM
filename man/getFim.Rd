@@ -10,8 +10,6 @@
 \usage{
 getFim(object)
 
-getFim(object)
-
 \S4method{getFim}{Design}(object)
 
 \S4method{getFim}{PFIMProject}(object)
@@ -23,8 +21,6 @@ getFim(object)
 }
 \value{
 The \code{FIM} of the object.
-
-The fim of the object.
 }
 \description{
 Get the fim of an of an object.

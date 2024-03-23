@@ -1363,11 +1363,11 @@ setMethod("reportTablesModelParameters",
                                             ${\\mu}$","${\\omega^2}$","Distribution",
                                             paste0("${\\mu}$ ","fixed"),paste0("${\\omega^2}$ ","fixed") )
 
+
             tableParameters = knitr::kable( tableParameters ) %>%
               kable_styling( font_size = 12,
                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
                              full_width = T)
-
 
             return( tableParameters )
           })
@@ -1408,7 +1408,7 @@ setMethod("reportTablesModelError",
             tablesModelError = data.frame( ouctomes = ouctomes, sigmaSlope = sigmaSlope, sigmaInter = sigmaInter )
 
             rownames( tablesModelError ) = NULL
-            colnames( tablesModelError ) = c("Response"," ${\\sigma}_{slope}$","${\\sigma}_{inter}$" )
+            colnames( tablesModelError ) = c("Outcome"," ${\\sigma}_{slope}$","${\\sigma}_{inter}$" )
 
             tablesModelError = knitr::kable( tablesModelError ) %>%
               kable_styling( font_size = 12,

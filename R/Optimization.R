@@ -385,9 +385,8 @@ setMethod(f="getElementaryProtocols",
             design = designs[[1]]
 
             arms = getArms( design )
-            arm = arms[[1]]
 
-            samplingTimes = getSamplingTimes( arm )
+            samplingTimes = getSamplingTimes( arms[[1]] )
             outcomes = unlist( lapply( samplingTimes, function(x) getOutcome(x) ) )
 
             fisherMatrices = fims$listFims
@@ -405,6 +404,7 @@ setMethod(f="getElementaryProtocols",
               samplings[[outcome]] = lapply( samplingTime, function(x) getSamplings(x) )
               samplings[[outcome]] = do.call( rbind, samplings[[outcome]] )
             }
+
 
             combinedTimes = do.call(cbind, samplings)
 
@@ -465,6 +465,8 @@ setMethod(f="generateFimsFromConstraints",
           signature="Optimization",
           definition = function( object )
           {
+            designArmDose = list()
+
             modelEquations = getModelEquations( object )
             modelParameters = getModelParameters( object )
             modelError = getModelError( object )
@@ -633,15 +635,18 @@ setMethod(f="generateFimsFromConstraints",
 
                     listArms[[iter]] = arm
                     listFims[[iter]] = fisherMatrix
+                    designArmDose[[iter]] = dose
 
                     print( paste0( c( iter,"/", numberOfFims ),collapse="" ) )
+
 
                     iter = iter + 1
                   }
                 }
               }
             }
-            return( list( listArms = listArms, listFims = listFims ) )
+
+            return( list( listArms = listArms, listFims = listFims, designArmDose = designArmDose ) )
           })
 
 # ======================================================================================================
@@ -769,7 +774,6 @@ setMethod(f = "run",
 # show
 # ======================================================================================================
 
-
 #' @title show
 #' @rdname show
 #' @param object object
@@ -801,6 +805,178 @@ setMethod(f="show",
             cat("\n")
 
             show( evaluationFIMResults )
+          })
+
+# ======================================================================================================
+# getFisherMatrix, getCorrelationMatrix, getRSE, getDcriterion, getDeterminant
+# ======================================================================================================
+
+#' @rdname getFisherMatrix
+#' @export
+
+setMethod("getFisherMatrix",
+          signature = "Optimization",
+          definition = function (object)
+          {
+            optimizationResults = getOptimizationResults( object )
+
+            optimalDesign = getOptimalDesign( optimizationResults )
+
+            fim = getFim( optimalDesign )
+
+            fisherMatrix = getFisherMatrix( fim )
+
+            fixedEffect = getFixedEffects( fim )
+
+            varianceEffects = getVarianceEffects( fim )
+
+             return( list( fisherMatrix = fisherMatrix,  fixedEffect = fixedEffect, varianceEffects = varianceEffects) )
+          })
+
+#' @rdname getCorrelationMatrix
+#' @export
+
+setMethod("getCorrelationMatrix",
+          signature = "Optimization",
+          definition = function (object)
+          {
+            optimizationResults = getOptimizationResults( object )
+
+            optimalDesign = getOptimalDesign( optimizationResults )
+
+            fim = getFim( optimalDesign )
+
+            correlationMatrix = getCorrelationMatrix( fim )
+
+            return( correlationMatrix )
+          })
+
+#' @rdname getSE
+#' @export
+
+setMethod("getSE",
+          signature = "Optimization",
+          definition = function ( object )
+          {
+            optimizationResults = getOptimizationResults( object )
+
+            optimalDesign = getOptimalDesign( optimizationResults )
+
+            fim = getFim( optimalDesign )
+
+            SE = getSE( fim )
+
+            return( SE )
+
+          })
+
+#' @rdname getRSE
+#' @export
+
+setMethod("getRSE",
+          signature = "Optimization",
+          definition = function ( object, model )
+          {
+            optimizationResults = getOptimizationResults( object )
+            evaluationFIMResults = getEvaluationFIMResults( object )
+
+            optimalDesign = getOptimalDesign( optimizationResults )
+
+            model = getModel( evaluationFIMResults )
+
+            fim = getFim( optimalDesign )
+
+            rseAndParametersValues = getRSE( fim, model )
+            RSE = rseAndParametersValues$RSE
+
+            return( RSE )
+
+          })
+
+#' @rdname getDcriterion
+#' @export
+
+setMethod( "getDcriterion",
+           signature = "Optimization",
+           definition = function(object)
+           {
+             optimizationResults = getOptimizationResults( object )
+             evaluationFIMResults = getEvaluationFIMResults( object )
+
+             optimalDesign = getOptimalDesign( optimizationResults )
+
+             model = getModel( evaluationFIMResults )
+
+             fim = getFim( optimalDesign )
+
+             Dcriterion = getDcriterion( fim )
+
+             return( Dcriterion )
+           })
+
+#' @rdname getShrinkage
+#' @export
+
+setMethod( "getShrinkage",
+           signature = "Optimization",
+           definition = function(object)
+           {
+             optimizationResults = getOptimizationResults( object )
+             evaluationFIMResults = getEvaluationFIMResults( object )
+
+             optimalDesign = getOptimalDesign( optimizationResults )
+
+             model = getModel( evaluationFIMResults )
+
+             fim = getFim( optimalDesign )
+
+             FIMFixedEffects = getFixedEffects( fim )
+
+             shrinkage = getShrinkage( fim )
+
+             if ( !is.null( shrinkage ) )
+             {
+               names( shrinkage) = colnames( FIMFixedEffects )
+             }
+
+             return( shrinkage )
+           })
+
+#' @rdname getDeterminant
+#' @export
+
+setMethod( "getDeterminant",
+           signature = "Optimization",
+           definition = function(object)
+           {
+             optimizationResults = getOptimizationResults( object )
+             evaluationFIMResults = getEvaluationFIMResults( object )
+
+             optimalDesign = getOptimalDesign( optimizationResults )
+
+             model = getModel( evaluationFIMResults )
+
+             fim = getFim( optimalDesign )
+
+             determinant = getDeterminant( fim )
+
+             return( determinant )
+           })
+
+# ======================================================================================================
+# getDataFrameResults
+# ======================================================================================================
+
+#' @rdname getDataFrameResults
+#' @export
+
+setMethod(f="getDataFrameResults",
+          signature = "Optimization",
+          definition = function( object, threshold )
+          {
+            dataFrameResults = getDataFrameResults( object, threshold )
+
+            return( getDataFrameResults )
 
           })
 
@@ -818,6 +994,23 @@ setMethod(f="plotWeights",
             optimizationResults = getOptimizationResults( object )
 
             plotWeights( optimizationResults, threshold )
+
+          })
+
+# ======================================================================================================
+# plotFrequencies
+# ======================================================================================================
+
+#' @rdname plotFrequencies
+#' @export
+
+setMethod(f="plotFrequencies",
+          signature = "Optimization",
+          definition = function( object, threshold )
+          {
+            optimizationResults = getOptimizationResults( object )
+
+            plotFrequencies( optimizationResults, threshold )
 
           })
 

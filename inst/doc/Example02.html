@@ -12,7 +12,7 @@
 
 
 
-<title>Design evaluation and optimization 02</title>
+<title>Design evaluation and optimization in continuous space</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -358,7 +358,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Design evaluation and optimization 02</h1>
+<h1 class="title toc-ignore">Design evaluation and optimization in
+continuous space</h1>
 
 
 <div id="TOC">
@@ -367,18 +368,18 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <li><a href="#design-evaluation" id="toc-design-evaluation">Design
 evaluation</a>
 <ul>
-<li><a href="#get-the-pk-model-linear1infusionsingledose_clv-from-the-library-of-models" id="toc-get-the-pk-model-linear1infusionsingledose_clv-from-the-library-of-models">Get
+<li><a href="#define-the-pk-model-linear1infusionsingledose_clv-from-the-library-of-models" id="toc-define-the-pk-model-linear1infusionsingledose_clv-from-the-library-of-models">Define
 the PK model <code>Linear1InfusionSingleDose_ClV</code> from the library
 of models</a></li>
-<li><a href="#set-mu-and-omega-for-each-parameter" id="toc-set-mu-and-omega-for-each-parameter">Set mu and omega for each
-parameter</a></li>
-<li><a href="#create-the-error-model-to-the-response-pk-resppk" id="toc-create-the-error-model-to-the-response-pk-resppk">Create the
+<li><a href="#define-mu-and-omega-for-each-parameter" id="toc-define-mu-and-omega-for-each-parameter">Define mu and omega for
+each parameter</a></li>
+<li><a href="#define-the-error-model-to-the-response-pk-resppk" id="toc-define-the-error-model-to-the-response-pk-resppk">Define the
 error model to the response PK <code>RespPK</code></a></li>
-<li><a href="#create-the-administration-parameters-of-the-response-pk" id="toc-create-the-administration-parameters-of-the-response-pk">Create
+<li><a href="#define-the-administration-parameters-of-the-response-pk" id="toc-define-the-administration-parameters-of-the-response-pk">Define
 the administration parameters of the response PK</a></li>
-<li><a href="#create-the-sampling-times-for-the-response-pk-resppk" id="toc-create-the-sampling-times-for-the-response-pk-resppk">Create the
+<li><a href="#define-the-sampling-times-for-the-response-pk-resppk" id="toc-define-the-sampling-times-for-the-response-pk-resppk">Define the
 sampling times for the response PK <code>RespPK</code></a></li>
-<li><a href="#create-an-arm-called-arm1-of-size-150-with-administration-administrationresppk-and-samplings-samplingtimesresppk" id="toc-create-an-arm-called-arm1-of-size-150-with-administration-administrationresppk-and-samplings-samplingtimesresppk">Create
+<li><a href="#define-an-arm-called-arm1-of-size-150-with-administration-administrationresppk-and-samplings-samplingtimesresppk" id="toc-define-an-arm-called-arm1-of-size-150-with-administration-administrationresppk-and-samplings-samplingtimesresppk">Define
 an arm called <code>arm1</code> of size 150 with administration
 <code>administrationRespPK</code> and samplings
 <code>samplingTimesRespPK</code></a></li>
@@ -386,8 +387,8 @@ an arm called <code>arm1</code> of size 150 with administration
 <code>arm1</code> to the design <code>design1</code></a></li>
 <li><a href="#evaluate-the-population-individual-and-bayesian-fims" id="toc-evaluate-the-population-individual-and-bayesian-fims">Evaluate
 the population, individual and Bayesian FIMs</a></li>
-<li><a href="#display-the-results-of-the-design-evaluation" id="toc-display-the-results-of-the-design-evaluation">Display the
-results of the design evaluation</a></li>
+<li><a href="#display-the-results-of-the-design-evaluations" id="toc-display-the-results-of-the-design-evaluations">Display the
+results of the design evaluations</a></li>
 <li><a href="#create-and-save-the-report-for-the-design-evaluation" id="toc-create-and-save-the-report-for-the-design-evaluation">Create and
 save the report for the design evaluation</a></li>
 </ul></li>
@@ -416,12 +417,11 @@ the PGBO algorithm for the optimization with a population FIM</a></li>
 results of the design optimization</a></li>
 <li><a href="#create-and-save-the-report-for-the-design-optimization-1" id="toc-create-and-save-the-report-for-the-design-optimization-1">Create
 and save the report for the design optimization</a></li>
+</ul></li>
 <li><a href="#set-the-the-parameters-of-the-simplex-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim" id="toc-set-the-the-parameters-of-the-simplex-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim">Set
 the the parameters of the Simplex algorithm and run the algorithm for
-the design optimization with a population FIM</a></li>
-<li><a href="#run-the-simplex-algorithm-for-the-optimization-with-a-population-fim" id="toc-run-the-simplex-algorithm-for-the-optimization-with-a-population-fim">Run
-the Simplex algorithm for the optimization with a population
-FIM</a></li>
+the design optimization with a population FIM</a>
+<ul>
 <li><a href="#display-the-results-of-the-design-optimization-2" id="toc-display-the-results-of-the-design-optimization-2">Display the
 results of the design optimization</a></li>
 <li><a href="#create-and-save-the-report-for-the-design-optimization-2" id="toc-create-and-save-the-report-for-the-design-optimization-2">Create
@@ -462,42 +462,39 @@ algorithm.</p>
 </div>
 <div id="design-evaluation" class="section level1">
 <h1>Design evaluation</h1>
-<div id="get-the-pk-model-linear1infusionsingledose_clv-from-the-library-of-models" class="section level3">
-<h3>Get the PK model <code>Linear1InfusionSingleDose_ClV</code> from the
-library of models</h3>
+<div id="define-the-pk-model-linear1infusionsingledose_clv-from-the-library-of-models" class="section level3">
+<h3>Define the PK model <code>Linear1InfusionSingleDose_ClV</code> from
+the library of models</h3>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>modelEquations <span class="ot">=</span> <span class="fu">list</span>(</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="at">outcomes =</span> <span class="fu">list</span>( <span class="st">&quot;RespPK&quot;</span>),</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">modelFromLibrary =</span> <span class="fu">list</span>(<span class="st">&quot;PKModel&quot;</span> <span class="ot">=</span> <span class="st">&quot;Linear1InfusionSingleDose_ClV&quot;</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="at">outcomes =</span> <span class="fu">list</span>( <span class="st">&quot;RespPK&quot;</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="at">modelFromLibrary =</span> <span class="fu">list</span>(<span class="st">&quot;PKModel&quot;</span> <span class="ot">=</span> <span class="st">&quot;Linear1InfusionSingleDose_ClV&quot;</span>) )</span></code></pre></div>
 </div>
-<div id="set-mu-and-omega-for-each-parameter" class="section level3">
-<h3>Set mu and omega for each parameter</h3>
+<div id="define-mu-and-omega-for-each-parameter" class="section level3">
+<h3>Define mu and omega for each parameter</h3>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>modelParameters <span class="ot">=</span> <span class="fu">list</span>(</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">ModelParameter</span>( <span class="at">name =</span> <span class="st">&quot;V&quot;</span>,    <span class="at">distribution =</span> <span class="fu">LogNormal</span>( <span class="at">mu =</span> <span class="dv">50</span>, <span class="at">omega =</span> <span class="fu">sqrt</span>( .<span class="dv">26</span> ) ) ),</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">ModelParameter</span>( <span class="at">name =</span> <span class="st">&quot;Cl&quot;</span>,   <span class="at">distribution =</span> <span class="fu">LogNormal</span>( <span class="at">mu =</span> <span class="dv">5</span>, <span class="at">omega =</span> <span class="fu">sqrt</span>( .<span class="dv">34</span> ) ) )</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  )</span></code></pre></div>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">ModelParameter</span>( <span class="at">name =</span> <span class="st">&quot;Cl&quot;</span>,   <span class="at">distribution =</span> <span class="fu">LogNormal</span>( <span class="at">mu =</span> <span class="dv">5</span>, <span class="at">omega =</span> <span class="fu">sqrt</span>( .<span class="dv">34</span> ) ) ) )</span></code></pre></div>
 </div>
-<div id="create-the-error-model-to-the-response-pk-resppk" class="section level3">
-<h3>Create the error model to the response PK <code>RespPK</code></h3>
+<div id="define-the-error-model-to-the-response-pk-resppk" class="section level3">
+<h3>Define the error model to the response PK <code>RespPK</code></h3>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>errorModelRespPK <span class="ot">=</span> <span class="fu">Combined1</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>, <span class="at">sigmaInter =</span> <span class="fl">0.5</span>, <span class="at">sigmaSlope =</span> <span class="fu">sqrt</span>( <span class="fl">0.15</span> ) )</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>modelError <span class="ot">=</span> <span class="fu">list</span>( errorModelRespPK )</span></code></pre></div>
 </div>
-<div id="create-the-administration-parameters-of-the-response-pk" class="section level3">
-<h3>Create the administration parameters of the response PK</h3>
+<div id="define-the-administration-parameters-of-the-response-pk" class="section level3">
+<h3>Define the administration parameters of the response PK</h3>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>administrationRespPK <span class="ot">=</span> <span class="fu">Administration</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>,</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>                                       <span class="at">Tinf =</span> <span class="fu">rep</span>( <span class="dv">1</span>, <span class="dv">5</span> ),</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>                                       <span class="at">timeDose =</span> <span class="fu">seq</span>( <span class="dv">0</span>, <span class="dv">96</span>, <span class="dv">24</span> ),</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>                                       <span class="at">dose =</span> <span class="fu">c</span>( <span class="dv">400</span>, <span class="fu">rep</span>( <span class="dv">200</span>, <span class="dv">4</span> ) ) )</span></code></pre></div>
 </div>
-<div id="create-the-sampling-times-for-the-response-pk-resppk" class="section level3">
-<h3>Create the sampling times for the response PK
+<div id="define-the-sampling-times-for-the-response-pk-resppk" class="section level3">
+<h3>Define the sampling times for the response PK
 <code>RespPK</code></h3>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>samplingTimesRespPK <span class="ot">=</span> <span class="fu">SamplingTimes</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>,</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                                     <span class="at">samplings =</span> <span class="fu">c</span>( <span class="dv">1</span>,<span class="dv">12</span>,<span class="dv">24</span>,<span class="dv">44</span>,<span class="dv">72</span>,<span class="dv">120</span> ) )</span></code></pre></div>
 </div>
-<div id="create-an-arm-called-arm1-of-size-150-with-administration-administrationresppk-and-samplings-samplingtimesresppk" class="section level3">
-<h3>Create an arm called <code>arm1</code> of size 150 with
+<div id="define-an-arm-called-arm1-of-size-150-with-administration-administrationresppk-and-samplings-samplingtimesresppk" class="section level3">
+<h3>Define an arm called <code>arm1</code> of size 150 with
 administration <code>administrationRespPK</code> and samplings
 <code>samplingTimesRespPK</code></h3>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>arm1 <span class="ot">=</span> <span class="fu">Arm</span>( <span class="at">name =</span> <span class="st">&quot;arm1&quot;</span>,</span>
@@ -508,8 +505,7 @@ administration <code>administrationRespPK</code> and samplings
 <div id="add-the-arm-arm1-to-the-design-design1" class="section level3">
 <h3>Add the arm <code>arm1</code> to the design
 <code>design1</code></h3>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>design1 <span class="ot">=</span> <span class="fu">Design</span>( <span class="at">name =</span> <span class="st">&quot;design1&quot;</span>,</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>                  <span class="at">arms =</span> <span class="fu">list</span>( arm1 ) )</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>design1 <span class="ot">=</span> <span class="fu">Design</span>( <span class="at">name =</span> <span class="st">&quot;design1&quot;</span>, <span class="at">arms =</span> <span class="fu">list</span>( arm1 ) )</span></code></pre></div>
 </div>
 <div id="evaluate-the-population-individual-and-bayesian-fims" class="section level3">
 <h3>Evaluate the population, individual and Bayesian FIMs</h3>
@@ -546,25 +542,52 @@ administration <code>administrationRespPK</code> and samplings
 <span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a></span>
 <span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a>evaluationFIMBay <span class="ot">=</span> <span class="fu">run</span>( evaluationBay )</span></code></pre></div>
 </div>
-<div id="display-the-results-of-the-design-evaluation" class="section level3">
-<h3>Display the results of the design evaluation</h3>
+<div id="display-the-results-of-the-design-evaluations" class="section level3">
+<h3>Display the results of the design evaluations</h3>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">show</span>( evaluationFIMPop )</span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">show</span>( evaluationFIMInd )</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">show</span>( evaluationFIMBay )</span></code></pre></div>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">show</span>( evaluationFIMBay )</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>fisherMatrix <span class="ot">=</span> <span class="fu">getFisherMatrix</span>( evaluationFIMPop )</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">getCorrelationMatrix</span>( evaluationFIMPop )</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">getSE</span>( evaluationFIMPop )</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="fu">getRSE</span>( evaluationFIMPop )</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="fu">getShrinkage</span>( evaluationFIMPop )</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="fu">getDeterminant</span>( evaluationFIMPop )</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="fu">getDcriterion</span>( evaluationFIMPop )</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>plotOptions <span class="ot">=</span> <span class="fu">list</span>( <span class="at">unitTime =</span> <span class="fu">c</span>(<span class="st">&quot;hour&quot;</span>), <span class="at">unitOutcomes =</span> <span class="fu">c</span>(<span class="st">&quot;mcg/mL&quot;</span>)  )</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>plotEvaluation <span class="ot">=</span> <span class="fu">plotEvaluation</span>( evaluationFIMPop, plotOptions )</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>plotSensitivityIndice <span class="ot">=</span> <span class="fu">plotSensitivityIndice</span>( evaluationFIMPop, plotOptions )</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>SE <span class="ot">=</span> <span class="fu">plotSE</span>( evaluationFIMPop )</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>RSE <span class="ot">=</span> <span class="fu">plotRSE</span>( evaluationFIMPop )</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co"># examples</span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>plotOutcomesEvaluationRespPK <span class="ot">=</span> plotEvaluation[[<span class="st">&quot;design1&quot;</span>]][[<span class="st">&quot;arm1&quot;</span>]][[<span class="st">&quot;RespPK&quot;</span>]]</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a>plotSensitivityIndice_RespPK_Cl <span class="ot">=</span>  plotSensitivityIndice[[<span class="st">&quot;design1&quot;</span>]][[<span class="st">&quot;arm1&quot;</span>]][[<span class="st">&quot;RespPK&quot;</span>]][[<span class="st">&quot;V&quot;</span>]]</span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a>SE <span class="ot">=</span> SE[[<span class="st">&quot;design1&quot;</span>]]</span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a>RSE <span class="ot">=</span> RSE[[<span class="st">&quot;design1&quot;</span>]]</span></code></pre></div>
 </div>
 <div id="create-and-save-the-report-for-the-design-evaluation" class="section level3">
 <h3>Create and save the report for the design evaluation</h3>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>plotOptions <span class="ot">=</span> <span class="fu">list</span>( <span class="at">unitTime=</span><span class="fu">c</span>(<span class="st">&quot;hour&quot;</span>), <span class="at">unitResponses=</span> <span class="fu">c</span>(<span class="st">&quot;mcg/mL&quot;</span>,<span class="st">&quot;DI%&quot;</span>) )</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>outputPath <span class="ot">=</span> <span class="st">&quot;C:/...&quot;</span></span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationPopFIM.html&quot;</span></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMPop, outputPath, outputFile, plotOptions )</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationIndFIM.html&quot;</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMInd, outputPath, outputFile, plotOptions )</span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationBayFIM.html&quot;</span></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMBay, outputPath, outputFile, plotOptions )</span></code></pre></div>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>plotOptions <span class="ot">=</span> <span class="fu">list</span>( <span class="at">unitTime=</span><span class="fu">c</span>(<span class="st">&quot;hour&quot;</span>), <span class="at">unitResponses=</span> <span class="fu">c</span>(<span class="st">&quot;mcg/mL&quot;</span>) )</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationPopFIM.html&quot;</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMPop, outputPath, outputFile, plotOptions )</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationIndFIM.html&quot;</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMInd, outputPath, outputFile, plotOptions )</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationBayFIM.html&quot;</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMBay, outputPath, outputFile, plotOptions )</span></code></pre></div>
 </div>
 </div>
 <div id="design-optimization" class="section level1">
@@ -581,13 +604,11 @@ dose regimens, we keep the same administration.</p>
 <p>We define sampling times constraints that aim to select 4 sampling
 times: 2 within the interval [1,48], and 2 within [72, 120], with at
 least a delay of 5 between two points.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>samplingConstraintsRespPK  <span class="ot">=</span> <span class="fu">SamplingTimeConstraints</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>,</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>                                                      <span class="at">initialSamplings =</span> <span class="fu">c</span>( <span class="dv">1</span>, <span class="dv">48</span>, <span class="dv">72</span>, <span class="dv">120</span> ),</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>                                                      <span class="at">numberOfTimesByWindows =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>),</span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>                                                      <span class="at">samplingsWindows =</span> <span class="fu">list</span>( <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">48</span>), <span class="fu">c</span>(<span class="dv">72</span>,<span class="dv">120</span>) ),</span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>                                                      <span class="at">minSampling =</span> <span class="dv">5</span></span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>                                                      )</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>samplingConstraintsRespPK  <span class="ot">=</span> <span class="fu">SamplingTimeConstraints</span>( <span class="at">outcome =</span> <span class="st">&quot;RespPK&quot;</span>,</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>                                                      <span class="at">initialSamplings =</span> <span class="fu">c</span>( <span class="dv">1</span>, <span class="dv">48</span>, <span class="dv">72</span>, <span class="dv">120</span> ),</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>                                                      <span class="at">numberOfTimesByWindows =</span> <span class="fu">c</span>( <span class="dv">2</span>, <span class="dv">2</span> ),</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>                                                      <span class="at">samplingsWindows =</span> <span class="fu">list</span>( <span class="fu">c</span>( <span class="dv">1</span>, <span class="dv">48</span> ), <span class="fu">c</span>( <span class="dv">72</span>, <span class="dv">120</span> ) ),</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>                                                      <span class="at">minSampling =</span> <span class="dv">5</span> )</span></code></pre></div>
 </div>
 <div id="create-the-constraint-arm-and-the-associated-design" class="section level3">
 <h3>Create the constraint arm and the associated design</h3>
@@ -595,10 +616,9 @@ least a delay of 5 between two points.</p>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>            <span class="at">size =</span> <span class="dv">150</span>,</span>
 <span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>            <span class="at">administrations =</span> <span class="fu">list</span>( administrationRespPK ) ,</span>
 <span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>            <span class="at">samplingTimes   =</span> <span class="fu">list</span>( samplingTimesRespPK ),</span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>            <span class="at">samplingTimesConstraints =</span> <span class="fu">list</span>( samplingConstraintsRespPK ) </span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>            )</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>design2 <span class="ot">=</span> <span class="fu">Design</span>( <span class="at">name =</span> <span class="st">&quot;design2&quot;</span>, <span class="at">arms =</span> <span class="fu">list</span>( arm2 ), <span class="at">numberOfArms =</span> <span class="dv">150</span> )</span></code></pre></div>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>            <span class="at">samplingTimesConstraints =</span> <span class="fu">list</span>( samplingConstraintsRespPK ) )</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>design2 <span class="ot">=</span> <span class="fu">Design</span>( <span class="at">name =</span> <span class="st">&quot;design2&quot;</span>, <span class="at">arms =</span> <span class="fu">list</span>( arm2 ), <span class="at">numberOfArms =</span> <span class="dv">150</span> )</span></code></pre></div>
 </div>
 <div id="set-the-the-parameters-of-the-pso-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim" class="section level3">
 <h3>Set the the parameters of the PSO algorithm and run the algorithm
@@ -616,13 +636,14 @@ for the design optimization with a population FIM</h3>
 <span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>                               <span class="at">populationSize =</span> <span class="dv">10</span>,</span>
 <span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>                               <span class="at">personalLearningCoefficient =</span> <span class="fl">2.05</span>,</span>
 <span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>                               <span class="at">globalLearningCoefficient =</span> <span class="fl">2.05</span>,</span>
-<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>                               <span class="at">showProcess =</span> T  ),</span>
-<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a></span>
-<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>                             <span class="at">designs =</span> <span class="fu">list</span>( design2 ),</span>
-<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a></span>
-<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a>                             <span class="at">fim =</span> <span class="st">&quot;population&quot;</span>,</span>
-<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a></span>
-<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a>                             <span class="at">outcomes =</span> <span class="fu">list</span>( <span class="st">&quot;RespPK&quot;</span>) )</span></code></pre></div>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>                               <span class="at">seed =</span> <span class="dv">42</span>,</span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>                               <span class="at">showProcess =</span> T  ),</span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>                             <span class="at">designs =</span> <span class="fu">list</span>( design2 ),</span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a>                             <span class="at">fim =</span> <span class="st">&quot;population&quot;</span>,</span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a>                             <span class="at">outcomes =</span> <span class="fu">list</span>( <span class="st">&quot;RespPK&quot;</span>) )</span></code></pre></div>
 </div>
 <div id="run-the-pso-algorithm-for-the-optimization-with-a-population-fim" class="section level3">
 <h3>Run the PSO algorithm for the optimization with a population
@@ -631,18 +652,29 @@ FIM</h3>
 </div>
 <div id="display-the-results-of-the-design-optimization" class="section level3">
 <h3>Display the results of the design optimization</h3>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">show</span>( optimizationPSO )</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">show</span>( optimizationPSO )</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>fisherMatrix <span class="ot">=</span> <span class="fu">getFisherMatrix</span>( optimizationPSO )</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="fu">getCorrelationMatrix</span>( optimizationPSO )</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="fu">getSE</span>( optimizationPSO )</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="fu">getRSE</span>( optimizationPSO )</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="fu">getShrinkage</span>( optimizationPSO )</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="fu">getDeterminant</span>( optimizationPSO )</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="fu">getDcriterion</span>( optimizationPSO )</span></code></pre></div>
 </div>
 <div id="create-and-save-the-report-for-the-design-optimization" class="section level3">
 <h3>Create and save the report for the design optimization</h3>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a></span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationPSOPopFIM.html&quot;</span></span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">Report</span>( optimizationPSO, outputPath, outputFile, plotOptions )</span></code></pre></div>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>outputPath <span class="ot">=</span> <span class="st">&quot;C:/...&quot;</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationPSOPopFIM.html&quot;</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a><span class="fu">Report</span>( optimizationPSO, outputPath, outputFile, plotOptions )</span></code></pre></div>
 </div>
 <div id="set-the-the-parameters-of-the-pgbo-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim" class="section level3">
 <h3>Set the the parameters of the PGBO algorithm and run the algorithm
 for the design optimization with a population FIM</h3>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>optimizationPGBO<span class="ot">=</span> <span class="fu">Optimization</span>( <span class="at">name =</span> <span class="st">&quot;&quot;</span>,</span>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>optimizationPGBO <span class="ot">=</span> <span class="fu">Optimization</span>( <span class="at">name =</span> <span class="st">&quot;&quot;</span>,</span>
 <span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>                                   <span class="at">modelEquations =</span> modelEquations,</span>
 <span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>                                   <span class="at">modelParameters =</span> modelParameters,</span>
 <span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>                                   <span class="at">modelError =</span> modelError,</span>
@@ -651,9 +683,9 @@ for the design optimization with a population FIM</h3>
 <span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>                                   </span>
 <span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>                                   <span class="at">optimizerParameters =</span> <span class="fu">list</span>(</span>
 <span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>                                     <span class="at">N =</span> <span class="dv">30</span>,</span>
-<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>                                     <span class="at">muteEffect =</span> <span class="dv">1</span>,</span>
-<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>                                     <span class="at">maxIteration =</span> <span class="dv">300</span>,</span>
-<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a>                                     <span class="at">purgeIteration =</span> <span class="dv">10</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>                                     <span class="at">muteEffect =</span> <span class="fl">0.65</span>,</span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>                                     <span class="at">maxIteration =</span> <span class="dv">1000</span>,</span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a>                                     <span class="at">purgeIteration =</span> <span class="dv">200</span>,</span>
 <span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a>                                     <span class="at">seed =</span> <span class="dv">42</span>,</span>
 <span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a>                                     <span class="at">showProcess =</span> <span class="cn">TRUE</span>  ),</span>
 <span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a>                                   </span>
@@ -666,7 +698,15 @@ for the design optimization with a population FIM</h3>
 <div id="run-the-pgbo-algorithm-for-the-optimization-with-a-population-fim" class="section level3">
 <h3>Run the PGBO algorithm for the optimization with a population
 FIM</h3>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>optimizationPGBO <span class="ot">=</span> <span class="fu">run</span>( optimizationPGBO )</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>optimizationPGBO <span class="ot">=</span> <span class="fu">run</span>( optimizationPGBO )</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>fisherMatrix <span class="ot">=</span> <span class="fu">getFisherMatrix</span>( optimizationPGBO )</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="fu">getCorrelationMatrix</span>( optimizationPGBO )</span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="fu">getSE</span>( optimizationPGBO )</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="fu">getRSE</span>( optimizationPGBO )</span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="fu">getShrinkage</span>( optimizationPGBO )</span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a><span class="fu">getDeterminant</span>( optimizationPGBO )</span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="fu">getDcriterion</span>( optimizationPGBO )</span></code></pre></div>
 </div>
 <div id="display-the-results-of-the-design-optimization-1" class="section level3">
 <h3>Display the results of the design optimization</h3>
@@ -675,12 +715,16 @@ FIM</h3>
 <div id="create-and-save-the-report-for-the-design-optimization-1" class="section level3">
 <h3>Create and save the report for the design optimization</h3>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a></span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationPGBOPopFIM.html&quot;</span></span>
-<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="fu">Report</span>( optimizationPGBO, outputPath, outputFile, plotOptions )</span></code></pre></div>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>outputPath <span class="ot">=</span> <span class="st">&quot;C:/...&quot;</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationPGBOPopFIM.html&quot;</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a><span class="fu">Report</span>( optimizationPGBO, outputPath, outputFile, plotOptions )</span></code></pre></div>
 </div>
-<div id="set-the-the-parameters-of-the-simplex-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim" class="section level3">
-<h3>Set the the parameters of the Simplex algorithm and run the
-algorithm for the design optimization with a population FIM</h3>
+</div>
+<div id="set-the-the-parameters-of-the-simplex-algorithm-and-run-the-algorithm-for-the-design-optimization-with-a-population-fim" class="section level1">
+<h1>Set the the parameters of the Simplex algorithm and run the
+algorithm for the design optimization with a population FIM</h1>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>optimizationSimplex<span class="ot">=</span> <span class="fu">Optimization</span>( <span class="at">name =</span> <span class="st">&quot;&quot;</span>,</span>
 <span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>                                <span class="at">modelEquations =</span> modelEquations,</span>
 <span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>                                <span class="at">modelParameters =</span> modelParameters,</span>
@@ -689,31 +733,39 @@ algorithm for the design optimization with a population FIM</h3>
 <span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>                                <span class="at">optimizer =</span> <span class="st">&quot;SimplexAlgorithm&quot;</span>,</span>
 <span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>                                </span>
 <span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>                                <span class="at">optimizerParameters =</span> <span class="fu">list</span>( <span class="at">pctInitialSimplexBuilding =</span> <span class="dv">20</span>,</span>
-<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>                                                                 <span class="at">maxIteration =</span> <span class="dv">100</span>,</span>
-<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>                                                                 <span class="at">tolerance =</span> <span class="fl">1e-6</span>,</span>
-<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>                                                                 <span class="at">showProcess =</span> <span class="cn">TRUE</span>  ),</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>                                                            <span class="at">maxIteration =</span> <span class="dv">1000</span>,</span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>                                                            <span class="at">tolerance =</span> <span class="fl">1e-6</span>,</span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>                                                            <span class="at">showProcess =</span> <span class="cn">TRUE</span>  ),</span>
 <span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a>                                </span>
 <span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a>                                <span class="at">designs =</span> <span class="fu">list</span>( design2 ),</span>
 <span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a>                                </span>
 <span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a>                                <span class="at">fim =</span> <span class="st">&quot;population&quot;</span>,</span>
 <span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a>                                </span>
-<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a>                                <span class="at">outcomes =</span> <span class="fu">list</span>( <span class="st">&quot;RespPK&quot;</span>) )</span></code></pre></div>
-</div>
-<div id="run-the-simplex-algorithm-for-the-optimization-with-a-population-fim" class="section level3">
-<h3>Run the Simplex algorithm for the optimization with a population
-FIM</h3>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a>optimizationSimplex <span class="ot">=</span> <span class="fu">run</span>( optimizationSimplex )</span></code></pre></div>
-</div>
+<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a>                                <span class="at">outcomes =</span> <span class="fu">list</span>( <span class="st">&quot;RespPK&quot;</span>) )</span>
+<span id="cb22-18"><a href="#cb22-18" tabindex="-1"></a></span>
+<span id="cb22-19"><a href="#cb22-19" tabindex="-1"></a>optimizationSimplex <span class="ot">=</span> <span class="fu">run</span>( optimizationSimplex )</span></code></pre></div>
 <div id="display-the-results-of-the-design-optimization-2" class="section level3">
 <h3>Display the results of the design optimization</h3>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">show</span>( optimizationSimplex )</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">show</span>( optimizationSimplex )</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>fisherMatrix <span class="ot">=</span> <span class="fu">getFisherMatrix</span>( optimizationSimplex )</span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a><span class="fu">getCorrelationMatrix</span>( optimizationSimplex )</span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a><span class="fu">getSE</span>( optimizationSimplex )</span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a><span class="fu">getRSE</span>( optimizationSimplex )</span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a><span class="fu">getShrinkage</span>( optimizationSimplex )</span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a><span class="fu">getDeterminant</span>( optimizationSimplex )</span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="fu">getDcriterion</span>( optimizationSimplex )</span></code></pre></div>
 </div>
 <div id="create-and-save-the-report-for-the-design-optimization-2" class="section level3">
 <h3>Create and save the report for the design optimization</h3>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a></span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationSimplexPopFIM.html&quot;</span></span>
-<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a><span class="fu">Report</span>( optimizationSimplex, outputPath, outputFile, plotOptions )</span></code></pre></div>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">show</span>( optimizationMultPopFIM )</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>outputPath <span class="ot">=</span> <span class="st">&quot;C:/...&quot;</span></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationSimplexPopFIM.html&quot;</span></span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a><span class="fu">Report</span>( optimizationSimplex, outputPath, outputFile, plotOptions )</span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a><span class="fu">saveRDS</span>( optimizationSimplex, <span class="at">file =</span> <span class="fu">paste0</span>( outputPath, <span class="st">&quot;Example02_OptimizationSimplexPopFIM.rds&quot;</span> ) )</span></code></pre></div>
 </div>
 </div>
 <div id="references" class="section level1 unnumbered">

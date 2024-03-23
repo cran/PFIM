@@ -95,19 +95,6 @@ setGeneric("EvaluateVarianceFIM",
              standardGeneric( "EvaluateVarianceFIM" )
            })
 
-#' Get the FIM.
-#'
-#' @name getFisherMatrix
-#' @param object An object from the class \linkS4class{Fim}.
-#' @return A matrix giving the FIM.
-#' @export
-
-setGeneric("getFisherMatrix",
-           function(object)
-           {
-             standardGeneric("getFisherMatrix")
-           })
-
 #' @rdname getFisherMatrix
 #' @export
 
@@ -273,18 +260,6 @@ setMethod( "setVarianceEffects",
              return( object )
            })
 
-#' Get the determinant of the fim.
-#'
-#' @name getDeterminant
-#' @param object An object from the class \linkS4class{Fim}.
-#' @return A numeric giving the determinant of the fim.
-#' @export
-
-setGeneric("getDeterminant",
-           function(object)
-           {
-             standardGeneric("getDeterminant")
-           })
 
 #' @rdname getDeterminant
 #' @export
@@ -298,18 +273,6 @@ setMethod( "getDeterminant",
              return(determinant)
            })
 
-#' Get the D criterion of the fim.
-#'
-#' @name getDcriterion
-#' @param object An object from the class \linkS4class{Fim}.
-#' @return  A numeric giving the D criterion of the fim.
-#' @export
-
-setGeneric("getDcriterion",
-           function(object)
-           {
-             standardGeneric("getDcriterion")
-           })
 
 #' @rdname getDcriterion
 #' @export
@@ -321,19 +284,6 @@ setMethod( "getDcriterion",
              fisherMatrix = getFisherMatrix( object )
              Dcriterion = det(fisherMatrix)**(1/dim(fisherMatrix)[1])
              return(Dcriterion)
-           })
-
-#' Get the correlation matrix.
-#'
-#' @name getCorrelationMatrix
-#' @param object An object from the class \linkS4class{Fim}.
-#' @return The correlation matrix of the fim.
-#' @export
-
-setGeneric("getCorrelationMatrix",
-           function(object)
-           {
-             standardGeneric("getCorrelationMatrix")
            })
 
 #' @rdname getCorrelationMatrix
@@ -389,20 +339,8 @@ setMethod( "getCorrelationMatrix",
                varianceEffects = NULL
              }
 
-             return( list( correlationMatrix = correlationMatrix, fixedEffects = fixedEffects, varianceEffects = varianceEffects ) )
-           })
-
-#' Get the SE.
-#'
-#' @name getSE
-#' @param object An object from the class \linkS4class{Fim}.
-#' @return A vector giving the SE.
-#' @export
-
-setGeneric("getSE",
-           function(object)
-           {
-             standardGeneric("getSE")
+             return( list( correlationMatrix = correlationMatrix, fixedEffects = fixedEffects,
+                           varianceEffects = varianceEffects ) )
            })
 
 #' @rdname getSE
@@ -424,33 +362,6 @@ setMethod( "getSE",
              }
 
              return(SE)
-           })
-
-#' Get the RSE
-#'
-#' @name getRSE
-#' @param object An object from the class \linkS4class{Fim}.
-#' @param model An object from the class \linkS4class{Model}.
-#' @return A vector giving the RSE.
-#' @export
-
-setGeneric("getRSE",
-           function(object, model)
-           {
-             standardGeneric("getRSE")
-           })
-
-#' Get the shrinkage.
-#'
-#' @name getShrinkage
-#' @param object An object from the class \linkS4class{Fim}.
-#' @return A vector giving the shrinkage of the Bayesian fim.
-#' @export
-
-setGeneric("getShrinkage",
-           function(object)
-           {
-             standardGeneric("getShrinkage")
            })
 
 #' Set the shrinkage.

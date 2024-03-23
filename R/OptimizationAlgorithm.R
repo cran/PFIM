@@ -42,6 +42,10 @@ setMethod( f="initialize",
            }
 )
 
+# ======================================================================================================
+# optimize
+# ======================================================================================================
+
 #' Optimize a design.
 #' @name optimize
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
@@ -57,6 +61,10 @@ setGeneric("optimize",
              standardGeneric("optimize")
            })
 
+# ======================================================================================================
+# plotWeights
+# ======================================================================================================
+
 #' Graph of the weights for the multiplicative algorithm.
 #' @name plotWeights
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
@@ -70,6 +78,44 @@ setGeneric("plotWeights",
              standardGeneric("plotWeights")
            })
 
+# ======================================================================================================
+# plotFrequencies
+# ======================================================================================================
+
+#' Graph of the frequencies for the FW algorithm.
+#' @name plotFrequencies
+#' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
+#' @param threshold A numeric giving the threshold for the frequencies for the FW algorithm.
+#' @return The graphs of the frequencies for the FW algorithm.
+#' @export
+
+setGeneric("plotFrequencies",
+           function(object, threshold )
+           {
+             standardGeneric("plotFrequencies")
+           })
+
+# ======================================================================================================
+# getDataFrameResults
+# ======================================================================================================
+
+#' Get the dataframe of the results.
+#' @name getDataFrameResults
+#' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
+#' @param threshold The threshold for the optimal weights / frequencies for the multiplicative and FW algorithms.
+#' @return Return the dataframe of the results.
+#' @export
+
+setGeneric("getDataFrameResults",
+           function( object, threshold )
+           {
+             standardGeneric("getDataFrameResults")
+           })
+
+# ======================================================================================================
+# getFim
+# ======================================================================================================
+
 #' @rdname getFim
 #' @export
 
@@ -78,8 +124,11 @@ setMethod(f="getFim",
           definition = function(object)
           {
             return( object@fim )
-          }
-)
+          })
+
+# ======================================================================================================
+# getOptimalDesign
+# ======================================================================================================
 
 #' Get the optimal design.
 #' @name getOptimalDesign
@@ -103,6 +152,10 @@ setMethod(f="getOptimalDesign",
             return( object@optimalDesign )
           }
 )
+
+# ======================================================================================================
+# setOptimalDesign
+# ======================================================================================================
 
 #' Set the optimal design.
 #' @name setOptimalDesign
@@ -160,6 +213,10 @@ setMethod(f="setArms",
           }
 )
 
+# ======================================================================================================
+# getIterationAndCriteria
+# ======================================================================================================
+
 #' Get the iteration with the convergence criteria.
 #' @name getIterationAndCriteria
 #' @param object An object from the class \linkS4class{OptimizationAlgorithm}.
@@ -182,6 +239,10 @@ setMethod(f="getIterationAndCriteria",
             return( object@iterationAndCriteria )
           }
 )
+
+# ======================================================================================================
+# setIterationAndCriteria
+# ======================================================================================================
 
 #' Set the iteration with the convergence criteria.
 #' @name setIterationAndCriteria
@@ -206,6 +267,10 @@ setMethod(f="setIterationAndCriteria",
             object@iterationAndCriteria = value
             return( object )
           })
+
+# ======================================================================================================
+# generateReportOptimization
+# ======================================================================================================
 
 #' Generate report for the optimization.
 #' @name generateReportOptimization

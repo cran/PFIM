@@ -172,8 +172,8 @@ weights = weights % pow(vector_of_multiplier,lambda[0]) / sum(weights % pow(vect
 } // end iteration
 
 // output
-return Rcpp::List::create( Rcpp::Named ("weights ") = weights,
-                           Rcpp::Named ("iterationEnd ") = iter);
+return Rcpp::List::create( Rcpp::Named ("weights") = weights,
+                           Rcpp::Named ("iterationEnd") = iter);
 
 } // end MultiplicativeAlgorithm_Rcpp
 '
@@ -370,13 +370,11 @@ setMethod(f = "optimize",
             # =======================================================
 
             fims = generateFimsFromConstraints( optimizationObject )
+
             fisherMatrices = fims$listFims
             fisherMatricesArms = fims$listArms
 
-            # =======================================================
             # rename arms
-            # =======================================================
-
             for ( k in 1:length( fisherMatricesArms ) )
             {
               fisherMatricesArms[[k]] = setName( fisherMatricesArms[[k]], name = paste0("Arm", k ) )
@@ -405,8 +403,8 @@ setMethod(f = "optimize",
             # get weights and final iteration
             # =======================================================
 
-            weights = multiplicativeAlgorithmOutput$`weights`
-            iterationEnd = multiplicativeAlgorithmOutput$`iterationEnd`
+            weights = multiplicativeAlgorithmOutput[["weights"]]
+            iterationEnd = multiplicativeAlgorithmOutput[["iterationEnd"]]
 
             # =======================================================
             # get the constraint on the number of arms
@@ -475,25 +473,12 @@ setMethod(f = "optimize",
           }
 )
 
-#' Get the dataframe of the results.
-#' @name getDataFrameResults
-#' @param object An object from the class \linkS4class{MultiplicativeAlgorithm}.
-#' @param threshold The threshold for the optimal weights.
-#' @return Return the dataframe of the results.
-#' @export
-
-setGeneric("getDataFrameResults",
-           function( object, threshold )
-           {
-             standardGeneric("getDataFrameResults")
-           })
-
 #' @rdname getDataFrameResults
 #' @export
 
 setMethod(f="getDataFrameResults",
           signature="MultiplicativeAlgorithm",
-          definition = function( object, threshold)
+          definition = function( object, threshold )
           {
             # =======================================================
             # get optimal weights and optimal design
@@ -519,26 +504,21 @@ setMethod(f="getDataFrameResults",
               samplingTimes = lapply( arms, function(x) getSamplingTime( x, outcome ) )
               samplings = lapply( samplingTimes, function(x) getSamplings( x ) )
               samplings = lapply( samplings, function(x) toString( sort( x ) ) )
-              armsTableSamplings[[outcome]] = paste0("(",unlist( samplings ),")")
+              armsTableSamplings[[outcome]] = paste0("(",unlist( samplings ), ")" )
             }
 
             # =======================================================
             # arm name and weight
             # =======================================================
 
-            optimalWeights = round(optimalWeights,2)
-
             data = data.frame( armNames = armNames, optimalWeights = optimalWeights, armsTableSamplings )
 
-            data = data[order(data$optimalWeights, decreasing = TRUE) > threshold,]
+            # weight threshold
+            data = data[ data$optimalWeights > threshold, ]
+            data = data[ order( data$optimalWeights, decreasing = TRUE),]
+            data = cbind( rev(seq(1,dim(data)[1] ) ), data )
 
-            # =======================================================
-            # threshold
-            # =======================================================
-
-            data = cbind( rev(seq(1,dim(data)[1] )), data )
-
-            colnames( data ) = c("number", "Arm","Weights",outcomes )
+            colnames( data ) = c( "number", "Arm", "Weights", outcomes )
             rownames( data ) = NULL
 
             return( data )
@@ -559,7 +539,16 @@ setMethod(f="plotWeights",
 
             plotData = ggplot(data, aes( x = number, y = data[,3] ) ) +
 
-              theme(axis.text.x.top = element_text(angle = 90, hjust = 0,colour = "red")) +
+              theme(legend.position = "none",
+                    axis.title.x.top = element_text(color = "red" , vjust = 2.0),
+                    axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ),
+                    plot.title = element_text(size=16, hjust = 0.5),
+                    axis.title.x = element_text(size=16),
+                    axis.title.y = element_text(size=16),
+                    axis.text.x = element_text(size=16, angle = 0, vjust = 0.5),
+                    axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+                    strip.text.x = element_text(size = 16))+
+
 
               geom_bar(width = 0.5,position="identity", stat="identity") +
 
@@ -590,6 +579,7 @@ setMethod(f="show",
           definition = function( object )
           {
             dataFrameResults = getDataFrameResults( object, threshold = 0.001 )
+
             rownames( dataFrameResults ) = NULL
             dataFrameResults = dataFrameResults[,2:dim(dataFrameResults)[2]]
 

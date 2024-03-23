@@ -1,11 +1,12 @@
 #' @name PFIM-package
 #' @aliases PFIM, package-PFIM
 #' @docType package
+#' @encoding UTF-8
 #' @title Fisher Information matrix for design evaluation/optimization for  nonlinear mixed effects models.
 #' @section Description:
 #' Nonlinear mixed effects models (NLMEM) are widely used in model-based drug development and use to analyze
 #' longitudinal data. The use of the "population" Fisher Information Matrix (FIM) is a good alternative to
-#' clinical trial simulation to optimize the design of these studies. PFIM 6.0 was released in 2022. The present version, \pkg{PFIM} 6.0, is an R package that uses the S4 object system  for evaluating and/or
+#' clinical trial simulation to optimize the design of these studies. PFIM 6.0 was released in 2023. The present version, \pkg{PFIM} 6.0, is an R package that uses the S4 object system  for evaluating and/or
 #' optimizing population designs based on FIM in NLMEMs.
 #'
 #' This version of \pkg{PFIM} now includes a library of models implemented also using the object oriented system S4 of R.
@@ -30,13 +31,13 @@
 #' D-criterion is also provided.
 #'
 #' @references
-#' [1] Dumont C, Lestini G, Le Nagard H, Mentr\'e F, Comets E, Nguyen TT, et al. PFIM 4.0, an extended R program for design evaluation and optimization in
+#' [1] Dumont C, Lestini G, Le Nagard H, Mentré F, Comets E, Nguyen TT, et al. PFIM 4.0, an extended R program for design evaluation and optimization in
 #' nonlinear mixed-effect models. Comput Methods Programs Biomed. 2018;156:217-29.
 #' @references [2] Chambers JM. Object-Oriented Programming, Functional Programming and R. Stat Sci. 2014;29:167-80.
-#' @references [3] Mentr\'e F, Mallet A, Baccar D. Optimal Design in Random-Effects Regression Models. Biometrika. 1997;84:429-42.
-#' @references [4] Combes FP, Retout S, Frey N, Mentr\'e F. Prediction of shrinkage of individual parameters using the Bayesian information matrix in nonlinear mixed effect models with evaluation in pharmacokinetics. Pharm Res. 2013;30:2355-67.
+#' @references [3] Mentré F, Mallet A, Baccar D. Optimal Design in Random-Effects Regression Models. Biometrika. 1997;84:429-42.
+#' @references [4] Combes FP, Retout S, Frey N, Mentré F. Prediction of shrinkage of individual parameters using the Bayesian information matrix in nonlinear mixed effect models with evaluation in pharmacokinetics. Pharm Res. 2013;30:2355-67.
 #' @references [5] Nelder JA, Mead R. A simplex method for function minimization. Comput J. 1965;7:308-13.
-#' @references [6] Seurat J, Tang Y, Mentr\'e F, Nguyen, TT. Finding optimal design in nonlinear mixed effect models using multiplicative algorithms. Computer Methods and Programs in Biomedicine, 2021.
+#' @references [6] Seurat J, Tang Y, Mentré F, Nguyen, TT. Finding optimal design in nonlinear mixed effect models using multiplicative algorithms. Computer Methods and Programs in Biomedicine, 2021.
 #' @references [7] Fedorov VV. Theory of Optimal Experiments. Academic Press, New York, 1972.
 #' @references [8] Eberhart RC, Kennedy J. A new optimizer using particle swarm theory. Proc. of the Sixth International Symposium on Micro Machine and Human Science, Nagoya, 4-6 October 1995, 39-43.
 #' @references [9] Le Nagard H, Chao L, Tenaillon O. The emergence of complexity and restricted pleiotropy in adapting networks. BMC Evol Biol. 2011;11:326.

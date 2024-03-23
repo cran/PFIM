@@ -69,19 +69,10 @@ test_that("", {
                               odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
 
   evaluationFIM = run( evaluationFIM )
-  # show( evaluationFIM )
-
-  # get the evaluated designs
-  designs = getDesigns( evaluationFIM )
-  designsNames = getNames(designs)
-  designName = designsNames[[1]]
-  design = designs[[designName]]
-
-  # get the fim of the design
-  fim = getFim( design )
 
   # get the determinant of the Fisher matrix
-  detIndividualFim = getDeterminant(fim)
+  detIndividualFim = getDeterminant( evaluationFIM )
+  detIndividualFim = detIndividualFim[["design1"]]
 
   valueDetIndividualFim = 8.632751e+14
 
@@ -160,20 +151,8 @@ test_that("", {
                               odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
 
   evaluationFIM = run( evaluationFIM )
-  # show( evaluationFIM )
-
-  # get the evaluated designs
-  designs = getDesigns( evaluationFIM )
-  designsNames = getNames(designs)
-  designName = designsNames[[1]]
-  design = designs[[designName]]
-
-  # get the fim of the design
-  fim = getFim( design )
-
-  # get the determinant of the Fisher matrix
-  detIndividualFim = getDeterminant(fim)
-
+  detIndividualFim = getDeterminant(evaluationFIM)
+  detIndividualFim = detIndividualFim[["design1"]]
 
   # Evaluate the Fisher Information Matrix for the PopulationFIM
   evaluationFIM = Evaluation( name = "PKPD",
@@ -186,20 +165,8 @@ test_that("", {
                               odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
 
   evaluationFIM = run( evaluationFIM )
-  # show( evaluationFIM )
-
-  # get the evaluated designs
-  designs = getDesigns( evaluationFIM )
-  designsNames = getNames(designs)
-  designName = designsNames[[1]]
-  design = designs[[designName]]
-
-  # get the fim of the design
-  fim = getFim( design )
-
-  # get the determinant of the Fisher matrix
-  detPopulationFim = getDeterminant(fim)
-
+  detPopulationFim = getDeterminant(evaluationFIM)
+  detPopulationFim = detPopulationFim[["design1"]]
 
   valueDetIndividualFim = 2.505716e+14
   valueDetPopulationFim = 1.619213e+26
@@ -286,19 +253,10 @@ test_that("", {
                               odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
 
   evaluationFIM = run( evaluationFIM )
-  # show( evaluationFIM )
-
-  # get the evaluated designs
-  designs = getDesigns( evaluationFIM )
-  designsNames = getNames(designs)
-  designName = designsNames[[1]]
-  design = designs[[designName]]
-
-  # get the fim of the design
-  fim = getFim( design )
 
   # get the determinant of the Fisher matrix
-  detPopulationFim = getDeterminant(fim)
+  detPopulationFim = getDeterminant( evaluationFIM )
+  detPopulationFim = detPopulationFim[["design1"]]
 
   valueDetPopulationFim = 3.868994e+46
   tol = 1e-6
