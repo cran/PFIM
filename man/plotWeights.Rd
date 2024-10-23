@@ -7,16 +7,14 @@
 \alias{plotWeights,Optimization-method}
 \title{Graph of the weights for the multiplicative algorithm.}
 \usage{
-plotWeights(object, threshold)
+plotWeights(object)
 
-\S4method{plotWeights}{MultiplicativeAlgorithm}(object, threshold)
+\S4method{plotWeights}{MultiplicativeAlgorithm}(object)
 
-\S4method{plotWeights}{Optimization}(object, threshold)
+\S4method{plotWeights}{Optimization}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{OptimizationAlgorithm}.}
-
-\item{threshold}{A numeric giving the threshold for the optimal weights in the multiplicative algorithm.}
 }
 \value{
 The graphs of the  weights for the multiplicative algorithm.

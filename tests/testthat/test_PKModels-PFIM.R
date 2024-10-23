@@ -203,7 +203,7 @@ test_that("", {
   detPopulationFim = getDeterminant( evaluationFIM )
   detPopulationFim = detPopulationFim[["design1"]]
 
-  valueDetPopulationFim = 0
+  valueDetPopulationFim = 1.976729e+18
   tol = 1e-6
   expect_equal(detPopulationFim,valueDetPopulationFim, tol)
 
@@ -895,7 +895,7 @@ test_that("", {
   detPopulationFim = getDeterminant(evaluationFIM)
   detPopulationFim = detPopulationFim[["design1"]]
 
-  valueDetPopulationFim = 594724488850
+  valueDetPopulationFim = 592523761240
 
   tol = 1e-6
 
@@ -905,22 +905,18 @@ test_that("", {
 
 ###################################################################################################################################
 
-context(" Model PK 1cpt : MichaelisMenten1BolusSingleDose_VmKmV")
+context(" Model PK 1cpt : MichaelisMenten1BolusSingleDose_VmKm")
 
 test_that("", {
-
-  # --------------------------------------
-  # model definition
 
   # model equations
   modelEquations = list(
     outcomes = list( "RespPK" = "C1" ),
-    modelFromLibrary = list("PKModel" = "MichaelisMenten1BolusSingleDose_VmKmV")
+    modelFromLibrary = list("PKModel" = "MichaelisMenten1BolusSingleDose_VmKm")
   )
 
   # model parameters
   modelParameters = list(
-    ModelParameter( name = "V", distribution = LogNormal( mu = 15.00, omega = sqrt(0.25) ) ),
     ModelParameter( name = "Vm",  distribution = LogNormal( mu = 0.08, omega = sqrt(0.10) ) ),
     ModelParameter( name = "Km",  distribution = LogNormal( mu = 0.40, omega = sqrt(0.30) ) )
   )
@@ -932,9 +928,7 @@ test_that("", {
 
 
   # administration
-  administration = Administration( outcome = "C1",
-                                   timeDose = c( 0 ),
-                                   dose = c( 100 ) )
+  administration = Administration( outcome = "C1", timeDose = c( 0 ), dose = c( 100 ) )
 
   # sampling times
   samplingTimes = SamplingTimes( outcome = "C1",
@@ -945,8 +939,7 @@ test_that("", {
               size = 200,
               administrations  = list( administration ) ,
               samplingTimes    = list( samplingTimes ) ,
-              initialCondition = list( "C1" = 0 )
-  )
+              initialCondition = list( "C1" = 0 ) )
 
   # design
   design1 = Design( name = "design1",
@@ -956,7 +949,7 @@ test_that("", {
   # Evaluation
 
   # Evaluate the Fisher Information Matrix for the PopulationFIM
-  evaluationFIM = Evaluation( name = "MichaelisMenten1BolusSingleDose_VmKmV",
+  evaluationFIM = Evaluation( name = "MichaelisMenten1BolusSingleDose_VmKm",
                               modelEquations = modelEquations,
                               modelParameters = modelParameters,
                               modelError = modelError,
@@ -970,11 +963,11 @@ test_that("", {
   detPopulationFim = getDeterminant(evaluationFIM)
   detPopulationFim = detPopulationFim[["design1"]]
 
-  valueDetPopulationFim = 0
+  valueDetPopulationFim = 0.01554648
 
   tol = 1e-6
 
-  expect_equal(detPopulationFim,valueDetPopulationFim, tol)
+  expect_equal( detPopulationFim, valueDetPopulationFim, tol )
 
 })
 

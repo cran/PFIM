@@ -1,3 +1,5 @@
+
+
 #' Class "ModelODEDoseInEquations"
 #'
 #' @description The class \code{ModelODEDoseInEquations} defines information concerning the construction of an ode model
@@ -13,419 +15,298 @@ ModelODEDoseInEquations = setClass("ModelODEDoseInEquations",
                                    contains = "ModelODE")
 
 # ======================================================================================================
-# EvaluateModel
+
+#' @rdname defineModelEquationsFromStringToFunction
+#' @export
+
+setMethod("defineModelEquationsFromStringToFunction",
+          signature("ModelODEDoseInEquations"),
+          function( object, parametersNames, outcomesWithAdministration, outcomesWithNoAdministration )
+          {
+            # variables and outcomes of the model
+            variables = getVariables( object )
+            variablesNames = variables$variablesNames
+            variablesNamesDerivatives = variables$variablesNamesDerivatives
+            variablesNamesDerivatives = paste( variablesNamesDerivatives, collapse = ", ")
+
+            # arguments for the function
+            doseNames = paste( "dose_", outcomesWithAdministration, sep = "" )
+            timeNames = paste( "t_", outcomesWithAdministration, sep = "" )
+            functionArguments = c( doseNames, parametersNames, variablesNames, timeNames )
+            functionArgumentsSymbol = map( functionArguments, ~ as.symbol(.x) )
+
+            # create body function
+            equationsBody = list()
+
+            equations = getEquations( object )
+
+            for ( name in names( equations ) )
+            {
+              equation = equations[[name]]
+              equationsBody = c( equationsBody, sprintf( "%s = %s", name, equation ) )
+            }
+
+            for ( iterTimeName in seq_len( length( timeNames) ) )
+            {
+              equationsBody[[iterTimeName]] = str_replace( equationsBody[[iterTimeName]], "t", timeNames[iterTimeName] )
+            }
+
+            functionBody = paste( equationsBody, collapse = "\n" )
+            functionBody = sprintf( paste( "%s\nreturn(list(c(", variablesNamesDerivatives, ")))", collapse = ", "), functionBody )
+            functionDefinition = sprintf( "function(%s) { %s }", paste( functionArguments, collapse = ", "), functionBody )
+            modelFunction = eval( parse( text = functionDefinition ) )
+
+            return( list( modelFunction = modelFunction,
+                          functionArguments = functionArguments,
+                          functionArgumentsSymbol = functionArgumentsSymbol ) )
+
+          })
+
+# ======================================================================================================
+
+#' @rdname setDataForModelEvaluation
+#' @export
+
+setMethod("setDataForModelEvaluation",
+          signature("ModelODEDoseInEquations"),
+          function( object, arm )
+          {
+            dataForArmEvaluation = getDataForArmEvaluation( arm )
+
+            inputsModel = list()
+            initialConditions = list()
+            timeMatrix = list()
+
+            # outcomes and sampling time
+            outcomesWithAdministration = dataForArmEvaluation$outcomesWithAdministration
+            samplingTimesModel = dataForArmEvaluation$samplingTimesModel
+            outcomesForEvaluation = dataForArmEvaluation$outcomesForEvaluation
+
+            # function to evaluate
+            equationFunction = dataForArmEvaluation$equationFunction
+            modelFunction = equationFunction$modelFunction
+            functionArguments = equationFunction$functionArguments
+            functionArgumentsSymbols = equationFunction$functionArgumentsSymbol
+
+            # administration parameters
+            for ( outcome in outcomesWithAdministration )
+            {
+              # time dose, dose and tau
+              administration = getAdministration( arm, outcome )
+              dose = getDose( administration )
+              tau = getTau( administration )
+              timeDose = getTimeDose( administration )
+              maxSamplingTimeOutcome = max( getSamplings( getSamplingTime( arm, outcome ) ) )
+              timeDose = c( timeDose, maxSamplingTimeOutcome )
+
+              # repeated & multi doses
+              if ( tau !=0 )
+              {
+                timeDose = unique( seq( 0, maxSamplingTimeOutcome, tau ) )
+                inputsModel$dose[[outcome]] = rep( dose, length( timeDose ) )
+              }
+              else
+              {
+                inputsModel$dose[[outcome]] = dose
+              }
+
+              # one dose
+              if ( length( timeDose ) == 1 )
+              {
+                timeMatrix[[outcome]] =  matrix(c( timeDose, timeDose ),1,2)
+              }else
+              {
+                # multi doses
+                timeMatrix[[outcome]] = cbind( timeDose[-length(timeDose)], timeDose[-1] )
+              }
+            }
+
+            # assign parameter values and initial conditions
+            modelParameters = getParameters( object )
+
+            for( modelParameter in modelParameters )
+            {
+              modelParameterName = getName( modelParameter )
+              modelParameterValue = getMu( modelParameter )
+              assign( modelParameterName, modelParameterValue )
+            }
+
+            # evaluation of the initial conditions
+            initialConditions = getInitialConditions( arm )
+            initialConditions = map( initialConditions, ~ eval( parse( text = .x ) ) )
+            initialConditions = unlist( initialConditions )
+
+            # function evaluation model ODE
+            modelODE = function( samplingTimes, initialConditions, inputsModel )
+            {
+              with( c( samplingTimes, initialConditions, inputsModel ),{
+
+                for ( outcome in outcomesWithAdministration )
+                {
+                  # dose
+                  dose[[outcome]] = inputsModel$dose[[outcome]]
+
+                  # time dose
+                  indexTime = which( apply( timeMatrix[[outcome]], 1, findInterval, x = samplingTimes ) == 1 )
+                  intervalTimeDose = timeMatrix[[outcome]][indexTime,]
+                  timeDose = samplingTimes - intervalTimeDose[1]
+
+                  # assign doses
+                  if ( length( indexTime ) == 0 )
+                  {
+                    # unique dose
+                    assign( paste0( "dose_", outcome ), dose[[outcome]][1] )
+                  }else{
+                    # multi dose
+                    assign( paste0( "dose_", outcome ), dose[[outcome]][indexTime] )
+                  }
+
+                  # assign time dose
+                  if ( timeDose >= 0 & length( intervalTimeDose ) !=0 )
+                  {
+                    assign( paste0( "t_", outcome ), timeDose )
+                  }else{
+                    assign( paste0( "t_", outcome ), samplingTimes )
+                  }
+                }
+
+                # evaluation with the outcomes
+                output = do.call( modelFunction, setNames( functionArgumentsSymbols, functionArguments ) )
+                outcomesForEvaluation = map( outcomesForEvaluation, ~ eval( .x ) )
+
+                return( c( output, outcomesForEvaluation ) )
+              })
+            }
+
+            odeSolverParameters = getOdeSolverParameters( object )
+
+            dataForModelEvaluation = c( dataForArmEvaluation,
+
+                                        list( initialConditions = initialConditions,
+                                              samplingTimesModel = samplingTimesModel,
+                                              modelODE = modelODE,
+                                              inputsModel = inputsModel,
+                                              odeSolverParameters = odeSolverParameters ) )
+
+            return( dataForModelEvaluation )
+
+          })
+
 # ======================================================================================================
 
 #' @rdname EvaluateModel
 #' @export
 
-setMethod(f="EvaluateModel",
-          signature="ModelODEDoseInEquations",
-          definition = function( object, arm )
+setMethod(f = "EvaluateModel",
+          signature = "ModelODEDoseInEquations",
+          definition = function( object, dataForModelEvaluation, arm )
           {
-            # ===============================================
-            # outcomes and variables
-            # ===============================================
+            initialConditions = dataForModelEvaluation$initialConditions
+            samplingTimesModel = dataForModelEvaluation$samplingTimesModel
+            samplingTimesOutcomes = dataForModelEvaluation$samplingTimesOutcomes
+            modelODE = dataForModelEvaluation$modelODE
+            inputsModel = dataForModelEvaluation$inputsModel
+            atol = dataForModelEvaluation$odeSolverParameters$atol
+            rtol = dataForModelEvaluation$odeSolverParameters$rtol
 
-            modelOutcomes = getOutcomesForEvaluation( object )
-            outcomes = names( modelOutcomes )
+            modelOutcomes = dataForModelEvaluation$modelOutcomes
 
-            initialConditions = getInitialConditions( arm )
-            initialConditions = unlist( initialConditions )
+            modelEvaluation = ode( initialConditions,
+                                   samplingTimesModel,
+                                   modelODE,
+                                   inputsModel,
+                                   hmax = 0.0,
+                                   atol = atol, rtol = rtol )
 
-            variables = names( initialConditions )
+            evaluationOutcomes = list()
 
-            numberOfVariables = length( initialConditions )
-            numberOfOutcomes = length( modelOutcomes )
-
-            # ===============================================
-            # convert model equations string to expression
-            # ===============================================
-
-            modelEquations = getEquations( object )
-            modelEquations = lapply( modelEquations, function(x) parse( text = x ) )
-
-            # ===============================================
-            # sampling times
-            # ===============================================
-
-            # ======================================================
-            # model sampling times = sampling times of all responses
-            # ======================================================
-
-            samplingTimesOutcome = list()
-
-            for ( outcome in outcomes )
+            for ( outcome in names( samplingTimesOutcomes ) )
             {
-              samplingTimesOutcome[[outcome]] = getSamplings( getSamplingTime( arm, outcome ) )
+              indexSamplingTimesOutcome = which( modelEvaluation[,"time"] %in% samplingTimesOutcomes[[outcome]] )
+              evaluationOutcomes[[ outcome ]] = modelEvaluation[indexSamplingTimesOutcome, c( "time", outcome ) ]
             }
 
-            samplingTimesModel = sort( unique( c( 0.0, unlist( samplingTimesOutcome ) ) ) )
-            colnames( samplingTimesModel ) = NULL
+            return( evaluationOutcomes )
+          })
 
-            # ===============================================
-            # model parameters
-            # ===============================================
+# ======================================================================================================
 
-            inputsModel = list()
+#' @rdname EvaluateModelGradient
+#' @export
 
-            parameters = getParameters( object )
+setMethod(f = "EvaluateModelGradient",
+          signature = "ModelODEDoseInEquations",
+          definition = function( object, dataForModelEvaluation, arm )
+          {
+            samplingTimesOutcomes = dataForModelEvaluation$samplingTimesOutcomes
+            samplingTimesModel = dataForModelEvaluation$samplingTimesModel
+            modelError = dataForModelEvaluation$modelError
 
-            modelParametersNames = lapply( parameters, function(x) getName(x) )
+            inputsModel = dataForModelEvaluation$inputsModel
+            atol = dataForModelEvaluation$odeSolverParameters$atol
+            rtol = dataForModelEvaluation$odeSolverParameters$rtol
 
-            numberOfParameters = getNumberOfParameters( object )
+            shiftedParameters = dataForModelEvaluation$parametersGradient$shifted
+            Xcols = dataForModelEvaluation$parametersGradient$Xcols
+            Xcols = do.call( "cbind", Xcols )
+            XcolsInv = as.matrix( solve( Xcols ) )
+            frac = dataForModelEvaluation$parametersGradient$frac
 
-            # ===================================================
-            # assign parameter values
-            # ===================================================
+            modelParameters = getParameters( object )
+            parametersNames = map( modelParameters, ~ getName( .x ) ) %>% unlist()
 
-            for ( parameter in parameters )
+            dataForArmEvaluation = getDataForArmEvaluation( arm )
+            modelOutcomes = dataForArmEvaluation$modelOutcomes
+
+            evaluationModel = map( 1:ncol( shiftedParameters ), function( iterShiftedParameters )
             {
-              parameterMu = getMu( parameter )
-              parameterName = getName( parameter )
-              assign( parameterName, parameterMu )
-            }
+              modelParameters = map2( modelParameters, 1:length( modelParameters ), ~ setMu(.x, shiftedParameters[.y, iterShiftedParameters] ) )
+              object = setParameters( object, modelParameters )
+              dataForModelEvaluation = setDataForModelEvaluation( object, arm )
+              EvaluateModel( object, dataForModelEvaluation, arm )
+            })
 
-            # ===============================================
-            # set initial conditions
-            # ===============================================
+            outcomesGradient = pmap( list( modelOutcome = modelOutcomes,
+                                           samplingTimesOutcomes = list( samplingTimesOutcomes ),
+                                           parametersNames = list( parametersNames ) ),
+                                     function( modelOutcome, parametersNames, samplingTimesOutcomes, samplingTimesModel )
+                                     {
+                                       evaluationGradient = evaluationModel %>%
+                                         map(~ .x[[modelOutcome]][, modelOutcome]) %>%
+                                         reduce( cbind )
 
-            for ( i in 1:length( initialConditions ) )
-            {
-              initialConditions[i] = eval( parse( text = initialConditions[i] ) )
-            }
+                                       outcomesGradient = t( XcolsInv %*% t( evaluationGradient ) / frac )
 
-            initialConditions = as.numeric( initialConditions )
+                                       indexColumn = length( parametersNames )
 
-            names( initialConditions ) = variables
+                                       outcomesGradient =  as.data.frame( outcomesGradient[, 2:(1 + indexColumn)] )
 
-            # ===============================================
-            # outcome with administration
-            # ===============================================
+                                       outcomesGradient = cbind( samplingTimesOutcomes[[modelOutcome]], outcomesGradient )
 
-            outcomesWithAdministration = c()
+                                       colnames( outcomesGradient ) = c("time", parametersNames)
 
-            for ( outcome in outcomes )
-            {
-              administrationsTmp = getAdministration( arm, outcome )
+                                       return( outcomesGradient )
+                                     }
+            )
 
-              if ( length( administrationsTmp ) !=0 )
-              {
-                outcomesWithAdministration = c( outcomesWithAdministration, outcome )
-              }
-            }
-
-            # ===============================================
-            # time matrix for ODE
-            # ===============================================
-
-            # ===================================================
-            # parameters matrix for ode evaluation
-            # ===================================================
-
-            timeMatrix = list()
-            timeDose = list()
-            indexTime = list()
-
-            for ( outcome in outcomesWithAdministration )
-            {
-              # ===================================================
-              # max samplingTimes
-              # ===================================================
-
-              maxSamplingTimeOutcome = max( getSamplings( getSamplingTime( arm, outcome ) ) )
-
-              # ===================================================
-              # time dose, dose and tau
-              # ===================================================
-
-              administration = getAdministration( arm, outcome )
-              timeDose[[outcome]] = getTimeDose( administration )
-              timeDose[[outcome]] = c( timeDose[[outcome]], maxSamplingTimeOutcome )
-              dose = getDose( administration )
-              tau = getTau( administration )
-
-              # ===================================================
-              # for repeated doses
-              # ===================================================
-
-              if ( tau !=0 )
-              {
-                n = maxSamplingTimeOutcome%/%tau
-                inputsModel$dose[[outcome]] = rep( dose, n+1 )
-                timeDose[[outcome]] = sort( unique( seq( 0, maxSamplingTimeOutcome, tau ) ) )
-
-                n = length(timeDose[[outcome]])
-                timeMatrix[[outcome]] = matrix( c( timeDose[[outcome]][(1:(n-1))], timeDose[[outcome]][(2:(n))]),n-1,2 )
-              }
-              else
-              {
-                # ===================================================
-                # for multi doses
-                # ===================================================
-
-                inputsModel$dose[[outcome]] = dose
-                timeDose[[outcome]] = sort( unique( c( timeDose[[outcome]] ) ) )
-
-                n = length(timeDose[[outcome]])
-                timeMatrix[[outcome]] = matrix(c(timeDose[[outcome]][(1:(n-1))], timeDose[[outcome]][(2:(n))]),n-1,2)
-              }
-            }
-
-            # ===============================================
-            # function: evaluation model ODE
-            # ===============================================
-
-            modelEvaluation = list()
-            indexTime = list()
-
-            modelODE = function( samplingTimes, initialConditions, inputsModel )
-            {
-              with( c( samplingTimes, initialConditions, inputsModel ),{
-
-                assign("t", samplingTimes)
-
-                # ===================================================
-                # initial conditions
-                # ===================================================
-
-                for ( i in 1:length( variables ) )
-                {
-                  assign( variables[i], eval( parse( text = initialConditions[i] ) ) )
-                }
-
-                for ( outcome in outcomesWithAdministration )
-                {
-                  dose[[outcome]] = inputsModel$dose[[outcome]]
-
-                  if ( t > max( unlist( timeDose[[outcome]] ) ) )
-                  {
-                    assign( paste0("dose_",outcome), 0 )
-                  }
-                  else
-                  {
-                    indexTime[[outcome]] = which( apply( timeMatrix[[outcome]], 1, findInterval, x = samplingTimes ) == 1)
-
-                    # ===================================================
-                    # time update for multi doses
-                    # ===================================================
-
-                    intervalTimeMatrix = timeMatrix[[outcome]][indexTime[[outcome]],]
-                    t = t - intervalTimeMatrix[1]
-                    assign( paste0("dose_",outcome), dose[[outcome]][indexTime[[outcome]]] )
-                  }
-                }
-
-                for ( iter in 1:length( modelEquations ) )
-                {
-                  modelEvaluation[[iter]] = eval( modelEquations[[iter]] )
-                }
-
-                return( list( c( modelEvaluation ) ) )
-              })
-            }
-
-            # ===============================================
-            # function: scale evaluation model ODE
-            # with outcomes evaluation
-            # ===============================================
-
-            scaleModelResponse = function( samplingTimesOutcome, samplingTimesModel, outcomes, modelEvaluation, variables )
-            {
-              evaluationOutcomes = list()
-
-              for ( variable in variables )
-              {
-                assign( variable, modelEvaluation[, variable] )
-              }
-
-              for ( outcome in outcomes )
-              {
-                # ===================================================
-                # scale the model outcomes
-                # ===================================================
-
-                evaluationOutcomes[[outcome]] = eval( parse( text = modelOutcomes[[outcome]] ) )
-
-                indexSamplingTimes = match( samplingTimesOutcome[[outcome]] , samplingTimesModel )
-
-                evaluationOutcomes[[outcome]] = as.data.frame( cbind( samplingTimesModel[indexSamplingTimes],
-                                                                      evaluationOutcomes[[outcome]][indexSamplingTimes] ) )
-
-                names( evaluationOutcomes[[outcome]] ) = c( "time", outcome )
-              }
-
-              return( evaluationOutcomes )
-            }
-
-            # ===============================================
-            # model evaluation
-            # ===============================================
-
-            # ===================================================
-            # parameters atol and rtol for ode solver
-            # ===================================================
-
-            odeSolverParameters = getOdeSolverParameters( object )
-
-            atol = odeSolverParameters$atol
-            rtol = odeSolverParameters$rtol
-
-            out = ode( initialConditions,
-                       samplingTimesModel,
-                       modelODE,
-                       inputsModel,
-                       hmax = 0.0,
-                       atol = atol, rtol = rtol,
-                       method = "lsodar" )
-
-            evaluationOutcomes = scaleModelResponse( samplingTimesOutcome, samplingTimesModel, outcomes, out, variables )
-
-            # =================================================
-            # substitute for outcomes evaluation with scaling
-            # =================================================
-
-            subsituteTmp = list()
-
-            modelEquationsTmp = getEquations( object )
-            modelEquationsNames = names( modelEquations )
-            modelEquationsTmpNames = str_remove(names(modelEquationsTmp), "Deriv_")
-            names( modelEquationsTmp ) = modelEquationsTmpNames
-
-            for( outcome in outcomes )
-            {
-              variableOutcome = modelOutcomes[[outcome]]
-
-              for ( variable in variables )
-              {
-                modelEquationsTmp[[variable]] = paste0("(", modelEquationsTmp[[variable]],")")
-
-                variableOutcome = parse( text = gsub( variable, modelEquationsTmp[[variable]], variableOutcome ) )
-                variableOutcome = Simplify( variableOutcome )
-              }
-              subsituteTmp[[outcome]] = variableOutcome
-            }
-
-            modelEquations = subsituteTmp
-            names( modelEquations ) = modelEquationsNames
-
-            # ===============================================
-            # compute sensitivity indices
-            # ===============================================
-
-            # ===================================================
-            # model parameters
-            # ===================================================
-
-            parameters = getParameters( object )
-
-            # ===================================================
-            # parameters for computing gradients
-            # ===================================================
-
-            parametersGradient = parametersForComputingGradient( object )
-            shiftedParameters = parametersGradient$shifted
-            Xcols = parametersGradient$Xcols
-            frac = parametersGradient$frac
-
-            outcomesGradient = list()
-
-            for( outcome in outcomes )
-            {
-              resultsGrad = list()
-
-              for ( iterShifted in 1:dim( shiftedParameters)[2] )
-              {
-                valuesParameters = shiftedParameters[1:numberOfParameters,iterShifted]
-
-                # ===================================================
-                # assign parameter values
-                # ===================================================
-
-                for( iterParameter in 1:numberOfParameters )
-                {
-                  parameterMu = valuesParameters[iterParameter]
-                  parameterName = getName( parameters[[iterParameter]] )
-                  assign( parameterName, parameterMu )
-                }
-
-                out = ode( initialConditions,
-                           samplingTimesModel,
-                           modelODE,
-                           inputsModel,
-                           hmax = 0.0,
-                           atol = atol, rtol = rtol,
-                           method = "lsodar" )
-
-                colnames( out ) = c("time",outcomes)
-
-                resultsGrad[[iterShifted]] = out[,outcome]
-              }
-
-              resultsGrad = do.call( cbind, resultsGrad )
-
-              coefs = list()
-
-              for ( i in 1 :dim( resultsGrad)[1] )
-              {
-                coefs[[i]] = solve( do.call("cbind", Xcols), resultsGrad[i,])/frac
-                coefs[[i]] = coefs[[i]][1 + seq_along( parameters )]
-              }
-
-              # =======================================================
-              # match sampling times responses with sampling time model
-              # =======================================================
-
-              indexSamplingTimes = match( samplingTimesOutcome[[outcome]] , samplingTimesModel )
-
-              outcomesGradient[[outcome]] = do.call(rbind,coefs)
-
-              # =======================================================
-              # case if one parameter
-              # =======================================================
-
-              if( dim( outcomesGradient[[outcome]] )[1]==1 )
-              {
-                outcomesGradient[[outcome]] = outcomesGradient[[outcome]][indexSamplingTimes]
-              }else{
-                # =======================================================
-                # case more than one parameter
-                # =======================================================
-
-                outcomesGradient[[outcome]] = outcomesGradient[[outcome]][indexSamplingTimes,]
-              }
-
-              outcomesGradient[[outcome]] = as.data.frame( cbind( samplingTimesModel[indexSamplingTimes], outcomesGradient[[outcome]] ) )
-
-              colnames( outcomesGradient[[outcome]] ) = c( "time", modelParametersNames )
-            }
-
-            names( outcomesGradient ) = outcomes
-
-            # =======================================================
-            # outcomesAllGradient
-            # select with model error
-            # =======================================================
+            outcomesGradient = set_names( outcomesGradient, modelOutcomes )
 
             outcomesAllGradient = list()
 
-            modelError = getModelError( object )
-
-            for ( outcome in outcomes )
+            for( modelOutcome in modelOutcomes )
             {
-              index = which( sapply( modelError, function (x) getOutcome(x) == outcome ) )
+              index = which( sapply( modelError, function (x) getOutcome(x) == modelOutcome ) )
 
               if ( length( index ) != 0 )
               {
-                outcomesAllGradient[[outcome]] = outcomesGradient[[outcome]]
+                outcomesAllGradient[[modelOutcome]] = outcomesGradient[[modelOutcome]][, 2:(1+length( modelParameters ) ) ]
               }
             }
 
-            outcomesAllGradient = as.data.frame( do.call( rbind, outcomesAllGradient ) )
+            outcomesAllGradient = do.call( rbind, outcomesAllGradient )
             rownames( outcomesAllGradient ) = NULL
 
-            return( list( evaluationOutcomes = evaluationOutcomes,
-                          outcomesGradient = outcomesGradient,
+            return( list( outcomesGradient = outcomesGradient,
                           outcomesAllGradient = outcomesAllGradient ) )
           })
 

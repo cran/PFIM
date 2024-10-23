@@ -5,9 +5,9 @@
 \alias{EvaluateVarianceModel,Model-method}
 \title{Evaluate the variance of a model.}
 \usage{
-EvaluateVarianceModel(object, arm, evaluationModel)
+EvaluateVarianceModel(object, arm, evaluationModel, data)
 
-\S4method{EvaluateVarianceModel}{Model}(object, arm, evaluationModel)
+\S4method{EvaluateVarianceModel}{Model}(object, arm, evaluationModel, data)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}
@@ -15,6 +15,8 @@ EvaluateVarianceModel(object, arm, evaluationModel)
 \item{arm}{An object from the class \linkS4class{Arm}.}
 
 \item{evaluationModel}{A list giving the outputs of the model evaluation.}
+
+\item{data}{...}
 }
 \value{
 Return a list giving the results of the evaluation of the model variance.

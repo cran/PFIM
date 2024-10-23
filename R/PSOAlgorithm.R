@@ -38,10 +38,21 @@ PSOAlgorithm = setClass(
     globalLearningCoefficient = "numeric",
     showProcess = "logical",
     optimalDesign = "Design",
-    iterationAndCriteria = "list" ),
-  prototype = prototype(
-    showProcess = F ) )
+    iterationAndCriteria = "list" ) )
 
+#' initialize
+#' @param .Object .Object
+#' @param maxIteration maxIteration
+#' @param populationSize populationSize
+#' @param personalLearningCoefficient personalLearningCoefficient
+#' @param globalLearningCoefficient globalLearningCoefficient
+#' @param seed seed
+#' @param showProcess showProcess
+#' @param optimalDesign optimalDesign
+#' @param iterationAndCriteria iterationAndCriteria
+#' @return PSOAlgorithm
+#' @export
+#'
 setMethod( f = "initialize",
            signature = "PSOAlgorithm",
            definition = function ( .Object,
@@ -53,19 +64,8 @@ setMethod( f = "initialize",
                                    showProcess,
                                    optimalDesign,
                                    iterationAndCriteria )
+
            {
-             # ===============================
-             # values by default
-             # ===============================
-
-             .Object@maxIteration = 200
-             .Object@populationSize = 200
-             .Object@personalLearningCoefficient = 1.4962
-             .Object@globalLearningCoefficient = 1.4962
-             .Object@seed = -1
-
-             .Object@showProcess = TRUE
-
              if ( !missing( maxIteration ) )
              {
                .Object@maxIteration = maxIteration
@@ -113,12 +113,15 @@ setMethod( f = "initialize",
 setMethod("setParameters",
           "PSOAlgorithm",
           function( object, parameters ) {
+
             object@maxIteration = parameters$maxIteration
             object@name = "PSOAlgorithm"
             object@populationSize = parameters$populationSize
             object@personalLearningCoefficient = parameters$personalLearningCoefficient
             object@globalLearningCoefficient = parameters$globalLearningCoefficient
-            object@showProcess = parameters$showProcess
+
+            object@seed = parameters$seed
+
             return( object )
           })
 
@@ -143,6 +146,9 @@ setMethod(f = "optimize",
             personalLearningCoefficient = optimizationParameters$personalLearningCoefficient
             globalLearningCoefficient = optimizationParameters$globalLearningCoefficient
             showProcess = optimizationParameters$showProcess
+            seed = optimizationParameters$seed
+
+            set.seed( seed )
 
             # ===================================================
             # get parameters for the evaluation

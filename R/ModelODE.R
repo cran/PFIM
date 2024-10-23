@@ -12,6 +12,23 @@
 ModelODE = setClass("ModelODE",
                     contains = "Model")
 
+#' @rdname getVariables
+#' @export
+
+setMethod("getVariables",
+          signature("ModelODE"),
+          function( object )
+          {
+            equations = getEquations( object )
+
+            variablesNamesDerivatives = names( equations )
+
+            variablesNames = gsub( "Deriv_", "", variablesNamesDerivatives )
+
+            return( list( variablesNames = variablesNames, variablesNamesDerivatives = variablesNamesDerivatives ) )
+
+          })
+
 ###########################################################################################
 # End class ModelODE
 ###########################################################################################

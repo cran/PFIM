@@ -5,14 +5,16 @@
 \alias{EvaluateArm,Arm-method}
 \title{EvaluateArm}
 \usage{
-EvaluateArm(object, model, fim)
+EvaluateArm(object, model, dataForModelEvaluation, fim)
 
-\S4method{EvaluateArm}{Arm}(object, model, fim)
+\S4method{EvaluateArm}{Arm}(object, model, dataForModelEvaluation, fim)
 }
 \arguments{
 \item{object}{An object \code{arm} from the class \linkS4class{Arm}.}
 
 \item{model}{An object \code{model} from the class \linkS4class{Model}.}
+
+\item{dataForModelEvaluation}{....}
 
 \item{fim}{An object \code{fim} from the class \linkS4class{Fim}.}
 }

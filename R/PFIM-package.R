@@ -6,7 +6,7 @@
 #' @section Description:
 #' Nonlinear mixed effects models (NLMEM) are widely used in model-based drug development and use to analyze
 #' longitudinal data. The use of the "population" Fisher Information Matrix (FIM) is a good alternative to
-#' clinical trial simulation to optimize the design of these studies. PFIM 6.0 was released in 2023. The present version, \pkg{PFIM} 6.0, is an R package that uses the S4 object system  for evaluating and/or
+#' clinical trial simulation to optimize the design of these studies. The present version, \pkg{PFIM} 6.1, is an R package that uses the S4 object system  for evaluating and/or
 #' optimizing population designs based on FIM in NLMEMs.
 #'
 #' This version of \pkg{PFIM} now includes a library of models implemented also using the object oriented system S4 of R.
@@ -15,9 +15,9 @@
 #' (linear or Michaelis-Menten). The PD model library, contains direct immediate models (e.g. Emax and Imax) with various baseline models, and turnover
 #' response models. The PK/PD models are obtained with combination of the models from the PK and PD model libraries. \pkg{PFIM} handles both analytical
 #' and ODE models and offers the possibility to the user to define his/her own model(s).
-#' In \pkg{PFIM 6.0}, the FIM is evaluated by first order linearization of the model assuming a block diagonal FIM as in [3]. The Bayesian FIM is also
+#' In \pkg{PFIM 6.1}, the FIM is evaluated by first order linearization of the model assuming a block diagonal FIM as in [3]. The Bayesian FIM is also
 #' available to give shrinkage predictions [4].
-#' \pkg{PFIM 6.0} includes several algorithms to conduct design optimization based on the D-criterion, given design constraints : the simplex algorithm (Nelder-Mead) [5], the
+#' \pkg{PFIM 6.1} includes several algorithms to conduct design optimization based on the D-criterion, given design constraints : the simplex algorithm (Nelder-Mead) [5], the
 #' multiplicative algorithm [6], the Fedorov-Wynn algorithm [7], PSO (\emph{Particle Swarm Optimization}) and PGBO (\emph{Population Genetics Based
 #' Optimizer}) [9].
 #'
@@ -25,8 +25,8 @@
 #' Documentation and user guide are available at \url{http://www.pfim.biostat.fr/}
 #'
 #' @section Validation:
-#' \pkg{PFIM 6.0} also provides quality control with tests and validation using the evaluated FIM to assess the validity of the new version  and its new
-#' features. Finally, \pkg{PFIM 6.0} displays all the results with both clear graphical form and a data summary, while ensuring their easy manipulation in
+#' \pkg{PFIM 6.1} also provides quality control with tests and validation using the evaluated FIM to assess the validity of the new version  and its new
+#' features. Finally, \pkg{PFIM 6.1} displays all the results with both clear graphical form and a data summary, while ensuring their easy manipulation in
 #' R. The standard data visualization package ggplot2 for R is used to display all the results with clear graphical form [10]. A quality control using the
 #' D-criterion is also provided.
 #'
@@ -44,7 +44,7 @@
 #' @references [10] Wickham H. ggplot2: Elegant Graphics for Data Analysis, Springer-Verlag New York, 2016.
 #'
 #' @section Organization of the source files in the \code{/R} folder:
-#' \pkg{PFIM 6.0} contains a hierarchy of S4 classes with corresponding methods and functions serving as constructors.
+#' \pkg{PFIM 6.1} contains a hierarchy of S4 classes with corresponding methods and functions serving as constructors.
 #' All of the source code related to the specification of a certain class is contained in a file named \code{[Name_of_the_class]-Class.R}.
 #' These classes include:
 #' \itemize{
@@ -500,7 +500,7 @@
 #'      \item{} \code{\link{optimize}}
 #'      \item{} \code{\link{getDataFrameResults}}
 #'      \item{} \code{\link{plotWeights}}
-#      \item{} \code{\link{show}}
+#'      \item{} \code{\link{getWeightThreshold}}
 #'      \item{} \code{\link{generateReportOptimization}}
 #'  }
 #'
@@ -586,6 +586,7 @@
 #'      \item{} \code{\link{getShrinkage}}
 #'      \item{} \code{\link{setShrinkage}}
 #'      \item{} \code{\link{reportTablesFIM}}
+#'      \item{} \code{\link{computeVMat}}
 #'      \item{} \code{\link{generateReportEvaluation}}
 #'  }
 #'
@@ -643,7 +644,6 @@
 #'      \item{} \code{\link{fun.amoeba}}
 #'      \item{} \code{\link{fisher.simplex}}
 #'      \item{} \code{\link{optimize}}
-#     \item{} \code{\link{show}}
 #'      \item{} \code{\link{generateReportOptimization}}
 #'  }
 #'

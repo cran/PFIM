@@ -31,7 +31,15 @@ Fim = setClass(
     shrinkage = "vector"
   ))
 
-# Initialize method
+#' initialize
+#' @param .Object .Object
+#' @param fisherMatrix fisherMatrix
+#' @param fixedEffects fixedEffects
+#' @param varianceEffects varianceEffects
+#' @param shrinkage shrinkage
+#' @return Fim
+#' @export
+
 setMethod( f="initialize",
            signature="Fim",
            definition= function ( .Object, fisherMatrix, fixedEffects,  varianceEffects, shrinkage )
@@ -300,14 +308,10 @@ setMethod( "getCorrelationMatrix",
              fisherMatrix = getFisherMatrix( object )
              colnamesFim = colnames( fisherMatrix )
 
-             if ( rcond( fisherMatrix ) <= .Machine$double.eps )
-             {
-               correlationMatrix = cov2cor( pinv( fisherMatrix ) )
-               colnames( correlationMatrix ) = colnames( fisherMatrix )
-               rownames( correlationMatrix ) = rownames( fisherMatrix )
-             }else{
-               correlationMatrix = cov2cor(solve( fisherMatrix ) )
-             }
+             correlationMatrix = cov2cor( fisherMatrix )
+             colnames( correlationMatrix ) = colnames( fisherMatrix )
+             rownames( correlationMatrix ) = rownames( fisherMatrix )
+
 
              # ==============================
              # fixed effects
@@ -351,15 +355,8 @@ setMethod( "getSE",
            definition = function (object)
            {
              fisherMatrix = getFisherMatrix( object )
-             fisherMatrixTmp = fisherMatrix
-
-             if ( rcond( fisherMatrixTmp ) <= .Machine$double.eps )
-             {
-               SE = sqrt(diag(pinv(fisherMatrixTmp)))
-               names(SE) = colnames( fisherMatrixTmp )
-             }else{
-               SE = sqrt(diag(solve(fisherMatrix)))
-             }
+             SE = sqrt( diag( solve( fisherMatrix ) ) )
+             names(SE) = colnames( fisherMatrix )
 
              return(SE)
            })

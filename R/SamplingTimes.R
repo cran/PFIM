@@ -24,7 +24,14 @@ SamplingTimes = setClass(Class="SamplingTimes",
                            outcome = "character",
                            samplings ="vector"
                          ))
-# Initialize method
+
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param samplings samplings
+#' @return SamplingTimes
+#' @export
+#'
 setMethod( f="initialize",
            signature="SamplingTimes",
            definition= function (.Object, outcome, samplings )

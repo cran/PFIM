@@ -13,6 +13,12 @@ LogNormal = setClass( Class = "LogNormal",
                       contains = "Distribution",
                       representation = representation())
 
+#' initialize
+#' @param .Object .Object
+#' @param ... args
+#' @return LogNormal
+#' @export
+
 setMethod( f = "initialize",
            signature = "LogNormal",
            definition = function( .Object, ... )

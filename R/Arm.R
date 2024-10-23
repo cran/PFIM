@@ -32,12 +32,27 @@ Arm = setClass(
     initialConditions = "list",
     samplingTimes = "list",
     administrationsConstraints = "list",
-    samplingTimesConstraints = "list"
+    samplingTimesConstraints = "list",
+    dataForArmEvaluation = "list"
   ))
+
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param size size
+#' @param administrations administrations
+#' @param initialConditions initialConditions
+#' @param samplingTimes samplingTimes
+#' @param administrationsConstraints administrationsConstraints
+#' @param samplingTimesConstraints samplingTimesConstraints
+#' @param dataForArmEvaluation dataForArmEvaluation
+#' @return Arm
+#' @export
 
 setMethod(f="initialize",
           signature="Arm",
-          definition= function (.Object, name, size, administrations, initialConditions, samplingTimes, administrationsConstraints, samplingTimesConstraints )
+          definition= function (.Object, name, size, administrations, initialConditions, samplingTimes,
+                                administrationsConstraints, samplingTimesConstraints, dataForArmEvaluation )
           {
             if(!missing(name))
             {
@@ -67,11 +82,69 @@ setMethod(f="initialize",
             {
               .Object@samplingTimesConstraints = samplingTimesConstraints
             }
+            if(!missing(dataForArmEvaluation))
+            {
+              .Object@dataForArmEvaluation = dataForArmEvaluation
+            }
+
+
 
             validObject(.Object)
             return (.Object )
           }
 )
+
+# ======================================================================================================
+# get, set dataForArmEvaluation
+# ======================================================================================================
+
+#' getDataForArmEvaluation
+#'
+#' @title getDataForArmEvaluation
+#' @param object An object \code{Arm} from the class \linkS4class{Arm}.
+#' @return A list containing the data for arm evaluation.
+#' @export
+
+setGeneric(
+  "getDataForArmEvaluation",
+  function(object) {
+    standardGeneric("getDataForArmEvaluation")
+  })
+
+#' @rdname getDataForArmEvaluation
+#' @export
+
+setMethod("getDataForArmEvaluation",
+          "Arm",
+          function(object)
+          {
+            return( object@dataForArmEvaluation )
+          })
+
+#' setDataForArmEvaluation
+#'
+#' @title setDataForArmEvaluation
+#' @param object An object \code{Arm} from the class \linkS4class{Arm}.
+#' @param data A list containing the data for arm evaluation
+#' @return Set the list containing the data for arm evaluation.
+#' @export
+
+setGeneric(
+  "setDataForArmEvaluation",
+  function( object, data ) {
+    standardGeneric("setDataForArmEvaluation")
+  })
+
+#' @rdname setDataForArmEvaluation
+#' @export
+
+setMethod("setDataForArmEvaluation",
+          "Arm",
+          function( object, data )
+          {
+            object@dataForArmEvaluation = data
+            return( object )
+          })
 
 # ======================================================================================================
 # get, set the name of an arm
@@ -378,7 +451,7 @@ setMethod("getSamplingTime",
           {
             samplingTimes = getSamplingTimes( object )
 
-            outcomes = lapply( samplingTimes, function (x) getOutcome(x))
+            outcomes = map( samplingTimes, ~ getOutcome (.x) )
 
             indexOutcome = which( outcomes == outcome )
 
@@ -540,6 +613,7 @@ setMethod("getAdministrationConstraint",
 #' @title EvaluateArm
 #' @param object An object \code{arm} from the class \linkS4class{Arm}.
 #' @param model An object \code{model} from the class \linkS4class{Model}.
+#' @param dataForModelEvaluation ....
 #' @param fim An object \code{fim} from the class \linkS4class{Fim}.
 #' @return The object \code{fim} containing the Fisher Information Matrix
 #' the two lists \code{evaluationOutcomes}, \code{outcomesGradient} containing the results of
@@ -550,7 +624,7 @@ setMethod("getAdministrationConstraint",
 #' @export
 
 setGeneric("EvaluateArm",
-           function( object, model, fim )
+           function( object, model, dataForModelEvaluation, fim )
            {
              standardGeneric("EvaluateArm")
            }
@@ -561,21 +635,24 @@ setGeneric("EvaluateArm",
 
 setMethod(f="EvaluateArm",
           signature = "Arm",
-          definition = function( object, model, fim )
+          definition = function( object, model, dataForModelEvaluation, fim )
           {
             # ==========================================================
             # evaluate model equations for each arm
             # responses and gradients
-            # ==========================================================
-
-            evaluationModel = EvaluateModel( model, object )
-
-            # ==========================================================
             # model error variances
             # evaluation FIM
             # ==========================================================
 
-            evaluateVarianceModel = EvaluateVarianceModel( model, object, evaluationModel )
+            evaluationModel = EvaluateModel( model, dataForModelEvaluation, object )
+
+            evaluateModelGradient = EvaluateModelGradient( model, dataForModelEvaluation, object )
+
+            evaluationModel = list( evaluationOutcomes = evaluationModel,
+                                    outcomesGradient = evaluateModelGradient$outcomesGradient,
+                                    outcomesAllGradient = evaluateModelGradient$outcomesAllGradient )
+
+            evaluateVarianceModel = EvaluateVarianceModel( model, object, evaluationModel, dataForModelEvaluation )
 
             fim = EvaluateFisherMatrix( fim, model, object, evaluationModel, evaluateVarianceModel )
 

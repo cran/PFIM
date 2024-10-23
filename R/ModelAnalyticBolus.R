@@ -15,6 +15,17 @@ ModelAnalyticBolus = setClass( Class = "ModelAnalyticBolus",
                                  initialConditions = list(NULL),
                                  odeSolverParameters = list(NULL)))
 
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param description description
+#' @param equations equations
+#' @param outcomes outcomes
+#' @param parameters parameters
+#' @param modelError modelError
+#' @return ModelAnalyticBolus
+#' @export
+
 setMethod( f="initialize",
            signature="ModelAnalyticBolus",
            definition= function (.Object, name, description, equations, outcomes, parameters, modelError)

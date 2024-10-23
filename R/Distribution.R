@@ -22,6 +22,12 @@ Distribution = setClass("Distribution",
                           parameters = "list"
                         ))
 
+#' initialize
+#' @param .Object .Object
+#' @param parameters parameters
+#' @return Distribution
+#' @export
+#'
 setMethod(f="initialize",
           signature="Distribution",
           definition= function (.Object, parameters)

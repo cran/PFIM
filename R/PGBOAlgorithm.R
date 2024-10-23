@@ -50,6 +50,19 @@ PGBOAlgorithm = setClass(
   )
 )
 
+#' initialize
+#' @param .Object .Object
+#' @param N N
+#' @param muteEffect muteEffect
+#' @param maxIteration maxIteration
+#' @param purgeIteration purgeIteration
+#' @param seed seed
+#' @param showProcess showProcess
+#' @param optimalDesign optimalDesign
+#' @param iterationAndCriteria iterationAndCriteria
+#' @return PGBOAlgorithm
+#' @export
+
 setMethod( f="initialize",
            signature="PGBOAlgorithm",
            definition= function ( .Object,
@@ -62,16 +75,6 @@ setMethod( f="initialize",
                                   optimalDesign,
                                   iterationAndCriteria )
            {
-             # ===================
-             # values by default
-             # ===================
-
-             .Object@N = 50
-             .Object@muteEffect = 0.2
-             .Object@maxIteration = 10e4
-             .Object@purgeIteration = 1000
-             .Object@seed = -1
-
              if ( !missing( N ) )
              {
                .Object@N = N
@@ -132,6 +135,8 @@ setMethod("setParameters",
             object@maxIteration = parameters$maxIteration
             object@purgeIteration = parameters$purgeIteration
             object@showProcess = parameters$showProcess
+            object@seed = parameters$seed
+
             return( object )
           })
 
@@ -146,11 +151,6 @@ setMethod(f = "optimize",
           signature = "PGBOAlgorithm",
           definition = function( object, optimizationObject )
           {
-            if( object@seed != -1 )
-            {
-              set.seed( object@seed )
-            }
-
             results = list()
 
             # ==============================
@@ -210,6 +210,9 @@ setMethod(f = "optimize",
             maxIteration = optimizationParameters$maxIteration
             purgeIteration = optimizationParameters$purgeIteration
             showProcess = optimizationParameters$showProcess
+
+            seed = optimizationParameters$seed
+            set.seed( seed )
 
             # ==================================
             # get parameters for the evaluation
@@ -353,8 +356,6 @@ setMethod(f = "optimize",
                 numberOfOutcome = length( outcomes[[armName]] )
                 indexOutcome = sample( numberOfOutcome, 1 )
                 outcome = outcomes[[armName]][indexOutcome]
-
-                samplingTimes = getSamplingTimes( arm )
                 samplingTimes = getSamplingTime( arm, outcome )
                 samplings = getSamplings( samplingTimes )
 
@@ -362,7 +363,7 @@ setMethod(f = "optimize",
                 # sampling time mutation
                 # ==========================================
 
-                indexSamplings = sample( numberOfOutcome, 1 )
+                indexSamplings = sample( length( samplings ), 1 )
 
                 if ( runif( 1 ) < 0.8 )
                 {

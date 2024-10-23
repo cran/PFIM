@@ -36,6 +36,15 @@ ModelParameter = setClass(
   )
 )
 
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param distribution distribution
+#' @param fixedMu fixedMu
+#' @param fixedOmega fixedOmega
+#' @return ModelParameter
+#' @export
+
 # Initialize method
 setMethod( f = "initialize",
            signature = "ModelParameter",

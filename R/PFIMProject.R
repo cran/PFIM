@@ -23,6 +23,14 @@ PFIMProject = setClass("PFIMProject",
                        representation  =  representation(
                          name = "character",
                          description = "list" ) )
+
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param description description
+#' @return PFIMProject
+#' @export
+#'
 setMethod( f="initialize",
            signature="PFIMProject",
            definition= function (.Object, name, description )
@@ -40,6 +48,7 @@ setMethod( f="initialize",
              return (.Object )
            }
 )
+
 
 # ======================================================================================================
 # getName

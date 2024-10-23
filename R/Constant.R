@@ -38,6 +38,17 @@ Constant = setClass(Class = "Constant",
                                            equation =  parse(text = "sigmaInter")
                     ))
 
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param equation equation
+#' @param derivatives derivatives
+#' @param sigmaInter sigmaInter
+#' @param sigmaSlope sigmaSlope
+#' @param cError cError
+#' @return Constant
+#' @export
+#'
 setMethod( f="initialize",
            signature="Constant",
            definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )

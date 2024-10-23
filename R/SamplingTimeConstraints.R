@@ -32,6 +32,18 @@ SamplingTimeConstraints = setClass("SamplingTimeConstraints",
                                                                     samplingsWindows = "list",
                                                                     numberOfTimesByWindows = "vector",
                                                                     minSampling = "numeric" ) )
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param initialSamplings initialSamplings
+#' @param fixedTimes fixedTimes
+#' @param numberOfsamplingsOptimisable numberOfsamplingsOptimisable
+#' @param samplingsWindows samplingsWindows
+#' @param numberOfTimesByWindows numberOfTimesByWindows
+#' @param minSampling minSampling
+#' @return SamplingTimeConstraints
+#' @export
+#'
 setMethod( f="initialize",
            signature="SamplingTimeConstraints",
            definition= function (.Object, outcome, initialSamplings, fixedTimes, numberOfsamplingsOptimisable,  samplingsWindows, numberOfTimesByWindows, minSampling )

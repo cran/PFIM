@@ -1,7 +1,7 @@
 Package: PFIM
 Type: Package
 Title: Population Fisher Information Matrix
-Version: 6.0.3
+Version: 6.1
 Authors@R: c(person(given = "France",
            family = "Mentr\u00E9",
            role = c("aut"),
@@ -17,13 +17,7 @@ Authors@R: c(person(given = "France",
     person(given = "Lucie",
            family = "Fayette",
            role = c("aut"),
-           email = "lucie.fayette@inserm.fr"),      
-    person(given = "Emmanuelle",
-           family = "Comets",
-           role = c("ctb")),  
-    person(given = "Sylvie",
-           family = "Retout",
-           role = c("ctb")))       
+           email = "lucie.fayette@inserm.fr"))       
 NeedsCompilation: no
 Description: Evaluate or optimize designs for nonlinear mixed effects models using the Fisher Information matrix. Methods used in the package refer to 
     Mentré F, Mallet A, Baccar D (1997) <doi:10.1093/biomet/84.2.429>,
@@ -37,9 +31,9 @@ Depends: R (>= 4.0.0)
 License: GPL (>= 2)
 Encoding: UTF-8
 Imports: inline, utils, methods, deSolve, Deriv, scales, devtools,
-        ggplot2, Matrix, pracma, stringr, Rcpp, knitr, rmarkdown,
-        kableExtra
-RoxygenNote: 7.2.3
+        ggplot2, Matrix, pracma, stringr, Rcpp, knitr, purrr,
+        rmarkdown, kableExtra, stats
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 Collate: 'GenericMethods.R' 'Administration.R'
         'AdministrationConstraints.R' 'Arm.R' 'Fim.R' 'BayesianFim.R'
@@ -60,13 +54,11 @@ Collate: 'GenericMethods.R' 'Administration.R'
         'PSOAlgorithm.R' 'PlotEvaluation.R' 'PopulationFim.R'
         'Proportional.R' 'SamplingTimeConstraints.R' 'SamplingTimes.R'
         'SimplexAlgorithm.R'
-Packaged: 2024-03-23 13:32:27 UTC; Romai
+Packaged: 2024-10-23 14:31:21 UTC; ADMIN Romain LEROUX
 Author: France Mentré [aut],
   Romain Leroux [aut, cre],
   Jérémy Seurat [aut],
-  Lucie Fayette [aut],
-  Emmanuelle Comets [ctb],
-  Sylvie Retout [ctb]
+  Lucie Fayette [aut]
 Maintainer: Romain Leroux <romain.leroux@inserm.fr>
 Repository: CRAN
-Date/Publication: 2024-03-23 14:30:02 UTC
+Date/Publication: 2024-10-23 17:00:06 UTC

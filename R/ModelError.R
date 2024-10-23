@@ -19,6 +19,17 @@ ModelError = setClass(Class = "ModelError",
                         cError = "numeric"
                       ))
 
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param equation equation
+#' @param derivatives derivatives
+#' @param sigmaInter sigmaInter
+#' @param sigmaSlope sigmaSlope
+#' @param cError cError
+#' @return ModelError
+#' @export
+#'
 setMethod( f="initialize",
            signature="ModelError",
            definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError  )

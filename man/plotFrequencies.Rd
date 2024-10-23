@@ -7,16 +7,14 @@
 \alias{plotFrequencies,Optimization-method}
 \title{Graph of the frequencies for the FW algorithm.}
 \usage{
-plotFrequencies(object, threshold)
+plotFrequencies(object)
 
-\S4method{plotFrequencies}{FedorovWynnAlgorithm}(object, threshold)
+\S4method{plotFrequencies}{FedorovWynnAlgorithm}(object)
 
-\S4method{plotFrequencies}{Optimization}(object, threshold)
+\S4method{plotFrequencies}{Optimization}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{OptimizationAlgorithm}.}
-
-\item{threshold}{A numeric giving the threshold for the frequencies for the FW algorithm.}
 }
 \value{
 The graphs of the frequencies for the FW algorithm.

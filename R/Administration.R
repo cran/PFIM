@@ -32,6 +32,16 @@ Administration = setClass(Class="Administration",
                             tau = "numeric"),
                           prototype=prototype( timeDose=c(0), Tinf=c(0), tau=c(0) ) )
 
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param timeDose timeDose
+#' @param dose dose
+#' @param Tinf Tinf
+#' @param tau tau
+#' @return Administration
+#' @export
+
 setMethod( f = "initialize",
            signature = "Administration",
            definition = function (.Object, outcome, timeDose, dose, Tinf, tau)

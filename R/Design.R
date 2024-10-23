@@ -5,7 +5,6 @@
 #' @name Design-class
 #' @aliases Design
 #' @docType class
-#' @include GenericMethods.R
 #' @include Fim.R
 #' @export
 #'
@@ -33,6 +32,18 @@ Design = setClass("Design",
                     numberOfArms = "numeric",
                     fim = "Fim" ) )
 
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param size size
+#' @param arms arms
+#' @param outcomesEvaluation outcomesEvaluation
+#' @param outcomesGradient outcomesGradient
+#' @param numberOfArms numberOfArms
+#' @param fim fim
+#' @return Design
+#' @export
+#'
 setMethod(f="initialize",
           signature="Design",
           definition= function (.Object, name, size, arms, outcomesEvaluation, outcomesGradient, numberOfArms, fim )
@@ -65,13 +76,12 @@ setMethod(f="initialize",
             {
               .Object@numberOfArms = numberOfArms
             }
+
             validObject(.Object)
             return (.Object )
           }
 )
 
-# ======================================================================================================
-# getName
 # ======================================================================================================
 
 #' @rdname getName
@@ -84,8 +94,6 @@ setMethod(f="getName",
             return(object@name)
           })
 
-# ======================================================================================================
-# setName
 # ======================================================================================================
 
 #' @rdname setName
@@ -100,8 +108,6 @@ setMethod(f="setName",
           })
 
 # ======================================================================================================
-# getSize
-# ======================================================================================================
 
 #' @rdname getSize
 #' @export
@@ -114,8 +120,6 @@ setMethod(f="getSize",
           }
 )
 
-# ======================================================================================================
-# setSize
 # ======================================================================================================
 
 #' @rdname setSize
@@ -130,8 +134,6 @@ setMethod(f="setSize",
           }
 )
 # ======================================================================================================
-# getArms
-# ======================================================================================================
 
 #' @rdname getArms
 #' @export
@@ -144,8 +146,6 @@ setMethod(f="getArms",
           }
 )
 
-# ======================================================================================================
-# setArms
 # ======================================================================================================
 
 #' @rdname setArms
@@ -387,6 +387,89 @@ setMethod(f="setArm",
             return( object )
           })
 
+#' dataForArmEvaluation
+#'
+#' @title dataForArmEvaluation
+#' @param object An object \code{Design} from the class \linkS4class{Design}.
+#' @param arm ...
+#' @param model An object \code{Model} from the class \linkS4class{Model}.
+#' @return A list containing data for arm evaluation in the design.
+#' @export
+
+setGeneric("dataForArmEvaluation",
+           function( object, arm, model )
+           {
+             standardGeneric("dataForArmEvaluation")
+           }
+)
+
+#' @rdname dataForArmEvaluation
+#' @export
+
+setMethod(f = "dataForArmEvaluation",
+          signature = "Design",
+          definition = function( object, arm, model )
+          {
+            samplingTimesArms =  getSamplingTimes( arm )  %>% unlist()
+            administrationsArms = getAdministrations( arm )  %>% unlist()
+
+            # outcome with administration / no administration all arms
+            modelOutcomes = names( getOutcomes( model ) )
+            outcomesForEvaluation = map( getOutcomesForEvaluation( model ), ~ ( parse( text = .x ) ) )
+            outcomesWithAdministration = map( administrationsArms, ~ getOutcome( .x ) ) %>% unlist()
+            outcomesWithSamplingtimes = map( samplingTimesArms, ~ getOutcome( .x ) ) %>% unlist()
+            outcomesWithNoAdministration = setdiff( outcomesWithSamplingtimes, outcomesWithAdministration )
+
+            # sampling times outcomes
+            samplingTimesOutcomes = imap(samplingTimesArms, ~ {
+              outcome = getOutcome(.x)
+              samplings = getSamplings(.x)
+              set_names( list( samplings ), outcome )
+            }) %>%
+              reduce(c)
+
+            # sampling times outcomes
+            samplingTimesModel =
+              map( samplingTimesArms, getSamplings ) %>%
+              flatten_dbl() %>%
+              append( 0, after = 0 )  %>%
+              unique() %>%
+              sort()
+
+            # total number of sampling times
+            totalNumberOfSamplingTimes = map( samplingTimesArms, getSamplings ) %>%
+              lengths() %>%
+              sum()
+
+            # function to evaluation model equations
+            modelParameters = getParameters( model )
+            parametersNames = map( modelParameters, ~ getName( .x ) ) %>% unlist()
+            equationFunction = defineModelEquationsFromStringToFunction( model, parametersNames,
+                                                                         outcomesWithAdministration, outcomesWithNoAdministration )
+
+            # parameters for computing gradients
+            parameterMu = map( modelParameters, ~ getMu( .x ) )
+            parametersGradient = parametersForComputingGradient( model, parameterMu )
+
+            # model Error
+            modelError = getModelError( model )
+
+            # list for the data used in the evaluation of the model & the Fim
+            dataForArmEvaluation = list( samplingTimesModel = samplingTimesModel,
+                                         samplingTimesOutcomes = samplingTimesOutcomes,
+                                         totalNumberOfSamplingTimes = totalNumberOfSamplingTimes,
+                                         outcomesWithAdministration = outcomesWithAdministration,
+                                         outcomesWithNoAdministration = outcomesWithNoAdministration,
+                                         outcomesForEvaluation = outcomesForEvaluation,
+                                         parametersGradient = parametersGradient,
+                                         modelOutcomes = modelOutcomes,
+                                         modelError = modelError,
+                                         equationFunction = equationFunction )
+
+            return( dataForArmEvaluation )
+
+          })
+
 #' Evaluate an design
 #'
 #' @title EvaluateDesign
@@ -414,47 +497,41 @@ setMethod(f="EvaluateDesign",
             evaluationOutcomes =  list()
             outcomesGradient =  list()
 
+            # model evaluation for each arm
             arms = getArms( object )
-
-            # =====================
-            # evaluate all arms
-            # =====================
 
             for ( arm in arms )
             {
               armName = getName( arm )
-              evaluateArm = EvaluateArm( arm, model, fim )
+
+              # data for arm evaluation
+              dataForArmEvaluation = dataForArmEvaluation( object, arm, model )
+
+              arm = setDataForArmEvaluation( arm, dataForArmEvaluation )
+
+              dataForModelEvaluation = setDataForModelEvaluation( model, arm )
+
+              evaluateArm = EvaluateArm( arm, model, dataForModelEvaluation, fim )
+
               evaluationOutcomes[[armName]] = evaluateArm$evaluationOutcomes
               outcomesGradient[[armName]] = evaluateArm$outcomesGradient
               fisherMatrix[[armName]] = getFisherMatrix( evaluateArm$fim )
             }
 
-            # =====================
             # set Fim parameters
-            # =====================
-
             fisherMatrix = Reduce( "+", fisherMatrix )
             fim = setFisherMatrix( fim, fisherMatrix )
             fim = setFixedEffects( fim )
             fim = setVarianceEffects( fim )
 
-            # =====================
             # set the shrinkage
-            # =====================
-
             shrinkage = getShrinkage( evaluateArm$fim )
             fim = setShrinkage( fim, shrinkage )
 
-            # =====================
             # set Fim
-            # =====================
-
             object = setFim( object, fim )
 
-            # ===========================
             # set responses and gradients
-            # ===========================
-
             object = setOutcomesEvaluation( object, evaluationOutcomes )
             object = setOutcomesGradient( object, outcomesGradient )
 
@@ -465,7 +542,7 @@ setMethod(f="EvaluateDesign",
 #'
 #' @title plotOutcomesEvaluation
 #' @param object An object \code{Design} from the class \linkS4class{Design}.
-#' @param initialDesign An object \code{design} from the class \linkS4class{Design}.
+#' @param outcomesEvaluationInitialDesign A list containing the evaluation of the initial design.
 #' @param model An object \code{model} from the class \linkS4class{Model}.
 #' @param plotOptions A list containing the plot options.
 #' @return A list containing the plots the evaluation of the outcomes.
@@ -473,7 +550,7 @@ setMethod(f="EvaluateDesign",
 
 setGeneric(
   "plotOutcomesEvaluation",
-  function( object, initialDesign, model, plotOptions ) {
+  function( object, outcomesEvaluationInitialDesign, model, plotOptions ) {
     standardGeneric("plotOutcomesEvaluation")
   })
 
@@ -482,21 +559,14 @@ setGeneric(
 
 setMethod(f="plotOutcomesEvaluation",
           signature("Design"),
-          function( object, initialDesign, model, plotOptions ){
-
-            # ===============================================================
-            # evaluated design and initial design for initial sampling times
-            # ===============================================================
-
+          function( object, outcomesEvaluationInitialDesign, model, plotOptions )
+          {
             maxYAxis = list()
             minYAxis = list()
 
-            initialDesignName = getName( initialDesign )
+            parametersNames = getNames( getParameters( model ) )
             designName = getName( object )
-
-            evaluationInitialDesign = getOutcomesEvaluation( initialDesign )
             evaluationDesign = getOutcomesEvaluation( object )
-
             arms = getArms( object )
 
             outcomes = getOutcomes( model )
@@ -509,22 +579,15 @@ setMethod(f="plotOutcomesEvaluation",
               for ( outcomeName in outcomesNames )
               {
                 maxYAxis[[designName]][[armName]][[outcomeName]] = max( evaluationDesign[[armName]][[outcomeName]][,outcomeName] )
-                minYAxis[[designName]][[armName]][[outcomeName]] = 0
+                minYAxis[[designName]][[armName]][[outcomeName]] = min( evaluationDesign[[armName]][[outcomeName]][,outcomeName] )
               }
             }
-
-            # ================================
             # plot options
-            # ================================
-
             plotOptions = getPlotOptions( plotOptions, outcomesNames )
             unitXAxis = plotOptions$unitXAxis
             unitYAxis = plotOptions$unitYAxis
 
-            # ================================
-            # ggplot
-            # ================================
-
+            # plot
             plotOutcome = list()
 
             for ( arm in arms )
@@ -533,18 +596,20 @@ setMethod(f="plotOutcomesEvaluation",
 
               for ( outcomeName in outcomesNames )
               {
-                evaluationDesignPlot = evaluationDesign[[armName]][[outcomeName]]
+                samplingsForPlot = outcomesEvaluationInitialDesign[[armName]][[outcomeName]][,"time"]
 
-                evaluationInitialDesignPlot = evaluationInitialDesign[[armName]][[outcomeName]]
-                evaluationInitialDesignPlot$time = round( evaluationInitialDesignPlot$time, 2 )
+                evaluationDesignPlot = as.data.frame( evaluationDesign[[armName]][[outcomeName]] )
+
+                indexSamplingsForPlot = which( evaluationDesignPlot$time %in% samplingsForPlot )
 
                 plotOutcome[[armName]][[outcomeName]] = ggplot() +
 
-                  geom_line( evaluationDesignPlot,
-                             mapping = aes_string( x = "time", y = outcomeName ) ) +
+                  geom_line( data = evaluationDesignPlot,
+                             mapping = aes( x = time, y = !!sym( outcomeName ) ) ) +
 
-                  geom_point( evaluationInitialDesignPlot,
-                              mapping = aes_string( x = "time", y = outcomeName ), color = "red" ) +
+                  geom_point( data = evaluationDesignPlot[indexSamplingsForPlot,],
+                              mapping = aes( x = time, y = !!sym( outcomeName ) ),
+                              color = "red" ) +
 
                   theme(legend.position = "none",
                         axis.title.x.top = element_text(color = "red" , vjust = 2.0),
@@ -566,12 +631,13 @@ setMethod(f="plotOutcomesEvaluation",
 
                   scale_x_continuous(breaks = scales::pretty_breaks( n = 10 ),
                                      sec.axis = sec_axis(~ . * 1,
-                                                         breaks = evaluationInitialDesignPlot$time,
+                                                         breaks = round( samplingsForPlot, 2 ),
                                                          name = c( "Sampling times" ) ) ) +
 
                   scale_y_continuous( breaks = scales::pretty_breaks( n = 10 ) )
               }
             }
+
             return( plotOutcome )
           })
 
@@ -579,7 +645,7 @@ setMethod(f="plotOutcomesEvaluation",
 #'
 #' @title plotOutcomesGradient
 #' @param object An object \code{design} from the class \linkS4class{Design}.
-#' @param initialDesign An object \code{design} from the class \linkS4class{Design}.
+#' @param outcomesGradientInitialDesign A list with the evaluation of the gradient for the initial design.
 #' @param model An object \code{model} from the class \linkS4class{Model}.
 #' @param plotOptions A list containing the plot options.
 #' @return A list containing the plots the evaluation of the outcome gradients..
@@ -587,7 +653,7 @@ setMethod(f="plotOutcomesEvaluation",
 
 setGeneric(
   "plotOutcomesGradient",
-  function( object, initialDesign, model, plotOptions ) {
+  function( object, outcomesGradientInitialDesign, model, plotOptions ) {
     standardGeneric("plotOutcomesGradient")
   })
 
@@ -596,23 +662,14 @@ setGeneric(
 
 setMethod(f="plotOutcomesGradient",
           signature("Design"),
-          function( object, initialDesign, model, plotOptions ){
-
-            # ==============================================================
-            # evaluated design and initial design for initial sampling times
-            # ==============================================================
-
+          function( object, outcomesGradientInitialDesign, model, plotOptions )
+          {
             maxYAxis = list()
             minYAxis = list()
 
             parametersNames = getNames( getParameters( model ) )
-
-            initialDesignName = getName( initialDesign )
             designName = getName( object )
-
-            gradientInitialDesign = getOutcomesGradient( initialDesign )
             gradientDesign = getOutcomesGradient( object )
-
             arms = getArms( object )
 
             outcomes = getOutcomes( model )
@@ -629,19 +686,12 @@ setMethod(f="plotOutcomesGradient",
               }
             }
 
-            # ========================
             # plot options
-            # ========================
-
             plotOptions = getPlotOptions( plotOptions, outcomesNames )
-
             unitXAxis = plotOptions$unitXAxis
             unitYAxis = plotOptions$unitYAxis
 
-            # ========================
-            # ggplot
-            # ========================
-
+            # plot
             plotOutcome = list()
 
             for ( arm in arms )
@@ -650,19 +700,22 @@ setMethod(f="plotOutcomesGradient",
 
               for ( outcomeName in outcomesNames )
               {
-                gradientDesignPlot = gradientDesign[[armName]][[outcomeName]]
-                gradientInitialDesignPlot = as.data.frame( gradientInitialDesign[[armName]][[outcomeName]] )
-                gradientInitialDesignPlot$time = round( gradientInitialDesignPlot$time, 2 )
+                samplingsForPlot = outcomesGradientInitialDesign[[armName]][[outcomeName]][,"time"]
+
+                gradientDesignPlot = as.data.frame( gradientDesign[[armName]][[outcomeName]] )
+
+                indexSamplingsForPlot = which( gradientDesignPlot$time %in% samplingsForPlot )
 
                 for ( parameterName in parametersNames)
                 {
                   plotOutcome[[armName]][[outcomeName]][[parameterName]] = ggplot() +
 
-                    geom_line( gradientDesignPlot,
-                               mapping = aes_string( x = "time", y = parameterName ) ) +
+                    geom_line( data = gradientDesignPlot,
+                               mapping = aes( x = time, y = !!sym(parameterName )) ) +
 
-                    geom_point( gradientInitialDesignPlot,
-                                mapping = aes_string( x = "time", y = parameterName ), color = "red" ) +
+                    geom_point( data = gradientDesignPlot[indexSamplingsForPlot,],
+                                mapping = aes(x = time, y = !!sym(parameterName)),
+                                color = "red") +
 
                     theme(legend.position = "none",
                           axis.title.x.top = element_text(color = "red" , vjust = 2.0),
@@ -686,7 +739,7 @@ setMethod(f="plotOutcomesGradient",
 
                     scale_x_continuous(breaks = scales::pretty_breaks( n = 10 ),
                                        sec.axis = sec_axis(~ . * 1,
-                                                           breaks = gradientInitialDesignPlot$time,
+                                                           breaks = round( samplingsForPlot, 2 ),
                                                            name = c( "Sampling times" ) ) ) +
 
                     scale_y_continuous( breaks = scales::pretty_breaks( n = 10 ) )
@@ -707,7 +760,7 @@ setMethod(f="show",
           signature="Design",
           definition = function(object)
           {
-            designName = getName(object)
+            designName = getName( object )
 
             arms = getArms( object )
 
@@ -721,16 +774,17 @@ setMethod(f="show",
               armSize = round( armSize, 2 )
 
               samplingTimes = getSamplingTimes(arm)
+
               outcomes = lapply( samplingTimes, function(x) getOutcome(x) )
 
               administrations = getAdministrations( arm )
 
               for (outcome in outcomes )
               {
-                samplingTime = getSamplingTime(arm,outcome)
+                samplingTime = getSamplingTime( arm, outcome)
                 samplings = getSamplings( samplingTime )
                 samplings = sort( round( samplings,2 ) )
-                samplings = paste0("(",toString(samplings),")")
+                samplings = paste0( "(",toString(samplings),")" )
 
                 administration = getAdministration( arm , outcome )
 
@@ -741,18 +795,25 @@ setMethod(f="show",
                   dose = toString( getDose( administration ) )
                 }
 
-                optimalDesignSamplingTimes[[designName]][[armName]][[outcome]] = data.frame( c( designName, armName, armSize,
-                                                                                                outcome, dose, samplings ) )
+                optimalDesignSamplingTimes[[designName]][[armName]][[outcome]] = data.frame( c( designName, armName,
+                                                                                                armSize, outcome,
+                                                                                                dose, samplings ) )
               }
             }
 
-            dataFrameOptimalDesign = t( data.frame(optimalDesignSamplingTimes ) )
+            dataFrameOptimalDesign = t( data.frame( optimalDesignSamplingTimes ) )
             rownames( dataFrameOptimalDesign ) = NULL
             colnames( dataFrameOptimalDesign ) = c("Design","Arm","Arm size","Outcome","Dose", "Sampling times")
 
+            # model outcomes
+            outcomesEvaluation = getOutcomesEvaluation( object )
+
+            dataFrameOptimalDesign[,"Outcome"] = map_depth( outcomesEvaluation, 1, names ) %>%
+              unlist( use.names = F )
+
             # sort by arm size decreasing order
-            tmp = -1.0*as.numeric( dataFrameOptimalDesign[,"Arm size"] )
-            dataFrameOptimalDesign = dataFrameOptimalDesign[ order( tmp ), ]
+            tmp = as.numeric( dataFrameOptimalDesign[,"Arm size"] )
+            dataFrameOptimalDesign = dataFrameOptimalDesign[ order( tmp, decreasing = TRUE ), ]
 
             print( dataFrameOptimalDesign )
           })
@@ -1191,6 +1252,7 @@ setMethod(f="setSamplingConstraintForOptimization",
 ##########################################################################################################
 # END Class "Design"
 ##########################################################################################################
+
 
 
 

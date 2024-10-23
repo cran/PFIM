@@ -44,6 +44,20 @@ Evaluation = setClass(
 
   prototype = prototype( odeSolverParameters = list( atol = 1e-6, rtol = 1e-6 ) ) )
 
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param model model
+#' @param modelEquations modelEquations
+#' @param modelParameters modelParameters
+#' @param modelError modelError
+#' @param outcomes outcomes
+#' @param designs designs
+#' @param fim fim
+#' @param odeSolverParameters odeSolverParameters
+#' @return Evaluation
+#' @export
+
 setMethod(f="initialize",
           signature="Evaluation",
           definition=function(.Object, name, model, modelEquations, modelParameters, modelError, outcomes, designs, fim, odeSolverParameters )
@@ -126,18 +140,15 @@ setMethod(f = "run",
           signature = "Evaluation",
           definition = function( object )
           {
-            # =================================================
             # define the new model
             # designs, fim, model error, ode solver parameters
-            # =================================================
-
             designs = getDesigns( object )
+
+            designsNames = lapply( designs, function(x) getName( x ) )
+
             fim = getFim( object )
 
-            # ============================================================
             # define a new model: user defined or from library of models
-            # ============================================================
-
             model = getModel( object )
 
             modelEquations = getModelEquations( object )
@@ -153,28 +164,20 @@ setMethod(f = "run",
             model = setModelError( model, getModelError( object ) )
             model = defineModel( model, designs )
 
-            # ============================================================
             # set outcomes for the evaluation and ode solver parameters
-            # ============================================================
-
             outcomesForEvaluation = getOutcomes( object )
             model = setOutcomesForEvaluation( model, outcomesForEvaluation )
             model = setOdeSolverParameters( model, odeSolverParameters )
 
-            # ===========================
             # set the the model
-            # ===========================
-
             object = setModel( object, model )
 
-            # ==================================
             # evaluate the model for each design
-            # ==================================
-
             for ( design in designs )
             {
               designName = getName( design )
-              object@designs[[ designName ]] = EvaluateDesign( design, model, fim )
+
+              object@designs[[designName]] = EvaluateDesign( design, model, fim )
             }
 
             return( object )
@@ -189,17 +192,11 @@ setMethod(f="show",
           signature = "Evaluation",
           definition = function( object )
           {
-            # ==================================
             # get initial designs
-            # ==================================
-
             designs = getDesigns( object )
             designsNames = getNames( designs )
 
-            # ==================================
             # get model
-            # ==================================
-
             model = getModel( object )
 
             for ( designName in designsNames )
@@ -215,111 +212,118 @@ setMethod(f="show",
               correlationMatrixFixedEffects = correlationMatrix$fixedEffects
               correlationMatrixVarianceEffects = correlationMatrix$varianceEffects
 
-              # ==================================
               # SE and RSE
-              # ==================================
-
               fisherMatrix = getFisherMatrix( fim )
-              SE = getSE( fim )
 
-              rseAndParametersValues = getRSE( fim, model )
+              # Fisher matrix inversible or not
+              resultSEFim = tryCatch(
+                {
+                  SE = getSE( fim )
+                  SE
+                },
+                error = function( errorMessage ) {
+                  message( "Error: Unable to solve the Fisher matrix - ", errorMessage$message )
+                  return( NULL )
+                }
+              )
 
-              RSE = rseAndParametersValues$RSE
-              parametersValues = rseAndParametersValues$parametersValues
-
-              SEandRSE = data.frame( parametersValues, SE, RSE )
-              colnames( SEandRSE ) = c("Value", "SE","RSE (%)" )
-
-              # ===============================================
-              # determinants, condition numbers and Dcriterion
-              # ===============================================
-
-              detFim = getDeterminant( fim )
-              condFIMFixedEffects = getConditionNumberFixedEffects( fim )
-              condFIMVarianceEffects = getConditionNumberVarianceEffects( fim )
-              DCriterion = getDcriterion( fim )
-
-              # =================
-              # shrinkage
-              # =================
-
-              shrinkage = getShrinkage( fim )
-
-              if (!is.null(shrinkage))
+              if ( !is.null( resultSEFim ) )
               {
-                names( shrinkage) = colnames( FIMFixedEffects )
+                # show results
+                SE = getSE( fim )
+                rseAndParametersValues = getRSE( fim, model )
+
+                RSE = rseAndParametersValues$RSE
+                parametersValues = rseAndParametersValues$parametersValues
+
+                SEandRSE = data.frame( parametersValues, SE, RSE )
+                colnames( SEandRSE ) = c("Value", "SE","RSE (%)" )
+
+                # determinants, condition numbers and D criterion
+                detFim = getDeterminant( fim )
+                condFIMFixedEffects = getConditionNumberFixedEffects( fim )
+                condFIMVarianceEffects = getConditionNumberVarianceEffects( fim )
+                DCriterion = getDcriterion( fim )
+
+                # shrinkage
+                shrinkage = getShrinkage( fim )
+
+                if (!is.null(shrinkage))
+                {
+                  names( shrinkage) = colnames( FIMFixedEffects )
+                }
+
+                criteriaFim = t( data.frame( detFim, condFIMFixedEffects, condFIMVarianceEffects, DCriterion ) )
+
+                colnames(criteriaFim) = c("Value")
+                rownames(criteriaFim) = c("Determinant",
+                                          "Cond number fixed effects",
+                                          "Cond number variance components",
+                                          "D-criterion")
+
+                # display results in R console
+                designName = getName( design )
+
+                cat("*************************\n\n" )
+                cat(paste0("Design: ", designName, "\n\n" ))
+                cat("*************************\n\n" )
+
+                cat("*************************\n" )
+                cat("Fisher information matrix \n" )
+                cat("*************************\n" )
+                cat("\n" )
+                cat("**** Fixed effect","\n\n" )
+
+                print( FIMFixedEffects )
+
+                cat("\n" )
+                cat("**** Variance components","\n\n" )
+
+                print( FIMVarianceEffects )
+
+                cat("\n" )
+                cat("******************\n" )
+                cat("Correlation matrix  \n" )
+                cat("******************\n" )
+                cat("\n" )
+                cat("**** Fixed effect","\n\n" )
+
+                print( correlationMatrixFixedEffects )
+
+                cat("\n" )
+                cat("**** Variance components","\n\n" )
+
+                print( correlationMatrixVarianceEffects )
+
+                cat("\n" )
+                cat("**********************************************\n" )
+                cat("Determinant, condition numbers and D-criterion \n" )
+                cat("**********************************************\n" )
+                cat("\n" )
+
+                print( criteriaFim, row.names = FALSE )
+
+                cat("\n" )
+                cat("**********\n" )
+                cat("Shrinkage \n" )
+                cat("**********\n" )
+                cat("\n" )
+
+                print( shrinkage )
+
+                cat("\n" )
+                cat("**********\n" )
+                cat("SE and RSE \n" )
+                cat("**********\n" )
+                cat("\n" )
+
+                print( SEandRSE )
+
+                cat("\n" )
+
+              } else {
+                cat("Standard errors could not be calculated due to a singular Fisher matrix.\n")
               }
-
-              criteriaFim = t(data.frame( detFim, condFIMFixedEffects, condFIMVarianceEffects, DCriterion ) )
-
-              colnames(criteriaFim) = c("Value")
-              rownames(criteriaFim) = c("Determinant",
-                                        "Cond number fixed effects",
-                                        "Cond number variance components",
-                                        "D-criterion")
-
-              # ============================
-              # display results in R console
-              # ============================
-
-              designName = getName( design )
-
-              cat("*************************\n\n" )
-              cat(paste0("Design: ", designName, "\n\n" ))
-              cat("*************************\n\n" )
-
-              cat("*************************\n" )
-              cat("Fisher information matrix \n" )
-              cat("*************************\n" )
-              cat("\n" )
-              cat("**** Fixed effect","\n\n" )
-
-              print( FIMFixedEffects )
-
-              cat("\n" )
-              cat("**** Variance components","\n\n" )
-
-              print( FIMVarianceEffects )
-
-              cat("\n" )
-              cat("******************\n" )
-              cat("Correlation matrix  \n" )
-              cat("******************\n" )
-              cat("\n" )
-              cat("**** Fixed effect","\n\n" )
-
-              print( correlationMatrixFixedEffects )
-
-              cat("\n" )
-              cat("**** Variance components","\n\n" )
-
-              print( correlationMatrixVarianceEffects )
-
-              cat("\n" )
-              cat("**********************************************\n" )
-              cat("Determinant, condition numbers and D-criterion \n" )
-              cat("**********************************************\n" )
-              cat("\n" )
-
-              print( criteriaFim, row.names = FALSE )
-
-              cat("\n" )
-              cat("**********\n" )
-              cat("Shrinkage \n" )
-              cat("**********\n" )
-              cat("\n" )
-
-              print( shrinkage )
-
-              cat("\n" )
-              cat("**********\n" )
-              cat("SE and RSE \n" )
-              cat("**********\n" )
-              cat("\n" )
-
-              print( SEandRSE )
-
-              cat("\n" )
             }
           })
 
@@ -361,8 +365,6 @@ setMethod(f="reportTablesPlot",
           })
 
 # ======================================================================================================
-# generateTables
-# ======================================================================================================
 
 #' @rdname generateTables
 #' @export
@@ -371,71 +373,41 @@ setMethod(f="generateTables",
           signature("Evaluation"),
           function( object, plotOptions )
           {
-            # ===========================================
             # get model and model error
-            # ===========================================
-
             model = getModel( object )
 
-            # ===========================================
             # get design
-            # ===========================================
-
             designs = getDesigns( object )
             designNames = getNames( designs )
             designName = designNames[[1]]
             design = designs[[designName]]
 
-            # ===========================================
             # get fim
-            # ===========================================
-
             fim = getFim( design )
 
-            # ===========================================
             # tables for model equations
-            # ===========================================
-
             modelEquations = getEquations( model )
             modelOutcomes = getOutcomes( object )
             tablesModelEquations = list( outcomes = modelOutcomes, equations = modelEquations )
 
-            # ===========================================
             # tables for model error
             # tables for model parameters
-            # ===========================================
-
             tablesModelParameters = reportTablesModelParameters( model )
             tablesModelError = reportTablesModelError( model )
 
-            # ===========================================
             # tables for administration
-            # ===========================================
-
             tablesAdministration = reportTablesAdministration( design  )
 
-            # ===========================================
             # tables for design
-            # ===========================================
-
             tablesDesign = reportTablesDesign( design  )
 
-            # ===========================================
             # tables for FIM
-            # ===========================================
-
             tablesFIM = reportTablesFIM( fim, object )
 
-            # ===========================================
             # tables for plot design, SI, SE and RSE
-            # ===========================================
-
             tablesPlot = reportTablesPlot( object, plotOptions )
 
-            # ===========================================
             # tables for report
-            # ===========================================
-
             reportTables = list( tablesModelEquations = tablesModelEquations,
                                  tablesModelError = tablesModelError,
                                  tablesModelParameters = tablesModelParameters,
@@ -448,8 +420,6 @@ setMethod(f="generateTables",
 
           })
 
-# ======================================================================================================
-# Report
 # ======================================================================================================
 
 #' @rdname Report
@@ -469,8 +439,6 @@ setMethod(f="Report",
 
           })
 
-# ======================================================================================================
-# getFisherMatrix, getCorrelationMatrix, getRSE, getDcriterion, getDeterminant
 # ======================================================================================================
 
 #' @rdname getFisherMatrix

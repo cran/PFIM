@@ -36,6 +36,17 @@ Proportional = setClass(Class = "Proportional",
                                                equation =  parse(text = "sigmaSlope")
                         ))
 
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param equation equation
+#' @param derivatives derivatives
+#' @param sigmaInter sigmaInter
+#' @param sigmaSlope sigmaSlope
+#' @param cError cError
+#' @return Proportional
+#' @export
+
 setMethod( f="initialize",
            signature="Proportional",
            definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )

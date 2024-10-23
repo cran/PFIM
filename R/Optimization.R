@@ -55,10 +55,30 @@ Optimization = setClass(
 
   prototype = prototype( odeSolverParameters = list( atol = 1e-6, rtol = 1e-6 ) ) )
 
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param model model
+#' @param modelEquations modelEquations
+#' @param modelParameters modelParameters
+#' @param modelError modelError
+#' @param optimizer optimizer
+#' @param optimizerParameters optimizerParameters
+#' @param outcomes outcomes
+#' @param designs designs
+#' @param fim fim
+#' @param odeSolverParameters odeSolverParameters
+#' @param optimizationResults optimizationResults
+#' @param evaluationFIMResults evaluationFIMResults
+#' @param evaluationInitialDesignResults evaluationInitialDesignResults
+#' @return Optimization
+#' @export
+
 setMethod( f="initialize",
            signature="Optimization",
            definition=function(.Object, name, model, modelEquations, modelParameters, modelError, optimizer,
-                               optimizerParameters, outcomes, designs, fim, odeSolverParameters, optimizationResults, evaluationFIMResults, evaluationInitialDesignResults )
+                               optimizerParameters, outcomes, designs, fim, odeSolverParameters, optimizationResults,
+                               evaluationFIMResults, evaluationInitialDesignResults )
            {
              if(!missing(name))
              {
@@ -377,10 +397,7 @@ setMethod(f="getElementaryProtocols",
           signature="Optimization",
           definition = function( object, fims )
           {
-            # =======================================
             # design ,arm and fims
-            # =======================================
-
             designs = getDesigns( object )
             design = designs[[1]]
 
@@ -392,10 +409,7 @@ setMethod(f="getElementaryProtocols",
             fisherMatrices = fims$listFims
             fisherMatricesArms = fims$listArms
 
-            # =======================================
             # samplings by outcomes
-            # =======================================
-
             samplings = list()
 
             for ( outcome in outcomes )
@@ -405,13 +419,9 @@ setMethod(f="getElementaryProtocols",
               samplings[[outcome]] = do.call( rbind, samplings[[outcome]] )
             }
 
-
             combinedTimes = do.call(cbind, samplings)
 
-            # =======================================
             # total cost
-            # =======================================
-
             optimizerParameters = getOptimizerParameters( object )
             initialSamplings = optimizerParameters$elementaryProtocols
             totalNumberOfIndividuals = optimizerParameters$numberOfSubjects
@@ -430,10 +440,7 @@ setMethod(f="getElementaryProtocols",
             fisherMatrices = lapply( fisherMatrices, function( x ) x[ rev( lower.tri( t( x ), diag=TRUE ) ) ] )
             fisherMatrices = matrix( unlist( fisherMatrices ), ncol = dimVectorTriangularInfWithDiagFisherMatrices, byrow = TRUE )
 
-            # =======================================
             # elementaryProtocols
-            # =======================================
-
             elementaryProtocolsFW = list()
             elementaryProtocolsFW$numberOfprotocols = dim( combinedTimes )[1]
             elementaryProtocolsFW$numberOfTimes = dim( combinedTimes )[2]
@@ -476,10 +483,7 @@ setMethod(f="generateFimsFromConstraints",
             odeSolverParameters = getOdeSolverParameters( object )
             fimEvaluation = setFimTypeToString( fim )
 
-            # =======================================
             # generate the sampling times
-            # =======================================
-
             samplingTimesCombinations = list()
             numberOfSamplings = list()
             indexAllCombinaisonsSamplings = list()
@@ -560,10 +564,7 @@ setMethod(f="generateFimsFromConstraints",
               }
             }
 
-            # =======================================
             # create list of arms with constraints
-            # =======================================
-
             listArms = list()
             listFims = list()
 
@@ -587,19 +588,13 @@ setMethod(f="generateFimsFromConstraints",
 
                 administrations = getAdministrations( arm )
 
-                # ============
                 # set doses
-                # ============
-
                 for( dose in doses[[armName]] )
                 {
                   administration = setDose( administrations[[1]],  dose )
                   arm = setAdministrations( arm, list( administration ) )
 
-                  # ===================
                   # set sampling times
-                  # ===================
-
                   for ( i in 1:dim( indexAllCombinaisonsSamplings[[designName]][[armName]] )[1] )
                   {
                     for ( outcome in outcomes )
@@ -607,7 +602,8 @@ setMethod(f="generateFimsFromConstraints",
                       indexSamplingTimes = indexAllCombinaisonsSamplings[[designName]][[armName]][,outcome][i]
 
                       samplingTimes = SamplingTimes( outcome,
-                                                     samplings = samplingTimesCombinations[[designName]][[armName]][[outcome]][indexSamplingTimes,] )
+                                                     samplings =
+                                                     samplingTimesCombinations[[designName]][[armName]][[outcome]][indexSamplingTimes,] )
 
                       arm = setSamplingTime( arm, samplingTimes )
                     }
@@ -649,10 +645,6 @@ setMethod(f="generateFimsFromConstraints",
             return( list( listArms = listArms, listFims = listFims, designArmDose = designArmDose ) )
           })
 
-# ======================================================================================================
-# run
-# ======================================================================================================
-
 #' @rdname run
 #' @export
 
@@ -660,29 +652,19 @@ setMethod(f = "run",
           signature = "Optimization",
           definition = function( object )
           {
-            # ===============================================================================
             # evaluate initial design (for comparison with the optimal design )
-            # ===============================================================================
-
             modelEquations = getModelEquations( object )
             modelParameters = getModelParameters( object )
             modelError = getModelError( object )
             outcomes = getOutcomes( object )
             designs = getDesigns( object )
 
-            # ===========================================
             # get and set the fim
-            # ===========================================
-
             fim = getFim( object )
             fimEvaluation = setFimTypeToString( fim )
-
             odeSolverParameters = getOdeSolverParameters( object )
 
-            # ===========================================================
             # evaluate the initial design and set its evaluation results
-            # ===========================================================
-
             evaluationFIMInitialDesign = Evaluation( name = "",
                                                      modelEquations = modelEquations,
                                                      modelParameters = modelParameters,
@@ -696,56 +678,34 @@ setMethod(f = "run",
 
             object = setEvaluationInitialDesignResults( object, evaluationFIMInitialDesignResults )
 
-            # ===========================================
             # set parameters of the optimizer
-            # ===========================================
-
             optimizationAlgo = getOptimizer( object )
             optimizerParameters = getOptimizerParameters( object )
             optimizationAlgo = setParameters( optimizationAlgo, optimizerParameters )
 
-            # ===========================================
             # set the outcomes design
-            # ===========================================
-
             model = getModel( object )
             model = setOutcomes( model, outcomes )
             object = setModel( object, model )
 
-            # ===========================================
             # design optimization
-            # ===========================================
-
             optimizationResults = optimize( optimizationAlgo, optimizerParameters, object )
 
-            # ===========================================
             # evaluate the fim for the optimal design
-            # ===========================================
-
             optimalDesign = getOptimalDesign( optimizationResults )
 
-            # ===========================================
             # Evaluation parameters
-            # ===========================================
-
             modelEquations = getModelEquations( object )
             modelParameters = getModelParameters( object )
             modelError = getModelError( object )
             outcomes = getOutcomes( object )
 
-            # ===========================================
             # get and set the fim
-            # ===========================================
-
             fim = getFim( object )
             fimEvaluation = setFimTypeToString( fim )
-
             odeSolverParameters = getOdeSolverParameters( object )
 
-            # ===========================================
             # evaluate the optimal design
-            # ===========================================
-
             evaluationFIM = Evaluation( name = "",
                                         modelEquations = modelEquations,
                                         modelParameters = modelParameters,
@@ -757,22 +717,14 @@ setMethod(f = "run",
 
             evaluationFIMResults = run( evaluationFIM )
 
-            # ===========================================
             # set the optimization and evaluation results
-            # ===========================================
-
             designs = getDesigns( evaluationFIMResults )
             optimizationResults = setOptimalDesign( optimizationResults, designs[[1]] )
-
             object = setOptimizationResults( object, optimizationResults )
             object = setEvaluationFIMResults( object, evaluationFIMResults )
 
             return( object )
           })
-
-# ======================================================================================================
-# show
-# ======================================================================================================
 
 #' @title show
 #' @rdname show
@@ -785,7 +737,6 @@ setMethod(f="show",
           {
             optimizationResults = getOptimizationResults( object )
             evaluationFIMResults = getEvaluationFIMResults( object )
-
             optimalDesign = getOptimalDesign( optimizationResults )
 
             show( optimizationResults )
@@ -807,8 +758,6 @@ setMethod(f="show",
             show( evaluationFIMResults )
           })
 
-# ======================================================================================================
-# getFisherMatrix, getCorrelationMatrix, getRSE, getDcriterion, getDeterminant
 # ======================================================================================================
 
 #' @rdname getFisherMatrix
@@ -963,60 +912,44 @@ setMethod( "getDeterminant",
              return( determinant )
            })
 
-# ======================================================================================================
-# getDataFrameResults
-# ======================================================================================================
-
 #' @rdname getDataFrameResults
 #' @export
 
 setMethod(f="getDataFrameResults",
           signature = "Optimization",
-          definition = function( object, threshold )
+          definition = function( object )
           {
-            dataFrameResults = getDataFrameResults( object, threshold )
+            dataFrameResults = getDataFrameResults( object )
 
             return( getDataFrameResults )
 
           })
-
-# ======================================================================================================
-# plotWeights
-# ======================================================================================================
 
 #' @rdname plotWeights
 #' @export
 
 setMethod(f="plotWeights",
           signature = "Optimization",
-          definition = function( object, threshold )
+          definition = function( object )
           {
             optimizationResults = getOptimizationResults( object )
 
-            plotWeights( optimizationResults, threshold )
+            plotWeights( optimizationResults )
 
           })
-
-# ======================================================================================================
-# plotFrequencies
-# ======================================================================================================
 
 #' @rdname plotFrequencies
 #' @export
 
 setMethod(f="plotFrequencies",
           signature = "Optimization",
-          definition = function( object, threshold )
+          definition = function( object )
           {
             optimizationResults = getOptimizationResults( object )
 
-            plotFrequencies( optimizationResults, threshold )
+            plotFrequencies( optimizationResults )
 
           })
-
-# ======================================================================================================
-# generateTables Optimization
-# ======================================================================================================
 
 #' @rdname generateTables
 #' @export
@@ -1025,19 +958,14 @@ setMethod(f="generateTables",
           signature("Optimization"),
           function( object, plotOptions )
           {
-            # ===========================================
             # get model and model error
-            # ===========================================
-
             evaluationInitialDesign = getEvaluationInitialDesignResults( object )
+
             evaluationFIMResults = getEvaluationFIMResults( object )
 
             model = getModel( evaluationInitialDesign )
 
-            # ===========================================
             # get design
-            # ===========================================
-
             designs = getDesigns( evaluationInitialDesign )
             designNames = getNames( designs )
             designName = designNames[[1]]
@@ -1048,63 +976,38 @@ setMethod(f="generateTables",
             designName = designNames[[1]]
             optimalDesign = designs[[designName]]
 
-            # ===========================================
             # get fim
-            # ===========================================
-
             fim = getFim( optimalDesign )
 
-            # ===========================================
             # tables for model equations
-            # ===========================================
-
             modelEquations = getEquations( model )
             modelOutcomes = getOutcomes( evaluationInitialDesign )
 
             tablesModelEquations = list( outcomes = modelOutcomes, equations = modelEquations )
 
-            # ===========================================
             # tables for model error
-            # tables for model parameters
-            # ===========================================
-
             tablesModelParameters = reportTablesModelParameters( model )
+
+            # tables for model parameters
             tablesModelError = reportTablesModelError( model )
 
-            # ===========================================
             # tables for administration
-            # ===========================================
-
             tablesAdministration = reportTablesAdministration( initialDesign  )
 
-            # ===========================================
             # tables for sampling constraints
-            # ===========================================
-
             tablesSamplingConstraints = reportTablesSamplingConstraints( initialDesign  )
 
-            # ===========================================
             # tables for design
-            # ===========================================
-
             tablesDesign = reportTablesDesign( optimalDesign  )
 
-            # ===========================================
             # tables for FIM
-            # ===========================================
-
             tablesFIM = reportTablesFIM( fim, evaluationFIMResults )
 
-            # ===========================================
             # tables for plot design, SI, SE and RSE
-            # ===========================================
 
             tablesPlot = reportTablesPlot( evaluationFIMResults, plotOptions )
 
-            # ===========================================
             # tables for report
-            # ===========================================
-
             reportTables = list( tablesModelEquations = tablesModelEquations,
                                  tablesModelError = tablesModelError,
                                  tablesModelParameters = tablesModelParameters,
@@ -1117,9 +1020,6 @@ setMethod(f="generateTables",
             return( reportTables )
 
           })
-# ======================================================================================================
-# Report
-# ======================================================================================================
 
 #' @rdname Report
 #' @export
@@ -1128,11 +1028,9 @@ setMethod(f="Report",
           signature("Optimization"),
           function( object, outputPath, outputFile, plotOptions )
           {
-            # ===========================================
             # set parameters of the optimizer
-            # ===========================================
-
             optimizationAlgo = getOptimizer( object )
+
             optimizationResults = generateReportOptimization( optimizationAlgo, object,  outputPath, outputFile, plotOptions )
           })
 

@@ -14,6 +14,16 @@ ModelAnalyticBolusSteadyState = setClass( "ModelAnalyticBolusSteadyState",
                                           prototype = prototype(
                                             initialConditions = list(NULL),
                                             odeSolverParameters = list(NULL) ) )
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param description description
+#' @param equations equations
+#' @param outcomes outcomes
+#' @param parameters parameters
+#' @param modelError modelError
+#' @return ModelAnalyticBolusSteadyState
+#' @export
 
 setMethod( f="initialize",
            signature="ModelAnalyticBolusSteadyState",

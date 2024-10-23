@@ -38,6 +38,17 @@ Combined1 = setClass(Class = "Combined1",
                                             equation =  expression(sigmaInter + sigmaSlope * evaluationOutcome )
                      ))
 
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param equation equation
+#' @param derivatives derivatives
+#' @param sigmaInter sigmaInter
+#' @param sigmaSlope sigmaSlope
+#' @param cError cError
+#' @return Combined1
+#' @export
+
 setMethod( f="initialize",
            signature="Combined1",
            definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )

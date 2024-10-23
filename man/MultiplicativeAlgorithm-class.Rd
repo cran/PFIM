@@ -21,6 +21,7 @@ Objects form the class \code{MultiplicativeAlgorithm} can be created by calls of
 \item{\code{lambda}:}{A numeric giving the lambda parameter of the multiplicative algorithm.}
 \item{\code{delta}:}{A numeric giving the delta parameter of the multiplicative algorithm.}
 \item{\code{numberOfIterations}:}{A numeric giving the maximal number iteration of the optimization process.}
+\item{\code{weightThreshold}:}{A numeric giving the threshold of the weights.}
 \item{\code{optimalWeights}:}{A vector giving the optimal weights.}
 \item{\code{optimalDesign}:}{An object of the class \code{Design} giving the optimal design.}
 \item{\code{showProcess}:}{A boolean for showing or not the process of optimization.}

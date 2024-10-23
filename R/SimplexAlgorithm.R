@@ -39,6 +39,18 @@ SimplexAlgorithm = setClass(
     showProcess = F
   )
 )
+
+#' initialize
+#' @param .Object .Object
+#' @param pctInitialSimplexBuilding pctInitialSimplexBuilding
+#' @param maxIteration maxIteration
+#' @param tolerance tolerance
+#' @param optimalDesigns optimalDesigns
+#' @param iterationAndCriteria iterationAndCriteria
+#' @param showProcess showProcess
+#' @return SimplexAlgorithm
+#' @export
+
 setMethod( f="initialize",
            signature="SimplexAlgorithm",
            definition= function ( .Object,

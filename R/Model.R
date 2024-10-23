@@ -40,10 +40,25 @@ Model = setClass("Model",
                    odeSolverParameters = "list",
                    modelFromLibrary = "list"))
 
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param description description
+#' @param equations equations
+#' @param outcomes outcomes
+#' @param outcomesForEvaluation outcomesForEvaluation
+#' @param parameters parameters
+#' @param modelError modelError
+#' @param initialConditions initialConditions
+#' @param odeSolverParameters odeSolverParameters
+#' @param modelFromLibrary modelFromLibrary
+#' @return Model
+#' @export
+
 setMethod( f="initialize",
            signature="Model",
            definition= function (.Object, name, description, equations, outcomes, outcomesForEvaluation, parameters,
-                                 modelError, initialConditions, odeSolverParameters,modelFromLibrary )
+                                 modelError, initialConditions, odeSolverParameters, modelFromLibrary )
            {
              if(!missing(name))
              {
@@ -883,9 +898,13 @@ setMethod(f = "defineModelUserDefined",
 
             # ==============================================
             # set equations
-            # ==============================================
+            # ===============================================
+            # convert model equations string to expression
+            # ===============================================
 
-            newModel = setEquations( newModel, getEquations( object ) )
+            newModelEquations = getEquations( object )
+
+            newModel = setEquations( newModel, newModelEquations )
 
             # ==============================================
             # set outcomes
@@ -1012,25 +1031,65 @@ setMethod(f = "defineModelType",
 #'
 #' @name EvaluateModel
 #' @param object An object from the class \linkS4class{Model}.
+#' @param dataForModelEvaluation ...
 #' @param arm An object from the class \linkS4class{Arm}.
 #' @return A list giving the results of the model evaluation.
 #' @export
 
 setGeneric("EvaluateModel",
-           function( object, arm )
+           function( object, dataForModelEvaluation, arm )
            {
              standardGeneric("EvaluateModel")
            })
+
+################################################################################
+
+
+
+################################################################################
+
+#' Evaluate model gradient.
+#'
+#' @name EvaluateModelGradient
+#' @param object An object from the class \linkS4class{Model}.
+#' @param dataForModelEvaluation ...
+#' @param arm An object from the class \linkS4class{Arm}.
+#' @return A list giving the results of the model evaluation.
+#' @export
+
+setGeneric("EvaluateModelGradient",
+           function( object, dataForModelEvaluation, arm )
+           {
+             standardGeneric("EvaluateModelGradient")
+           })
+
+#' defineModelEquationsFromStringToFunction
+#'
+#' @name defineModelEquationsFromStringToFunction
+#' @param object An object from the class \linkS4class{Model}.
+#' @param parametersNames Vector of parameter names.
+#' @param outcomesWithAdministration Vector of the name of the outcome with administration.
+#' @param outcomesWithNoAdministration Vector of the name of the outcome with no administration.
+#' @return ....
+#' @export
+
+setGeneric(
+  "defineModelEquationsFromStringToFunction",
+  function( object, parametersNames, outcomesWithAdministration, outcomesWithNoAdministration ) {
+    standardGeneric("defineModelEquationsFromStringToFunction")
+  })
+
 
 #' Define the parameters for computing the gradients of a model.
 #'
 #' @name parametersForComputingGradient
 #' @param object An object from the class \linkS4class{Model}.
+#' @param valuePars Vector of parameter values
 #' @return A list giving the parameters for computing the gradients of a model.
 #' @export
 
 setGeneric("parametersForComputingGradient",
-           function(object)
+           function(object, valuePars)
            {
              standardGeneric("parametersForComputingGradient")
            }
@@ -1041,21 +1100,10 @@ setGeneric("parametersForComputingGradient",
 
 setMethod(f = "parametersForComputingGradient",
           signature="Model",
-          definition= function(object)
+          definition= function( object, valuePars )
           {
             minAbsPar = 0
             .relStep = .Machine$double.eps^(1/3)
-
-            valuePars = c()
-            modelParameters = getParameters( object )
-
-            for ( modelParameter in modelParameters )
-            {
-              distribution = getDistribution( modelParameter )
-              mu = getMu( distribution )
-              valuePars = c( valuePars, mu )
-            }
-
             pars = as.numeric(valuePars)
             npar = length(pars)
             incr = pmax(abs(pars), minAbsPar) * .relStep
@@ -1086,11 +1134,12 @@ setMethod(f = "parametersForComputingGradient",
 #' @param object An object from the class \linkS4class{Model}.
 #' @param arm An object from the class \linkS4class{Arm}.
 #' @param evaluationModel A list giving the outputs of the model evaluation.
+#' @param  data ...
 #' @return Return a list giving the results of the evaluation of the model variance.
 #' @export
 
 setGeneric("EvaluateVarianceModel",
-           function( object, arm, evaluationModel )
+           function( object, arm, evaluationModel, data )
            {
              standardGeneric("EvaluateVarianceModel")
            }
@@ -1100,26 +1149,25 @@ setGeneric("EvaluateVarianceModel",
 #' @export
 
 setMethod(f = "EvaluateVarianceModel",
-          signature="Model",
-          definition= function(object, arm, evaluationModel )
+          signature = "Model",
+          definition = function( object, arm, evaluationModel, data )
           {
             errorModelDerivatives = list()
             errorVariances = list()
             sigmaDerivatives = list()
 
-            modelError = getModelError( object )
+            modelError = data$modelError
+            outcomeNames = data$modelOutcomes
 
-            outcomeNames = names( getOutcomes( object ) )
-
-            totalNumberOfSamplingTimes = length( ( unlist( lapply( evaluationModel$evaluationOutcomes, '[', c( "time" ) ) ) ) )
+            totalNumberOfSamplingTimes = data$totalNumberOfSamplingTimes
 
             k = 1
 
             for ( outcomeName in outcomeNames )
             {
-              modelErrorIndex = which( sapply( modelError, function (x) getOutcome(x) == outcomeName) )
+              modelErrorIndex = which( sapply( modelError, function (x) getOutcome(x) == outcomeName ) )
 
-              if ( length( modelErrorIndex ) != 0 )
+               if ( length( modelErrorIndex ) != 0 )
               {
                 # ==============================================
                 # Evaluate Error Model Derivatives
@@ -1129,7 +1177,6 @@ setMethod(f = "EvaluateVarianceModel",
 
                 errorModelDerivatives[[outcomeName]] = EvaluateErrorModelDerivatives( modelError[[modelErrorIndex]],
                                                                                       evaluationResponseTmp[,outcomeName] )
-
                 # ==============================================
                 # Error variances
                 # ==============================================
@@ -1359,10 +1406,9 @@ setMethod("reportTablesModelParameters",
                                           vecFixedMu = vecFixedMu, vecFixedOmega = vecFixedOmega)
 
             rownames( tableParameters ) = NULL
-            colnames( tableParameters ) = c("Parameters","
-                                            ${\\mu}$","${\\omega^2}$","Distribution",
-                                            paste0("${\\mu}$ ","fixed"),paste0("${\\omega^2}$ ","fixed") )
-
+            colnames( tableParameters ) = as.vector( c("Parameters","${\\mu}$",
+                                                       "${\\omega^2}$","Distribution",
+                                                       paste0("${\\mu}$ ","fixed"),paste0("${\\omega^2}$ ","fixed") ) )
 
             tableParameters = knitr::kable( tableParameters ) %>%
               kable_styling( font_size = 12,
@@ -1417,6 +1463,39 @@ setMethod("reportTablesModelError",
 
             return( tablesModelError )
           })
+
+#' Generate the table of dose, time dose etc. for model evaluation
+#'
+#' @name setDataForModelEvaluation
+#' @param object An object from the class \linkS4class{Model}.
+#' @param arm An object from the class \linkS4class{Arm}.
+#' @return Return a dataframe with all the data for model evaluation
+#' @export
+
+setGeneric(
+  "setDataForModelEvaluation",
+  function( object, arm ) {
+    standardGeneric("setDataForModelEvaluation")
+  })
+
+# ======================================================================================================
+
+#' Return the variable of an ode model
+#'
+#' @name getVariables
+#' @param object An object from the class \linkS4class{Model}.
+#' @return Return the variable of an ode model
+#' @export
+
+setGeneric(
+  "getVariables",
+  function( object  ) {
+    standardGeneric("getVariables")
+  })
+
+
+
+
 
 ##########################################################################################################
 # END Class "Model"

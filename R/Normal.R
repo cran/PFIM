@@ -13,6 +13,12 @@ Normal = setClass( Class = "Normal",
                    contains = "Distribution",
                    representation = representation())
 
+#' initialize
+#' @param .Object .Object
+#' @param ... args
+#' @return Normal
+#' @export
+#'
 setMethod( f = "initialize",
            signature = "Normal",
            definition = function( .Object, ... )

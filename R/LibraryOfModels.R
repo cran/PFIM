@@ -22,6 +22,13 @@ LibraryOfModels = setClass(
   Class ="LibraryOfModels",
   representation = representation(name = "character", content = "list"))
 
+#' initialize
+#' @param .Object .Object
+#' @param name fisherMatrix
+#' @param content fixedEffects
+#' @return LibraryOfModels
+#' @export
+
 setMethod( f="initialize",
            signature = "LibraryOfModels",
            definition = function (.Object, name, content )

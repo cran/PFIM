@@ -20,6 +20,7 @@
 #' \item{\code{lambda}:}{A numeric giving the lambda parameter of the multiplicative algorithm.}
 #' \item{\code{delta}:}{A numeric giving the delta parameter of the multiplicative algorithm.}
 #' \item{\code{numberOfIterations}:}{A numeric giving the maximal number iteration of the optimization process.}
+#' \item{\code{weightThreshold}:}{A numeric giving the threshold of the weights.}
 #' \item{\code{optimalWeights}:}{A vector giving the optimal weights.}
 #' \item{\code{optimalDesign}:}{An object of the class \code{Design} giving the optimal design.}
 #' \item{\code{showProcess}:}{A boolean for showing or not the process of optimization.}
@@ -33,14 +34,29 @@ MultiplicativeAlgorithm = setClass(
     lambda = "numeric",
     delta = "numeric",
     numberOfIterations = "numeric",
+    weightThreshold = "numeric",
     optimalWeights = "vector",
     optimalDesign = "Design",
     showProcess = "logical"
   ))
 
+#' initialize
+#' @param .Object .Object
+#' @param arms arms
+#' @param lambda lambda
+#' @param delta delta
+#' @param numberOfIterations numberOfIterations
+#' @param weightThreshold weightThreshold
+#' @param optimalWeights optimalWeights
+#' @param optimalDesign optimalDesign
+#' @param showProcess showProcess
+#' @return MultiplicativeAlgorithm
+#' @export
+
 setMethod( f="initialize",
            signature="MultiplicativeAlgorithm",
-           definition= function (.Object, arms, lambda, delta, numberOfIterations, optimalWeights, optimalDesign, showProcess)
+           definition= function (.Object, arms, lambda, delta, numberOfIterations, weightThreshold,
+                                 optimalWeights, optimalDesign, showProcess)
            {
              if(!missing(lambda))
              {
@@ -53,6 +69,10 @@ setMethod( f="initialize",
              if(!missing(numberOfIterations))
              {
                .Object@numberOfIterations = numberOfIterations
+             }
+             if(!missing(weightThreshold))
+             {
+               .Object@weightThreshold = weightThreshold
              }
              if(!missing(optimalWeights))
              {
@@ -98,7 +118,7 @@ MultiplicativeAlgorithm_Rcpp = function(fisherMatrices_input,
                                         lambda_input,
                                         delta_input,
                                         iterationInit_input){
-  incltxt <- '
+  incltxt = '
 
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
@@ -178,7 +198,7 @@ return Rcpp::List::create( Rcpp::Named ("weights") = weights,
 } // end MultiplicativeAlgorithm_Rcpp
 '
 
-MultiplicativeAlgorithm_Rcpp <- inline::cxxfunction(
+MultiplicativeAlgorithm_Rcpp = inline::cxxfunction(
 
   signature( fisherMatrices_input = "list",
              numberOfFisherMatrices_input = "integer",
@@ -220,6 +240,28 @@ output = MultiplicativeAlgorithm_Rcpp( fisherMatrices_input,
 return( output )
 
 }
+
+#' Get the parameter weightThreshold
+#' @name getWeightThreshold
+#' @param object An object from the class \linkS4class{MultiplicativeAlgorithm}.
+#' @return A numeric giving the WeightThreshold.
+#' @export
+
+setGeneric(
+  "getWeightThreshold",
+  function(object) {
+    standardGeneric("getWeightThreshold")
+  })
+
+#' @rdname getWeightThreshold
+#' @export
+
+setMethod("getWeightThreshold",
+          "MultiplicativeAlgorithm",
+          function(object)
+          {
+            return( object@weightThreshold )
+          })
 
 #' Get the parameter lambda.
 #' @name getLambda
@@ -351,11 +393,11 @@ setMethod("setParameters",
             object@delta = parameters$delta
             object@numberOfIterations = parameters$numberOfIterations
             object@showProcess = parameters$showProcess
+            object@weightThreshold = parameters$weightThreshold
+
             return( object )
           })
 
-# ======================================================================================================
-# optimize
 # ======================================================================================================
 
 #' @rdname optimize
@@ -365,10 +407,7 @@ setMethod(f = "optimize",
           signature = "MultiplicativeAlgorithm",
           definition = function( object, optimizerParameters, optimizationObject )
           {
-            # =======================================================
             # generate Fims from constraints
-            # =======================================================
-
             fims = generateFimsFromConstraints( optimizationObject )
 
             fisherMatrices = fims$listFims
@@ -380,10 +419,7 @@ setMethod(f = "optimize",
               fisherMatricesArms[[k]] = setName( fisherMatricesArms[[k]], name = paste0("Arm", k ) )
             }
 
-            # =======================================================
             # MultiplicativeAlgorithm parameters
-            # =======================================================
-
             numberOfFisherMatrices = length( fisherMatrices )
             weights = rep( 1/numberOfFisherMatrices,numberOfFisherMatrices )
             numberOfParameters = length( getModelParameters( optimizationObject ) )
@@ -392,64 +428,50 @@ setMethod(f = "optimize",
             delta = getDelta( object )
             numberOfIterations = getNumberOfIterations( object )
 
-            # =======================================================
             # run the MultiplicativeAlgorithm
-            # =======================================================
-
             multiplicativeAlgorithmOutput = MultiplicativeAlgorithm_Rcpp( fisherMatrices, numberOfFisherMatrices,
                                                                           weights, numberOfParameters,dim, lambda,
                                                                           delta, numberOfIterations )
-            # =======================================================
-            # get weights and final iteration
-            # =======================================================
 
+            # get weights and final iteration
             weights = multiplicativeAlgorithmOutput[["weights"]]
             iterationEnd = multiplicativeAlgorithmOutput[["iterationEnd"]]
 
-            # =======================================================
             # get the constraint on the number of arms
-            # =======================================================
-
             designs = getDesigns( optimizationObject )
             design = designs[[1]]
             numberOfArmsConstraint = getNumberOfArms( design  )
 
-            # =======================================================
             # get the FIM
-            # =======================================================
-
             fim = getFim( optimizationObject )
 
-            # =======================================================
             # create design for optimal design
-            # =======================================================
-
             optimalDesign = Design( name = c( "Design optimized" ) )
 
+            # optimal weights & number of individuals
             if ( is( fim,"PopulationFim") )
             {
-              # =======================================================
-              # optimal weights & number of individuals
-              # =======================================================
+              # weights: threshold with user threshold and normalization sum = 1
+              thresholdWeight = getWeightThreshold( object )
 
-              weightsIndex = which( weights > mean( weights ) )
+              weightsIndex = which( weights > thresholdWeight )
 
-              intermediateNumberOfIndividualPerGroup = numberOfArmsConstraint*weights[weightsIndex]
-              numberOfIndividualPerGroup = intermediateNumberOfIndividualPerGroup / sum( intermediateNumberOfIndividualPerGroup )*numberOfArmsConstraint
+              numberOfIndividualPerGroupTmp = numberOfArmsConstraint*weights[ weightsIndex ]
+
+              numberOfIndividualPerGroup = numberOfIndividualPerGroupTmp / sum( numberOfIndividualPerGroupTmp )*numberOfArmsConstraint
 
               armList = list()
 
-              k=1
               for( weightIndex in weightsIndex )
               {
                 arm = fisherMatricesArms[[weightIndex]]
-                armSize = numberOfIndividualPerGroup[ which( weightIndex == weightsIndex ) ]
+                armSize = numberOfIndividualPerGroup[ weightIndex == weightsIndex ]
                 armName = paste0( "Arm", weightIndex )
                 arm = setName( arm, armName )
                 arm = setSize( arm, armSize )
-                armList[[k]] = arm
-                k=k+1
+                armList = append( armList, arm )
               }
+
               optimalDesign = setArms( optimalDesign, armList )
             }
             else if( is( fim,"IndividualFim") | is( fim,"BayesianFim" ) )
@@ -478,22 +500,22 @@ setMethod(f = "optimize",
 
 setMethod(f="getDataFrameResults",
           signature="MultiplicativeAlgorithm",
-          definition = function( object, threshold )
+          definition = function( object )
           {
-            # =======================================================
-            # get optimal weights and optimal design
-            # =======================================================
+            # optimal design
+            optimalDesign = getOptimalDesign( object )
 
-            optimalWeights = unlist( getOptimalWeights( object ) )
-            designs = getOptimalDesign( object )
-
-            # =======================================================
-            # get arms and outcomes
-            # =======================================================
-
-            arms = getArms( object )
+            # arms, samplingTimes, outcomes
+            arms = getArms( optimalDesign )
             armNames = unlist( lapply( arms, function(x) getName(x) ) )
+
+            # optimal weights
+            optimalWeights = getOptimalWeights( object )
+            optimalWeights = optimalWeights[optimalWeights > getWeightThreshold( object ) ]
+
+            # samplingTimes and outcomes
             samplingTimes = getSamplingTimes( arms[[1]] )
+
             outcomes = lapply( samplingTimes, function(x) getOutcome(x) )
             outcomes = unlist( outcomes )
 
@@ -507,25 +529,25 @@ setMethod(f="getDataFrameResults",
               armsTableSamplings[[outcome]] = paste0("(",unlist( samplings ), ")" )
             }
 
-            # =======================================================
             # arm name and weight
-            # =======================================================
-
             data = data.frame( armNames = armNames, optimalWeights = optimalWeights, armsTableSamplings )
 
             # weight threshold
-            data = data[ data$optimalWeights > threshold, ]
             data = data[ order( data$optimalWeights, decreasing = TRUE),]
-            data = cbind( rev(seq(1,dim(data)[1] ) ), data )
+            data = cbind( c( 1:dim(data)[1] ), data )
 
-            colnames( data ) = c( "number", "Arm", "Weights", outcomes )
+            outcomesEvaluation = getOutcomesEvaluation( optimalDesign )
+
+            modelOutcomes = map_depth( outcomesEvaluation, 1, names ) %>%
+              unlist( use.names = F ) %>%
+              unique()
+
+            colnames( data ) = c( "Number", "Arm", "Weight", modelOutcomes )
             rownames( data ) = NULL
 
             return( data )
           })
 
-# ======================================================================================================
-# plotWeights
 # ======================================================================================================
 
 #' @rdname plotWeights
@@ -533,31 +555,30 @@ setMethod(f="getDataFrameResults",
 
 setMethod(f="plotWeights",
           signature = "MultiplicativeAlgorithm",
-          definition = function( object, threshold )
+          definition = function( object )
           {
-            data = getDataFrameResults( object, threshold )
+            data = getDataFrameResults( object )
 
-            plotData = ggplot(data, aes( x = number, y = data[,3] ) ) +
+            plotData = ggplot( data, mapping = aes( x = data[,1], y = data[,3] ) ) +
 
-              theme(legend.position = "none",
-                    axis.title.x.top = element_text(color = "red" , vjust = 2.0),
-                    axis.text.x.top = element_text(angle = 90, hjust = 0, color = "red" ),
-                    plot.title = element_text(size=16, hjust = 0.5),
-                    axis.title.x = element_text(size=16),
-                    axis.title.y = element_text(size=16),
-                    axis.text.x = element_text(size=16, angle = 0, vjust = 0.5),
-                    axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
-                    strip.text.x = element_text(size = 16))+
+              theme( legend.position = "none",
+                     axis.title.x.top = element_text( color = "red" , vjust = 2.0 ),
+                     axis.text.x.top = element_text( angle = 90, hjust = 0, color = "red" ),
+                     plot.title = element_text( size=16, hjust = 0.5 ),
+                     axis.title.x = element_text( size=16 ),
+                     axis.title.y = element_text( size=16 ),
+                     axis.text.x = element_text( size=16, angle = 0, vjust = 0.5, color = "black" ),
+                     axis.text.y = element_text( size=16, angle = 0, vjust = 0.5, hjust=0.5, color = "black"),
+                     strip.text.x = element_text( size = 16 ) ) +
 
+              geom_bar( width = 0.5, position = "identity", stat = "identity" ) +
 
-              geom_bar(width = 0.5,position="identity", stat="identity") +
+              scale_y_continuous( paste0( "\n Weights\n" ), limits=c( 0, 1.05 ),
+                                  scales::pretty_breaks( n = 10 ), expand = c( 0, 0 ) ) +
 
-              scale_y_continuous(paste0("\n Weights\n", paste0("Threshold = ", threshold ) ), limits=c(0,1.05),
-                                 scales::pretty_breaks(n = 10), expand = c(0, 0)) +
-
-              scale_x_continuous("Arms \n",
-                                 breaks = max(data$number):min(data$number),
-                                 labels = ((data$Arm))) +
+              scale_x_continuous( "Arms \n",
+                                  breaks = max( data$Number ):min( data$Number ),
+                                  labels = ( ( data$Arm ) ) ) +
 
               coord_flip()
 
@@ -565,8 +586,6 @@ setMethod(f="plotWeights",
           }
 )
 
-# ======================================================================================================
-# show
 # ======================================================================================================
 
 #' @title show
@@ -578,7 +597,7 @@ setMethod(f="show",
           signature = "MultiplicativeAlgorithm",
           definition = function( object )
           {
-            dataFrameResults = getDataFrameResults( object, threshold = 0.001 )
+            dataFrameResults = getDataFrameResults( object )
 
             rownames( dataFrameResults ) = NULL
             dataFrameResults = dataFrameResults[,2:dim(dataFrameResults)[2]]
@@ -595,8 +614,6 @@ setMethod(f="show",
           })
 
 # ======================================================================================================
-# generateReportOptimization
-# ======================================================================================================
 
 #' @rdname generateReportOptimization
 #' @export
@@ -605,10 +622,7 @@ setMethod( "generateReportOptimization",
            signature = "MultiplicativeAlgorithm",
            definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
            {
-             # ===================================================
              # projectName and outputs tables
-             # ===================================================
-
              projectName = getName( optimizationObject )
 
              evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
@@ -620,12 +634,9 @@ setMethod( "generateReportOptimization",
 
              tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
 
-             plotWeights = plotWeights( optimizationObject, threshold = plotOptions$threshold )
+             plotWeights = plotWeights( optimizationObject )
 
-             # =======================================================
              # markdown template
-             # =======================================================
-
              path = system.file(package = "PFIM")
              path = paste0( path, "/rmarkdown/templates/skeleton/" )
              nameInputFile = paste0( path, "template_multiplicativeAlgorithm.rmd" )

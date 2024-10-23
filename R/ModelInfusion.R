@@ -12,6 +12,20 @@ ModelInfusion = setClass("ModelInfusion",
                            equations = list(
                              duringInfusion = list(),
                              afterInfusion = list())))
+
+#' initialize
+#' @param .Object .Object
+#' @param name name
+#' @param description description
+#' @param equations equations
+#' @param outcomes outcomes
+#' @param parameters parameters
+#' @param modelError modelError
+#' @param initialConditions initialConditions
+#' @param odeSolverParameters odeSolverParameters
+#' @return ModelInfusion
+#' @export
+
 setMethod( f="initialize",
            signature="ModelInfusion",
            definition= function (.Object, name, description, equations, outcomes, parameters,

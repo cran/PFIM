@@ -5,14 +5,24 @@
 \alias{plotOutcomesEvaluation,Design-method}
 \title{plotOutcomesEvaluation}
 \usage{
-plotOutcomesEvaluation(object, initialDesign, model, plotOptions)
+plotOutcomesEvaluation(
+  object,
+  outcomesEvaluationInitialDesign,
+  model,
+  plotOptions
+)
 
-\S4method{plotOutcomesEvaluation}{Design}(object, initialDesign, model, plotOptions)
+\S4method{plotOutcomesEvaluation}{Design}(
+  object,
+  outcomesEvaluationInitialDesign,
+  model,
+  plotOptions
+)
 }
 \arguments{
 \item{object}{An object \code{Design} from the class \linkS4class{Design}.}
 
-\item{initialDesign}{An object \code{design} from the class \linkS4class{Design}.}
+\item{outcomesEvaluationInitialDesign}{A list containing the evaluation of the initial design.}
 
 \item{model}{An object \code{model} from the class \linkS4class{Model}.}
 

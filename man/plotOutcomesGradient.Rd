@@ -5,14 +5,14 @@
 \alias{plotOutcomesGradient,Design-method}
 \title{plotOutcomesGradient}
 \usage{
-plotOutcomesGradient(object, initialDesign, model, plotOptions)
+plotOutcomesGradient(object, outcomesGradientInitialDesign, model, plotOptions)
 
-\S4method{plotOutcomesGradient}{Design}(object, initialDesign, model, plotOptions)
+\S4method{plotOutcomesGradient}{Design}(object, outcomesGradientInitialDesign, model, plotOptions)
 }
 \arguments{
 \item{object}{An object \code{design} from the class \linkS4class{Design}.}
 
-\item{initialDesign}{An object \code{design} from the class \linkS4class{Design}.}
+\item{outcomesGradientInitialDesign}{A list with the evaluation of the gradient for the initial design.}
 
 \item{model}{An object \code{model} from the class \linkS4class{Model}.}
 

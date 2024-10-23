@@ -16,26 +16,28 @@
 \alias{EvaluateModel,ModelODEInfusionDoseInEquations-method}
 \title{Evaluate a model.}
 \usage{
-EvaluateModel(object, arm)
+EvaluateModel(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelAnalytic}(object, arm)
+\S4method{EvaluateModel}{ModelAnalytic}(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelAnalyticSteadyState}(object, arm)
+\S4method{EvaluateModel}{ModelAnalyticSteadyState}(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelAnalyticInfusion}(object, arm)
+\S4method{EvaluateModel}{ModelAnalyticInfusion}(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelAnalyticInfusionSteadyState}(object, arm)
+\S4method{EvaluateModel}{ModelAnalyticInfusionSteadyState}(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelODEBolus}(object, arm)
+\S4method{EvaluateModel}{ModelODEBolus}(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelODEDoseInEquations}(object, arm)
+\S4method{EvaluateModel}{ModelODEDoseInEquations}(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelODEDoseNotInEquations}(object, arm)
+\S4method{EvaluateModel}{ModelODEDoseNotInEquations}(object, dataForModelEvaluation, arm)
 
-\S4method{EvaluateModel}{ModelODEInfusionDoseInEquations}(object, arm)
+\S4method{EvaluateModel}{ModelODEInfusionDoseInEquations}(object, dataForModelEvaluation, arm)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{Model}.}
+
+\item{dataForModelEvaluation}{...}
 
 \item{arm}{An object from the class \linkS4class{Arm}.}
 }

@@ -18,6 +18,11 @@ LibraryOfPKPDModels = setClass(
   contains = "LibraryOfModels",
   representation = representation())
 
+#' initialize
+#' @param .Object .Object
+#' @return LibraryOfPKPDModels
+#' @export
+
 setMethod(f="initialize",
           signature="LibraryOfPKPDModels",
           definition=function(.Object) {

@@ -319,6 +319,10 @@ Report( evaluationBay, outputPath, outputFile, plotOptions )
 
 ### Create an administration for response PK and samplings times
 
+```{r, echo = TRUE, comment=''} 
+administrationRespPK = Administration( outcome = "RespPK", timeDose = c(0), dose = c( 6.24 ) )
+
+```
 We create sampling times that will be used in the initial design for comparison during the optimization process. 
 
 ```{r, echo = TRUE, comment=''} 
@@ -367,7 +371,7 @@ administrationConstraintsRespK = AdministrationConstraints( outcome = "RespPK",
 
 armConstraint = Arm( name = "armConstraint",
                      size = 30,
-                     administrations = list( administrationRespPK1 ),
+                     administrations = list( administrationRespPK ),
                      samplingTimes   = list( samplingTimesRespPK, samplingTimesRespPD ),
                      administrationsConstraints = list( administrationConstraintsRespK ),
                      samplingTimesConstraints = list( samplingConstraintsRespPK, samplingConstraintsRespPD ),
@@ -425,7 +429,7 @@ getDeterminant( optimizationFWPopFIM )
 getDcriterion( optimizationFWPopFIM )
 
 # plot the frequencies 
-plotFrequencies = plotFrequencies( optimizationFWPopFIM, threshold = 0.001 )
+plotFrequencies = plotFrequencies( optimizationFWPopFIM )
 plotFrequencies
 
 ```

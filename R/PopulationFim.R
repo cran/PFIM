@@ -59,9 +59,10 @@ setMethod("EvaluateFisherMatrix",
               outcomesAllGradient = outcomesAllGradient[, -c( parameterfixedMu ) ]
             }
 
-            MFbeta =  t( outcomesAllGradient ) %*% chol2inv(chol(V)) %*% outcomesAllGradient
+            MFbeta = t( outcomesAllGradient ) %*% chol2inv(chol(V)) %*% outcomesAllGradient
 
-            if ( length( parameterfixedOmega ) != 0 ){
+            if ( length( parameterfixedOmega ) != 0 )
+            {
               MFVar = MFVar[ -c( parameterfixedOmega ),-c( parameterfixedOmega ) ]
             }
 
@@ -102,6 +103,19 @@ setMethod("EvaluateFisherMatrix",
 # EvaluateVarianceFIM
 # ======================================================================================================
 
+#' function computeVMat
+#' @name computeVMat
+#' @param varParam1 varParam1
+#' @param varParam2 varParam2
+#' @param invCholV invCholV
+#' @return VMat
+#' @export
+
+computeVMat = function( varParam1, varParam2, invCholV )
+{
+  1/2 * sum( diag( invCholV %*% varParam1 %*% invCholV %*% varParam2 ) )
+}
+
 #' @rdname EvaluateVarianceFIM
 #' @export
 #'
@@ -134,8 +148,6 @@ setMethod("EvaluateVarianceFIM",
             # =======================================================
 
             outcomesAllGradient = modelEvaluation$outcomesAllGradient
-            outcomesAllGradient = as.data.frame(outcomesAllGradient[, modelParametersNames])
-            colnames( outcomesAllGradient ) = modelParametersNames
 
             adjustedGradient = data.frame( matrix ( 0.0, ncol = numberOfParameters, nrow = dim( outcomesAllGradient )[1] ) )
             colnames( adjustedGradient ) = modelParametersNames
@@ -169,7 +181,9 @@ setMethod("EvaluateVarianceFIM",
             for ( parameter in parameters )
             {
               parameterName = getName( parameter )
+
               dOmega = matrix( 0, ncol = numberOfParameters, nrow = numberOfParameters )
+
               dOmega[ i, i ] = 1
 
               dVdOmega[[ parameterName ]] = adjustedGradient %*% dOmega %*% t( adjustedGradient  )
@@ -191,20 +205,15 @@ setMethod("EvaluateVarianceFIM",
             # VMat matrix
             # =======================================================
 
-            VMat <- c()
+            invCholV = chol2inv( chol( V ) )
 
-            for ( varParam1 in dVdLambda )
-            {
-              for ( varParam2 in dVdLambda )
-              {
-                VMat = c( VMat, 1/2 * ( sum( diag( chol2inv(chol(V)) %*% varParam1 %*% chol2inv(chol(V)) %*% varParam2 ) ) ) )
-              }
-            }
+            VMat = outer( dVdLambda, dVdLambda, Vectorize( function(x, y) computeVMat( x, y, invCholV ) ) )
 
             MFVar = matrix( VMat, nrow = length( dVdLambda ), ncol = length( dVdLambda ) )
 
-            MFVar = as.matrix( bdiag( MFVar ) )
-            V = as.matrix( bdiag( V ) )
+            MFVar = bdiag( MFVar )
+
+            V = bdiag( V )
 
             return( list( V = V, MFVar = MFVar ) )
 
@@ -218,46 +227,46 @@ setMethod("EvaluateVarianceFIM",
 #' @export
 #'
 setMethod( "getRSE",
-  signature = "PopulationFim",
-  definition = function (object, model)
-  {
-    # parameter values
-    parameters = getParameters( model )
-    fixedParameters = getFixedParameters( model )
-    modelParametersValues = getModelParametersValues( model )
-    modelErrorParametersValues = getModelErrorParametersValues( model )
+           signature = "PopulationFim",
+           definition = function (object, model)
+           {
+             # parameter values
+             parameters = getParameters( model )
+             fixedParameters = getFixedParameters( model )
+             modelParametersValues = getModelParametersValues( model )
+             modelErrorParametersValues = getModelErrorParametersValues( model )
 
-    mu = modelParametersValues$mu
-    omega = modelParametersValues$omega**2
+             mu = modelParametersValues$mu
+             omega = modelParametersValues$omega**2
 
-    # =======================================================
-    # fixed mu and omega
-    # =======================================================
+             # =======================================================
+             # fixed mu and omega
+             # =======================================================
 
-    indexFixedMu = fixedParameters$parameterfixedMu
-    indexFixedOmega = fixedParameters$parameterfixedOmega
-    indexNoFixed = seq_along( parameters )
+             indexFixedMu = fixedParameters$parameterfixedMu
+             indexFixedOmega = fixedParameters$parameterfixedOmega
+             indexNoFixed = seq_along( parameters )
 
-    if ( length( indexFixedMu ) != 0 )
-    {
-      indexNoFixedMu = indexNoFixed[ -c( indexFixedMu ) ]
-      mu = mu[indexNoFixedMu]
-    }
+             if ( length( indexFixedMu ) != 0 )
+             {
+               indexNoFixedMu = indexNoFixed[ -c( indexFixedMu ) ]
+               mu = mu[indexNoFixedMu]
+             }
 
-    if ( length( indexFixedOmega ) != 0 )
-    {
-      indexNoFixedOmega = indexNoFixed[ -c( indexFixedOmega ) ]
-      omega = omega[indexNoFixedOmega]
-    }
+             if ( length( indexFixedOmega ) != 0 )
+             {
+               indexNoFixedOmega = indexNoFixed[ -c( indexFixedOmega ) ]
+               omega = omega[indexNoFixedOmega]
+             }
 
-    parametersValues = c( mu, omega, modelErrorParametersValues )
+             parametersValues = c( mu, omega, modelErrorParametersValues )
 
-    SE = getSE( object )
-    RSE = SE/parametersValues*100
+             SE = getSE( object )
+             RSE = SE/parametersValues*100
 
-    return( list( RSE = RSE,
-                  parametersValues = parametersValues ) )
-  })
+             return( list( RSE = RSE,
+                           parametersValues = parametersValues ) )
+           })
 
 # ======================================================================================================
 # getShrinkage
@@ -267,11 +276,11 @@ setMethod( "getRSE",
 #' @export
 #'
 setMethod( "getShrinkage",
-  signature = "PopulationFim",
-  definition = function (object)
-  {
-    return(NULL)
-  })
+           signature = "PopulationFim",
+           definition = function (object)
+           {
+             return(NULL)
+           })
 
 # ======================================================================================================
 # setShrinkage
@@ -281,12 +290,12 @@ setMethod( "getShrinkage",
 #' @export
 #'
 setMethod( "setShrinkage",
-  signature = "PopulationFim",
-  definition = function (object,value)
-  {
-    object@shrinkage = NA
-    return(object)
-  })
+           signature = "PopulationFim",
+           definition = function (object,value)
+           {
+             object@shrinkage = NA
+             return(object)
+           })
 
 # ======================================================================================================
 # getColumnAndParametersNamesFIM
@@ -296,88 +305,88 @@ setMethod( "setShrinkage",
 #' @export
 #'
 setMethod( "getColumnAndParametersNamesFIM",
-  signature = "PopulationFim",
-  definition = function( object, model )
-  {
-    parameters = getParameters( model )
-    modelParametersName = getNames( parameters )
-    fixedParameters = getFixedParameters( model )
-    parameterfixedMu = fixedParameters$parameterfixedMu
-    parameterfixedOmega = fixedParameters$parameterfixedOmega
+           signature = "PopulationFim",
+           definition = function( object, model )
+           {
+             parameters = getParameters( model )
+             modelParametersName = getNames( parameters )
+             fixedParameters = getFixedParameters( model )
+             parameterfixedMu = fixedParameters$parameterfixedMu
+             parameterfixedOmega = fixedParameters$parameterfixedOmega
 
-    modelError = getModelError( model )
+             modelError = getModelError( model )
 
-    # ---------------------------------------------------
-    # Greek letter for names
-    # ---------------------------------------------------
+             # ---------------------------------------------------
+             # Greek letter for names
+             # ---------------------------------------------------
 
-    greeksLetter = c( mu = "\u03bc_",
-                      omega = "\u03c9\u00B2_",
-                      sigma = "\u03c3_",
-                      sigmaInter = '\u03c3_inter',
-                      sigmaSlope = '\u03c3_slope' )
+             greeksLetter = c( mu = "\u03bc_",
+                               omega = "\u03c9\u00B2_",
+                               sigma = "\u03c3_",
+                               sigmaInter = '\u03c3_inter',
+                               sigmaSlope = '\u03c3_slope' )
 
-    namesParametersMu = modelParametersName
-    namesParametersOmega = modelParametersName
+             namesParametersMu = modelParametersName
+             namesParametersOmega = modelParametersName
 
-    # ---------------------------------------------------
-    # mu and omega
-    # ---------------------------------------------------
+             # ---------------------------------------------------
+             # mu and omega
+             # ---------------------------------------------------
 
-    if ( length( parameterfixedMu ) !=0 )
-    {
-      namesParametersMu = modelParametersName[ -c( parameterfixedMu ) ]
-    }
+             if ( length( parameterfixedMu ) !=0 )
+             {
+               namesParametersMu = modelParametersName[ -c( parameterfixedMu ) ]
+             }
 
-    if ( length( parameterfixedOmega ) !=0 )
-    {
-      namesParametersOmega = modelParametersName[ -c( parameterfixedOmega ) ]
-    }
+             if ( length( parameterfixedOmega ) !=0 )
+             {
+               namesParametersOmega = modelParametersName[ -c( parameterfixedOmega ) ]
+             }
 
-    namesFIMFixedEffectsParameters = namesParametersMu
-    namesFIMVarianceEffectsParameters = namesParametersOmega
+             namesFIMFixedEffectsParameters = namesParametersMu
+             namesFIMVarianceEffectsParameters = namesParametersOmega
 
-    namesParametersMu = paste0( greeksLetter['mu'], namesParametersMu )
-    namesParametersOmega = paste0( greeksLetter['omega'], namesParametersOmega )
+             namesParametersMu = paste0( greeksLetter['mu'], namesParametersMu )
+             namesParametersOmega = paste0( greeksLetter['omega'], namesParametersOmega )
 
-    # ---------------------------------------------------
-    # sigma
-    # ---------------------------------------------------
+             # ---------------------------------------------------
+             # sigma
+             # ---------------------------------------------------
 
-    sigmaInterSlope = c()
-    namesFIMModelErrorParameters = c()
+             sigmaInterSlope = c()
+             namesFIMModelErrorParameters = c()
 
-    for ( modelErrorResponse in modelError )
-    {
-      outcomeName = getOutcome( modelErrorResponse )
+             for ( modelErrorResponse in modelError )
+             {
+               outcomeName = getOutcome( modelErrorResponse )
 
-      sigmaInterSlopeTmp = c( getSigmaInter( modelErrorResponse ), getSigmaSlope( modelErrorResponse ) )
-      namesFIMModelErrorParameters = c( namesFIMModelErrorParameters , paste0( c( 'inter', 'slope' ), "_", outcomeName ) )
-      sigmaInterSlopeNames = paste0( c( greeksLetter['sigmaInter'], greeksLetter['sigmaSlope'] ), "_", outcomeName )
-      names( sigmaInterSlopeTmp ) = sigmaInterSlopeNames
+               sigmaInterSlopeTmp = c( getSigmaInter( modelErrorResponse ), getSigmaSlope( modelErrorResponse ) )
+               namesFIMModelErrorParameters = c( namesFIMModelErrorParameters , paste0( c( 'inter', 'slope' ), "_", outcomeName ) )
+               sigmaInterSlopeNames = paste0( c( greeksLetter['sigmaInter'], greeksLetter['sigmaSlope'] ), "_", outcomeName )
+               names( sigmaInterSlopeTmp ) = sigmaInterSlopeNames
 
-      sigmaInterSlope = c( sigmaInterSlope, sigmaInterSlopeTmp )
-    }
+               sigmaInterSlope = c( sigmaInterSlope, sigmaInterSlopeTmp )
+             }
 
-    namesParametersSigma = names( sigmaInterSlope[ sigmaInterSlope != 0 ] )
-    namesFIMModelErrorParameters = namesFIMModelErrorParameters[ sigmaInterSlope != 0 ]
+             namesParametersSigma = names( sigmaInterSlope[ sigmaInterSlope != 0 ] )
+             namesFIMModelErrorParameters = namesFIMModelErrorParameters[ sigmaInterSlope != 0 ]
 
-    # ---------------------------------------------------
-    # names of the parameters
-    # ---------------------------------------------------
+             # ---------------------------------------------------
+             # names of the parameters
+             # ---------------------------------------------------
 
-    colnamesFIM = list(
+             colnamesFIM = list(
 
-      namesFIMFixedEffectsParameters = namesFIMFixedEffectsParameters,
-      namesFIMVarianceEffectsParameters = namesFIMVarianceEffectsParameters,
-      namesFIMModelErrorParameters = namesFIMModelErrorParameters,
+               namesFIMFixedEffectsParameters = namesFIMFixedEffectsParameters,
+               namesFIMVarianceEffectsParameters = namesFIMVarianceEffectsParameters,
+               namesFIMModelErrorParameters = namesFIMModelErrorParameters,
 
-      namesParametersMu = namesParametersMu,
-      namesParametersOmega = namesParametersOmega,
-      namesParametersSigma = namesParametersSigma )
+               namesParametersMu = namesParametersMu,
+               namesParametersOmega = namesParametersOmega,
+               namesParametersSigma = namesParametersSigma )
 
-    return( colnamesFIM )
-  })
+             return( colnamesFIM )
+           })
 
 # ======================================================================================================
 # getColumnAndParametersNamesFIMInLatex
@@ -387,99 +396,99 @@ setMethod( "getColumnAndParametersNamesFIM",
 #' @export
 #'
 setMethod( "getColumnAndParametersNamesFIMInLatex",
-  signature = "PopulationFim",
-  definition = function( object, model )
-  {
-    parameters = getParameters( model )
-    modelParametersName = getNames( parameters )
-    fixedParameters = getFixedParameters( model )
-    parameterfixedMu = fixedParameters$parameterfixedMu
-    parameterfixedOmega = fixedParameters$parameterfixedOmega
+           signature = "PopulationFim",
+           definition = function( object, model )
+           {
+             parameters = getParameters( model )
+             modelParametersName = getNames( parameters )
+             fixedParameters = getFixedParameters( model )
+             parameterfixedMu = fixedParameters$parameterfixedMu
+             parameterfixedOmega = fixedParameters$parameterfixedOmega
 
-    modelError = getModelError( model )
+             modelError = getModelError( model )
 
-    # =======================================================
-    # Greek letter for names
-    # =======================================================
+             # =======================================================
+             # Greek letter for names
+             # =======================================================
 
-    greeksLetter = c( mu = "\\mu_",
-                      omega = "\\omega^2_",
-                      sigma = "\\sigma_",
-                      sigmaInter = '{\\sigma_{inter}}_',
-                      sigmaSlope = '{\\sigma_{slope}}_' )
+             greeksLetter = c( mu = "\\mu_",
+                               omega = "\\omega^2_",
+                               sigma = "\\sigma_",
+                               sigmaInter = '{\\sigma_{inter}}_',
+                               sigmaSlope = '{\\sigma_{slope}}_' )
 
-    mu = c()
-    omega = c()
-    sigma = c()
+             mu = c()
+             omega = c()
+             sigma = c()
 
-    namesParametersMu = modelParametersName
-    namesParametersOmega = modelParametersName
+             namesParametersMu = modelParametersName
+             namesParametersOmega = modelParametersName
 
-    # =======================================================
-    # mu and omega
-    # =======================================================
+             # =======================================================
+             # mu and omega
+             # =======================================================
 
-    for ( parameter in parameters )
-    {
-      mu = c( mu, getMu( parameter ) )
-      omega = c( omega, getOmega( parameter ) )
-    }
+             for ( parameter in parameters )
+             {
+               mu = c( mu, getMu( parameter ) )
+               omega = c( omega, getOmega( parameter ) )
+             }
 
-    if ( length( parameterfixedMu ) !=0 )
-    {
-      mu = mu[ -c( parameterfixedMu ) ]
-      namesParametersMu = modelParametersName[ -c( parameterfixedMu ) ]
-    }
+             if ( length( parameterfixedMu ) !=0 )
+             {
+               mu = mu[ -c( parameterfixedMu ) ]
+               namesParametersMu = modelParametersName[ -c( parameterfixedMu ) ]
+             }
 
-    if ( length( parameterfixedOmega ) !=0 )
-    {
-      omega = omega[ -c( parameterfixedOmega ) ]
-      namesParametersOmega = modelParametersName[ -c( parameterfixedOmega ) ]
-    }
+             if ( length( parameterfixedOmega ) !=0 )
+             {
+               omega = omega[ -c( parameterfixedOmega ) ]
+               namesParametersOmega = modelParametersName[ -c( parameterfixedOmega ) ]
+             }
 
-    namesFIMFixedEffectsParameters = namesParametersMu
-    namesFIMVarianceEffectsParameters = namesParametersOmega
+             namesFIMFixedEffectsParameters = namesParametersMu
+             namesFIMVarianceEffectsParameters = namesParametersOmega
 
-    namesParametersMu = paste0( greeksLetter['mu'], "{",namesParametersMu , "}" )
-    namesParametersOmega = paste0( greeksLetter['omega'], "{", namesParametersOmega , "}" )
+             namesParametersMu = paste0( greeksLetter['mu'], "{",namesParametersMu , "}" )
+             namesParametersOmega = paste0( greeksLetter['omega'], "{", namesParametersOmega , "}" )
 
-    # =======================================================
-    # sigma
-    # =======================================================
+             # =======================================================
+             # sigma
+             # =======================================================
 
-    sigmaInterSlope = c()
-    namesFIMModelErrorParameters = c()
+             sigmaInterSlope = c()
+             namesFIMModelErrorParameters = c()
 
-    for ( modelErrorResponse in modelError )
-    {
-      outcomeName = getOutcome( modelErrorResponse )
+             for ( modelErrorResponse in modelError )
+             {
+               outcomeName = getOutcome( modelErrorResponse )
 
-      sigmaInterSlopeTmp = c( getSigmaInter( modelErrorResponse ), getSigmaSlope( modelErrorResponse ) )
-      namesFIMModelErrorParameters = c( namesFIMModelErrorParameters , paste0( c( 'inter', 'slope' ), "{", outcomeName, "}" ) )
-      sigmaInterSlopeNames = paste0( c( greeksLetter['sigmaInter'], greeksLetter['sigmaSlope'] ), "{", outcomeName, "}" )
-      names( sigmaInterSlopeTmp ) = sigmaInterSlopeNames
+               sigmaInterSlopeTmp = c( getSigmaInter( modelErrorResponse ), getSigmaSlope( modelErrorResponse ) )
+               namesFIMModelErrorParameters = c( namesFIMModelErrorParameters , paste0( c( 'inter', 'slope' ), "{", outcomeName, "}" ) )
+               sigmaInterSlopeNames = paste0( c( greeksLetter['sigmaInter'], greeksLetter['sigmaSlope'] ), "{", outcomeName, "}" )
+               names( sigmaInterSlopeTmp ) = sigmaInterSlopeNames
 
-      sigmaInterSlope = c( sigmaInterSlope, sigmaInterSlopeTmp )
-    }
+               sigmaInterSlope = c( sigmaInterSlope, sigmaInterSlopeTmp )
+             }
 
-    namesParametersSigma = names( sigmaInterSlope[ sigmaInterSlope != 0 ] )
+             namesParametersSigma = names( sigmaInterSlope[ sigmaInterSlope != 0 ] )
 
-    namesParametersMu = paste0('$',namesParametersMu,"$")
-    namesParametersOmega = paste0('$',namesParametersOmega,"$")
-    namesParametersSigma = paste0('$',namesParametersSigma,"$")
+             namesParametersMu = paste0('$',namesParametersMu,"$")
+             namesParametersOmega = paste0('$',namesParametersOmega,"$")
+             namesParametersSigma = paste0('$',namesParametersSigma,"$")
 
-    # =======================================================
-    # names of the parameters
-    # =======================================================
+             # =======================================================
+             # names of the parameters
+             # =======================================================
 
-    colnamesFIM = list(
+             colnamesFIM = list(
 
-      namesParametersMu = namesParametersMu,
-      namesParametersOmega = namesParametersOmega,
-      namesParametersSigma = namesParametersSigma )
+               namesParametersMu = namesParametersMu,
+               namesParametersOmega = namesParametersOmega,
+               namesParametersSigma = namesParametersSigma )
 
-    return( colnamesFIM )
-  })
+             return( colnamesFIM )
+           })
 
 # ======================================================================================================
 # reportTablesFIM
@@ -489,175 +498,175 @@ setMethod( "getColumnAndParametersNamesFIMInLatex",
 #' @export
 #'
 setMethod( "reportTablesFIM",
-  signature = "PopulationFim",
-  definition = function( object, evaluationObject )
-  {
-    model = getModel( evaluationObject )
-    modelEquations = getEquations( model )
-    modelOutcomes = getOutcomes( model )
-    modelError = getModelError( model )
-    modelParameters = getParameters( model )
+           signature = "PopulationFim",
+           definition = function( object, evaluationObject )
+           {
+             model = getModel( evaluationObject )
+             modelEquations = getEquations( model )
+             modelOutcomes = getOutcomes( model )
+             modelError = getModelError( model )
+             modelParameters = getParameters( model )
 
-    # =======================================================
-    # get initial designs
-    # =======================================================
+             # =======================================================
+             # get initial designs
+             # =======================================================
 
-    designs = getDesigns( evaluationObject )
-    designNames = getNames( designs )
-    designName = designNames[[1]]
-    design = designs[[designName]]
+             designs = getDesigns( evaluationObject )
+             designNames = getNames( designs )
+             designName = designNames[[1]]
+             design = designs[[designName]]
 
-    columnAndParametersNamesFIM = getColumnAndParametersNamesFIMInLatex( object, model )
+             columnAndParametersNamesFIM = getColumnAndParametersNamesFIMInLatex( object, model )
 
-    muAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersMu
-    omegaAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersOmega
-    sigmaAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersSigma
+             muAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersMu
+             omegaAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersOmega
+             sigmaAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersSigma
 
-    # =======================================================
-    # FIMFixedEffects
-    # =======================================================
+             # =======================================================
+             # FIMFixedEffects
+             # =======================================================
 
-    FIMFixedEffects = getFixedEffects( object )
-    FIMFixedEffects = as.matrix( FIMFixedEffects )
-    colnames( FIMFixedEffects ) = muAndParameterNamesLatex
-    rownames( FIMFixedEffects ) = muAndParameterNamesLatex
+             FIMFixedEffects = getFixedEffects( object )
+             FIMFixedEffects = as.matrix( FIMFixedEffects )
+             colnames( FIMFixedEffects ) = muAndParameterNamesLatex
+             rownames( FIMFixedEffects ) = muAndParameterNamesLatex
 
-    # =======================================================
-    # FIMVarianceEffects
-    # =======================================================
+             # =======================================================
+             # FIMVarianceEffects
+             # =======================================================
 
-    FIMVarianceEffects = getVarianceEffects( object )
-    FIMVarianceEffects = as.matrix( FIMVarianceEffects )
-    colnames( FIMVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
-    rownames( FIMVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
+             FIMVarianceEffects = getVarianceEffects( object )
+             FIMVarianceEffects = as.matrix( FIMVarianceEffects )
+             colnames( FIMVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
+             rownames( FIMVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
 
-    # =======================================================
-    # correlation Matrix
-    # =======================================================
+             # =======================================================
+             # correlation Matrix
+             # =======================================================
 
-    correlationMatrix = getCorrelationMatrix( object )
+             correlationMatrix = getCorrelationMatrix( object )
 
-    correlationMatrixFixedEffects = as.matrix( correlationMatrix$fixedEffects )
-    correlationMatrixVarianceEffects = as.matrix( correlationMatrix$varianceEffects )
+             correlationMatrixFixedEffects = as.matrix( correlationMatrix$fixedEffects )
+             correlationMatrixVarianceEffects = as.matrix( correlationMatrix$varianceEffects )
 
-    colnames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
-    rownames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
+             colnames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
+             rownames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
 
-    colnames( correlationMatrixVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
-    rownames( correlationMatrixVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
+             colnames( correlationMatrixVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
+             rownames( correlationMatrixVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
 
-    # =======================================================
-    # SE and RSE
-    # =======================================================
+             # =======================================================
+             # SE and RSE
+             # =======================================================
 
-    fisherMatrix = getFisherMatrix( object )
-    SE = getSE( object )
+             fisherMatrix = getFisherMatrix( object )
+             SE = getSE( object )
 
-    rseAndParametersValues = getRSE( object, model )
+             rseAndParametersValues = getRSE( object, model )
 
-    RSE = rseAndParametersValues$RSE
-    parametersValues = rseAndParametersValues$parametersValues
+             RSE = rseAndParametersValues$RSE
+             parametersValues = rseAndParametersValues$parametersValues
 
-    SE = round( SE, 3 )
-    RSE = round( RSE, 3 )
+             SE = round( SE, 3 )
+             RSE = round( RSE, 3 )
 
-    SEandRSE = data.frame( parametersValues, SE, RSE )
-    colnames( SEandRSE ) = c("Value", "SE","RSE (%)" )
-    rownames( SEandRSE ) = c( muAndParameterNamesLatex, omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
+             SEandRSE = data.frame( parametersValues, SE, RSE )
+             colnames( SEandRSE ) = c("Value", "SE","RSE (%)" )
+             rownames( SEandRSE ) = c( muAndParameterNamesLatex, omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
 
-    # =======================================================
-    # determinants, condition numbers and Dcriterion
-    # =======================================================
+             # =======================================================
+             # determinants, condition numbers and Dcriterion
+             # =======================================================
 
-    detFim = getDeterminant( object )
-    condFIMFixedEffects = getConditionNumberFixedEffects( object )
-    condFIMVarianceEffects = getConditionNumberVarianceEffects( object )
-    DCriterion = getDcriterion( object )
+             detFim = getDeterminant( object )
+             condFIMFixedEffects = getConditionNumberFixedEffects( object )
+             condFIMVarianceEffects = getConditionNumberVarianceEffects( object )
+             DCriterion = getDcriterion( object )
 
-    # =======================================================
-    # criteriaFim
-    # =======================================================
+             # =======================================================
+             # criteriaFim
+             # =======================================================
 
-    criteriaFim = t( data.frame( detFim, condFIMFixedEffects, condFIMVarianceEffects, DCriterion ) )
+             criteriaFim = t( data.frame( detFim, condFIMFixedEffects, condFIMVarianceEffects, DCriterion ) )
 
-    colnames( criteriaFim ) = c("Value")
-    rownames( criteriaFim ) = c("Determinant",
-                                "Cond number fixed effects",
-                                "Cond number variance components",
-                                "D-criterion")
+             colnames( criteriaFim ) = c("Value")
+             rownames( criteriaFim ) = c("Determinant",
+                                         "Cond number fixed effects",
+                                         "Cond number variance components",
+                                         "D-criterion")
 
-    # =======================================================
-    # kable tables
-    # =======================================================
+             # =======================================================
+             # kable tables
+             # =======================================================
 
-    # =======================================================
-    # FIMFixedEffects
-    # =======================================================
+             # =======================================================
+             # FIMFixedEffects
+             # =======================================================
 
-    FIMFixedEffectsTable = knitr::kable( FIMFixedEffects ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+             FIMFixedEffectsTable = knitr::kable( FIMFixedEffects ) %>%
+               kable_styling( font_size = 12,
+                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                              full_width = T)
 
-    # =======================================================
-    # FIMVarianceEffectsTable
-    # =======================================================
+             # =======================================================
+             # FIMVarianceEffectsTable
+             # =======================================================
 
-    FIMVarianceEffectsTable = knitr::kable( FIMVarianceEffects ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+             FIMVarianceEffectsTable = knitr::kable( FIMVarianceEffects ) %>%
+               kable_styling( font_size = 12,
+                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                              full_width = T)
 
-    # =======================================================
-    # correlationMatrixFixedEffects
-    # =======================================================
+             # =======================================================
+             # correlationMatrixFixedEffects
+             # =======================================================
 
-    correlationMatrixFixedEffectsTable = knitr::kable( correlationMatrixFixedEffects ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+             correlationMatrixFixedEffectsTable = knitr::kable( correlationMatrixFixedEffects ) %>%
+               kable_styling( font_size = 12,
+                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                              full_width = T)
 
-    # =======================================================
-    # correlationMatrixVarianceEffects
-    # =======================================================
+             # =======================================================
+             # correlationMatrixVarianceEffects
+             # =======================================================
 
-    correlationMatrixVarianceEffectsTable = knitr::kable( correlationMatrixVarianceEffects ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+             correlationMatrixVarianceEffectsTable = knitr::kable( correlationMatrixVarianceEffects ) %>%
+               kable_styling( font_size = 12,
+                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                              full_width = T)
 
-    # =======================================================
-    # criteriaFim
-    # =======================================================
+             # =======================================================
+             # criteriaFim
+             # =======================================================
 
-    rownames( criteriaFim ) = c("","Fixed effects","Variance effects","")
-    colnames( criteriaFim ) = NULL
+             rownames( criteriaFim ) = c("","Fixed effects","Variance effects","")
+             colnames( criteriaFim ) = NULL
 
-    criteriaFimTable = knitr::kable( t(criteriaFim) ) %>%
-      kable_styling( font_size = 12,  position = "center",
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T) %>%
-      add_header_above(c("Determinant" = 1, "Condition numbers" = 2, "D-criterion" = 1))
+             criteriaFimTable = knitr::kable( t(criteriaFim) ) %>%
+               kable_styling( font_size = 12,  position = "center",
+                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                              full_width = T) %>%
+               add_header_above(c("Determinant" = 1, "Condition numbers" = 2, "D-criterion" = 1))
 
-    # =======================================================
-    # SEandRSE
-    # =======================================================
+             # =======================================================
+             # SEandRSE
+             # =======================================================
 
-    SEandRSETable = knitr::kable( SEandRSE ) %>%
-      kable_styling( font_size = 12,
-                     latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                     full_width = T)
+             SEandRSETable = knitr::kable( SEandRSE ) %>%
+               kable_styling( font_size = 12,
+                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
+                              full_width = T)
 
-    tablesPopulationFim = list( FIMFixedEffectsTable = FIMFixedEffectsTable,
-                                FIMVarianceEffectsTable = FIMVarianceEffectsTable,
-                                correlationMatrixFixedEffectsTable = correlationMatrixFixedEffectsTable,
-                                correlationMatrixVarianceEffectsTable = correlationMatrixVarianceEffectsTable,
-                                criteriaFimTable = criteriaFimTable,
-                                SEandRSETable = SEandRSETable )
+             tablesPopulationFim = list( FIMFixedEffectsTable = FIMFixedEffectsTable,
+                                         FIMVarianceEffectsTable = FIMVarianceEffectsTable,
+                                         correlationMatrixFixedEffectsTable = correlationMatrixFixedEffectsTable,
+                                         correlationMatrixVarianceEffectsTable = correlationMatrixVarianceEffectsTable,
+                                         criteriaFimTable = criteriaFimTable,
+                                         SEandRSETable = SEandRSETable )
 
-    return( tablesPopulationFim )
+             return( tablesPopulationFim )
 
-  })
+           })
 
 # ======================================================================================================
 # generateReportEvaluation
@@ -667,25 +676,25 @@ setMethod( "reportTablesFIM",
 #' @export
 #'
 setMethod( "generateReportEvaluation",
-  signature = "PopulationFim",
-  definition = function( object, evaluationObject, outputPath, outputFile, plotOptions )
-  {
-    path = system.file(package = "PFIM")
-    path = paste0( path, "/rmarkdown/templates/skeleton/" )
-    nameInputFile = paste0( path, "templateEvaluationPopulationFim.rmd" )
+           signature = "PopulationFim",
+           definition = function( object, evaluationObject, outputPath, outputFile, plotOptions )
+           {
+             path = system.file(package = "PFIM")
+             path = paste0( path, "/rmarkdown/templates/skeleton/" )
+             nameInputFile = paste0( path, "templateEvaluationPopulationFim.rmd" )
 
-    projectName = getName( evaluationObject )
+             projectName = getName( evaluationObject )
 
-    tablesEvaluationFIMIntialDesignResults = generateTables( evaluationObject, plotOptions )
+             tablesEvaluationFIMIntialDesignResults = generateTables( evaluationObject, plotOptions )
 
-    rmarkdown::render( input = nameInputFile,
-                       output_file = outputFile,
-                       output_dir = outputPath,
-                       params = list(
-                         plotOptions = "plotOptions",
-                         projectName = "projectName",
-                         tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults" ) )
-  })
+             rmarkdown::render( input = nameInputFile,
+                                output_file = outputFile,
+                                output_dir = outputPath,
+                                params = list(
+                                  plotOptions = "plotOptions",
+                                  projectName = "projectName",
+                                  tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults" ) )
+           })
 
 ##########################################################################################################
 # End class PopulationFim

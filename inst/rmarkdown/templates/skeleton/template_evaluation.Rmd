@@ -15,7 +15,7 @@ header-includes:
     - \usepackage{setspace}\doublespacing
     - \usepackage{lineno}
     - \linenumbers
-author: "`r 'PFIM 5.0' `"
+author: "`r 'PFIM 6.1' `"
 date: "`r paste( 'Date:' , Sys.Date())`"
 ---
  

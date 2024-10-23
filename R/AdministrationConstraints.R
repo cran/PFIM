@@ -25,6 +25,13 @@ AdministrationConstraints = setClass("AdministrationConstraints",
                                      representation = representation(
                                        outcome = "character",
                                        doses = "numeric") )
+
+#' initialize
+#' @param .Object .Object
+#' @param outcome outcome
+#' @param doses doses
+#' @export
+
 setMethod( f="initialize",
            signature="AdministrationConstraints",
            definition= function (.Object, outcome, doses  )

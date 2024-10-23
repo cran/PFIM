@@ -8,18 +8,16 @@
 \alias{getDataFrameResults,Optimization-method}
 \title{Get the dataframe of the results.}
 \usage{
-getDataFrameResults(object, threshold)
+getDataFrameResults(object)
 
-\S4method{getDataFrameResults}{FedorovWynnAlgorithm}(object, threshold)
+\S4method{getDataFrameResults}{FedorovWynnAlgorithm}(object)
 
-\S4method{getDataFrameResults}{MultiplicativeAlgorithm}(object, threshold)
+\S4method{getDataFrameResults}{MultiplicativeAlgorithm}(object)
 
-\S4method{getDataFrameResults}{Optimization}(object, threshold)
+\S4method{getDataFrameResults}{Optimization}(object)
 }
 \arguments{
 \item{object}{An object from the class \linkS4class{OptimizationAlgorithm}.}
-
-\item{threshold}{The threshold for the optimal weights / frequencies for the multiplicative and FW algorithms.}
 }
 \value{
 Return the dataframe of the results.

@@ -38,54 +38,68 @@ setMethod(f="plotEvaluation",
           signature("Evaluation"),
           function( object, plotOptions )
           {
-            evaluationInitialDesign = list()
-            evaluationDesign = list()
             evaluationArm = list()
-            gradientArm = list()
-
             plotOutcomesEvaluation = list()
-            plotOutcomesGradient = list()
 
+            # get model and designs
             model = getModel( object )
             designs = getDesigns( object )
 
             for ( design in designs )
             {
               initialDesign = design
-
-              designName = getName( design )
               arms = getArms( design )
 
               for ( arm in arms )
               {
                 armName = getName( arm )
 
-                samplingTimes = getSamplingTimes( arm )
+                # get data from design for arms
+                dataForArmEvaluation = dataForArmEvaluation( design, arm, model )
 
-                # =======================================================
-                # change sampling times for each outcomes in the designs
-                # =======================================================
+                # set data for arm evaluation
+                arm = setDataForArmEvaluation( arm, dataForArmEvaluation )
+
+                # set new sampling times for plot
+                samplingTimes = getSamplingTimes( arm )
 
                 for ( samplingTime in samplingTimes )
                 {
                   samplings = getSamplings( samplingTime )
-                  samplings = sort( unique( c( samplings, linspace( 0, max( samplings ), 1000 ) ) ) )
-
+                  samplings = sort( unique( c( samplings, seq( 0, max( samplings ), 0.1 ) ) ) )
                   samplingTime = setSamplings( samplingTime, samplings )
-
                   arm = setSamplingTime( arm, samplingTime )
                 }
-
-                evaluateModel=  EvaluateModel( model, arm )
-
-                evaluationArm[[armName]] = evaluateModel$evaluationOutcomes
-                gradientArm[[armName]] = evaluateModel$outcomesGradient
+                design = setArm( design, arm )
               }
 
-              design = setOutcomesEvaluation( design, evaluationArm )
-              design = setOutcomesGradient( design, gradientArm )
+              arms = getArms( design )
 
-              plotOutcomesEvaluation[[designName]] = plotOutcomesEvaluation( design, initialDesign, model, plotOptions )
+              # evaluate model for each arm
+              for ( arm in arms )
+              {
+                armName = getName( arm )
+
+                dataForArmEvaluation = dataForArmEvaluation( design, arm, model )
+
+                arm = setDataForArmEvaluation( arm, dataForArmEvaluation )
+
+                dataForModelEvaluation = setDataForModelEvaluation( model, arm )
+
+                evaluationArm[[armName]] = EvaluateModel( model, dataForModelEvaluation, design )
+              }
+
+              # define arms in design
+              design = setOutcomesEvaluation( design, evaluationArm )
+
+              designName = getName( design )
+
+              outcomesEvaluationInitialDesign = getOutcomesEvaluation( initialDesign )
+
+              # plot the outcomes
+              plotOutcomesEvaluation[[designName]] = plotOutcomesEvaluation( design,
+                                                                             outcomesEvaluationInitialDesign,
+                                                                             model, plotOptions )
             }
 
             return( plotOutcomesEvaluation )
@@ -114,14 +128,10 @@ setMethod(f="plotSensitivityIndice",
           signature("Evaluation"),
           function( object, plotOptions )
           {
-            evaluationInitialDesign = list()
-            evaluationDesign = list()
             evaluationArm = list()
-            gradientArm = list()
-
-            plotOutcomesEvaluation = list()
             plotOutcomesGradient = list()
 
+            # get model and designs
             model = getModel( object )
             designs = getDesigns( object )
 
@@ -129,46 +139,63 @@ setMethod(f="plotSensitivityIndice",
             {
               initialDesign = design
 
-              designName = getName( design )
               arms = getArms( design )
 
               for ( arm in arms )
               {
                 armName = getName( arm )
 
-                samplingTimes = getSamplingTimes( arm )
+                # get data from design for arms
+                dataForArmEvaluation = dataForArmEvaluation( design, arm, model )
 
-                # =======================================================
-                # change sampling times for each outcomes in the designs
-                # =======================================================
+                # set data for arm evaluation
+                arm = setDataForArmEvaluation( arm, dataForArmEvaluation )
+
+                # set new sampling times for plot
+                samplingTimes = getSamplingTimes( arm )
 
                 for ( samplingTime in samplingTimes )
                 {
                   samplings = getSamplings( samplingTime )
-                  samplings = sort( unique( c( samplings, linspace( 0, max( samplings ), 1000 ) ) ) )
-
+                  samplings = sort( unique( c( samplings, seq( 0, max( samplings ), 0.1 ) ) ) )
                   samplingTime = setSamplings( samplingTime, samplings )
-
                   arm = setSamplingTime( arm, samplingTime )
                 }
-
-                evaluateModel=  EvaluateModel( model, arm )
-
-                evaluationArm[[armName]] = evaluateModel$evaluationOutcomes
-                gradientArm[[armName]] = evaluateModel$outcomesGradient
+                design = setArm( design, arm )
               }
 
-              design = setOutcomesEvaluation( design, evaluationArm )
-              design = setOutcomesGradient( design, gradientArm )
+              arms = getArms( design )
 
-              plotOutcomesGradient[[designName]] = plotOutcomesGradient( design, initialDesign, model, plotOptions )
+              # evaluate model for each arm
+              for ( arm in arms )
+              {
+                armName = getName( arm )
 
+                dataForArmEvaluation = dataForArmEvaluation( design, arm, model )
+
+                arm = setDataForArmEvaluation( arm, dataForArmEvaluation )
+
+                dataForModelEvaluation = setDataForModelEvaluation( model, arm )
+
+                evaluationGradient = EvaluateModelGradient( model, dataForModelEvaluation, arm )
+
+                evaluationArm[[armName]] = evaluationGradient$outcomesGradient
+              }
+
+              # define arms in design
+              design = setOutcomesGradient( design, evaluationArm )
+
+              # plot the outcomes
+              designName = getName( design )
+
+              outcomesGradientInitialDesign = getOutcomesGradient( initialDesign )
+
+              plotOutcomesGradient[[designName]] = plotOutcomesGradient( design,
+                                                                         outcomesGradientInitialDesign, model,
+                                                                         plotOptions )
             }
-
             return( plotOutcomesGradient )
-
           })
-
 
 #' Graph the SE.
 #'
@@ -193,16 +220,10 @@ setMethod(f="plotSE",
 
           function( object, plotOptions )
           {
-            # =======================================================
             # get initial designs
-            # =======================================================
-
             designs = getDesigns( object )
 
-            # =======================================================
             # get model
-            # =======================================================
-
             model = getModel( object )
 
             plotOutcome = list()
@@ -213,22 +234,13 @@ setMethod(f="plotSE",
               fim = getFim( design )
               fimName = class(fim)[1]
 
-              # =======================================================
               # get the SE
-              # =======================================================
-
               SEValues = getSE( fim )
 
-              # =======================================================
               # get the parameters names from the fim
-              # =======================================================
-
               fisherMatrix = getFisherMatrix( fim )
 
-              # =======================================================
               # SE and RSE dataframes
-              # =======================================================
-
               SE = getSE( fim )
 
               rseAndParametersValues = getRSE( fim, model )
@@ -270,10 +282,7 @@ setMethod(f="plotSE",
               SEPlot = data.frame( parameters, SEValues, columnForPlot )
               colnames( SEPlot ) = c("parameter","SEValues","SE")
 
-              # =======================================================
-              # ggplot
-              # =======================================================
-
+              # plot
               plotOutcome[[designName]] = ggplot( SEPlot, aes( x = parameters, y = SEValues ) ) +
 
                 theme(legend.position = "none",
@@ -323,16 +332,10 @@ setMethod(f="plotRSE",
 
           function( object, plotOptions )
           {
-            # =======================================================
             # get initial designs
-            # =======================================================
-
             designs = getDesigns( object )
 
-            # =======================================================
             # get model
-            # =======================================================
-
             model = getModel( object )
 
             plotOutcome = list()
@@ -343,22 +346,13 @@ setMethod(f="plotRSE",
               fim = getFim( design )
               fimName = class(fim)[1]
 
-              # =======================================================
               # get the SE
-              # =======================================================
-
               SEValues = getSE( fim )
 
-              # =======================================================
               # get the parameters names from the fim
-              # =======================================================
-
               fisherMatrix = getFisherMatrix( fim )
 
-              # =======================================================
               # SE and RSE dataframes
-              # =======================================================
-
               SE = getSE( fim )
 
               rseAndParametersValues = getRSE( fim, model )
@@ -414,11 +408,11 @@ setMethod(f="plotRSE",
 
                 geom_bar(stat="identity",
                          width = 0.5,
-                         position = position_dodge2(preserve = "single")) +
+                         position = position_dodge2( preserve = "single" ) ) +
 
-                scale_x_discrete( guide = guide_axis(check.overlap = TRUE ) ) +
+                scale_x_discrete( guide = guide_axis( check.overlap = TRUE ) ) +
 
-                facet_grid(. ~ RSE, labeller= label_parsed, scales="free", space = "free") +
+                facet_grid(. ~ RSE, labeller = label_parsed, scales = "free", space = "free" ) +
 
                 ggtitle( paste0( designName,": " , fimName ) ) +
 
@@ -452,16 +446,10 @@ setMethod(f="plotShrinkage",
 
           function( object, plotOptions )
           {
-            # =======================================================
             # get initial designs
-            # =======================================================
-
             designs = getDesigns( object )
 
-            # =======================================================
             # get model
-            # =======================================================
-
             model = getModel( object )
 
             plotOutcome = list()
@@ -472,34 +460,22 @@ setMethod(f="plotShrinkage",
               fim = getFim( design )
               fimName = class(fim)[1]
 
-              # =======================================================
               # get the shrinkage
-              # =======================================================
-
               shrinkage = getShrinkage( fim )
 
-              # =======================================================
               # null for pop and ind fim
-              # =======================================================
-
               if ( is.null( shrinkage ) == TRUE )
               {
                 plotOutcome[[designName]] = NULL
               }else{
 
-                # =======================================================
                 # model parameter names
-                # =======================================================
-
                 columnNamesFIM = getColumnAndParametersNamesFIM( fim, model )
                 parameters = columnNamesFIM$namesFIMFixedEffectsParameters
 
                 shrinkagePlot = data.frame( parameters, shrinkage )
 
-                # =======================================================
-                # ggplot
-                # =======================================================
-
+                # plot
                 plotOutcome[[designName]] = ggplot( shrinkagePlot, aes( x = parameters, y = shrinkage ) ) +
 
                   theme(legend.position = "none",
