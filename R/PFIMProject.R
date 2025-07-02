@@ -1,326 +1,218 @@
-#' Class "PFIMProject"
-#'
-#' @description A class storing information concerning a PFIM project.
-#'
-#' @name PFIMProject-class
-#' @aliases PFIMProject
-#' @docType class
-#' @include GenericMethods.R
-#' @export
-#'
-#' @section Objects from the class:
-#' Objects form the class \code{PFIMProject} can be created by calls of the form \code{PFIMProject(...)} where
-#' (...) are the parameters for the \code{PFIMProject} objects.
-#'
-#' @section Slots for \code{PFIMProject} objects:
-#'  \describe{
-#'    \item{\code{name}:}{A character string giving the name of the PFIM project.}
-#'    \item{\code{description}:}{A list giving the description of the PFIM project.}
-#'  }
-#'
-
-PFIMProject = setClass("PFIMProject",
-                       representation  =  representation(
-                         name = "character",
-                         description = "list" ) )
-
-#' initialize
-#' @param .Object .Object
-#' @param name name
-#' @param description description
-#' @return PFIMProject
-#' @export
-#'
-setMethod( f="initialize",
-           signature="PFIMProject",
-           definition= function (.Object, name, description )
-           {
-             if(!missing(name))
-             {
-               .Object@name = name
-             }
-             if(!missing(description))
-             {
-               .Object@description = description
-             }
-
-             validObject(.Object)
-             return (.Object )
-           }
-)
-
-
-# ======================================================================================================
-# getName
-# ======================================================================================================
-
-#' @rdname getName
+#' @description The class \code{PFIMProject} implements the PFIM project.
+#' @title PFIMProject
+#' @param name A string giving the name of the design evaluation.
+#' @param modelEquations A list giving the model equations.
+#' @param modelFromLibrary A list giving the model equations from the library of model.
+#' @param modelParameters A list giving the model parameters.
+#' @param modelError A list giving the model error.
+#' @param optimizer A string giving the name of the optimization algorithm being used.
+#' @param optimizerParameters A list giving the parameters of the optimization algorithm.
+#' @param outputs A list giving the model outputs.
+#' @param designs A list giving the designs to be evaluated.
+#' @param fimType A string giving the type of Fim being evaluated.
+#' @param fim A object \code{Fim} giving the Fim.
+#' @param odeSolverParameters A list giving the atol and rtol parameters for the ode solver.
+#' @include Fim.R
 #' @export
 
-setMethod("getName",
-          "PFIMProject",
-          function(object)
-          {
-            return( object@name )
-          })
+PFIMProject = new_class("PFIMProject", package = "PFIM",
+                        properties = list(
+                          name = new_property(class_character, default = character(0)),
+                          modelEquations = new_property(class_list, default = list()),
+                          modelFromLibrary = new_property(class_list, default = list()),
+                          modelParameters = new_property(class_list, default = list()),
+                          modelError = new_property(class_list, default = list()),
+                          optimizer = new_property(class_character, default = character(0)),
+                          optimizerParameters = new_property(class_list, default = list()),
+                          outputs = new_property(class_list, default = list()),
+                          designs = new_property(class_list, default = list()),
+                          fimType = new_property(class_character, default = character(0)),
+                          fim = new_property(Fim, default = NULL),
+                          odeSolverParameters = new_property(class_list, default = list())
+                        ))
 
-#' Set the model.
-#' @name setModel
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @param model An object from the class \linkS4class{Model}.
-#' @return The object with the updated model.
+run = new_generic( "run", "pfimproject" )
+defineFim = new_generic( "defineFim", c( "pfimproject" ) )
+plotEvaluation = new_generic( "plotEvaluation", c( "pfimproject" ) )
+plotSensitivityIndices = new_generic( "plotSensitivityIndices", c( "pfimproject" ) )
+plotSE = new_generic( "plotSE", c( "pfimproject" ) )
+plotRSE = new_generic( "plotRSE", c( "pfimproject" ) )
+show = new_generic( "show", c( "pfimproject" ) )
+Report = new_generic( "Report", c( "pfimproject" ) )
+
+getFisherMatrix = new_generic( "getFisherMatrix", c( "pfimproject" ) )
+getSE = new_generic( "getSE", c( "pfimproject" ) )
+getRSE = new_generic( "getRSE", c( "pfimproject" ) )
+getShrinkage = new_generic( "getShrinkage", c( "pfimproject" ) )
+getDeterminant = new_generic( "getDeterminant", c( "pfimproject" ) )
+getDcriterion = new_generic( "getDcriterion", c( "pfimproject" ) )
+getCorrelationMatrix = new_generic( "getCorrelationMatrix", c( "pfimproject" ) )
+
+defineModelType = new_generic( "defineModelType", c( "pfimproject" ) )
+defineModelEquationsFromLibraryOfModel = new_generic( "defineModelEquationsFromLibraryOfModel", c( "pfimproject" ) )
+
+#' define the type of Fisher information matrix: population, individual or Bayesian
+#' @name defineFim
+#' @param pfimproject An object \code{PFIMProject}.
+#' @return An object \code{Fim}.
 #' @export
 
-setGeneric("setModel",
-           function(object, model)
-           {
-             standardGeneric("setModel")
-           })
+method( defineFim, PFIMProject ) = function( pfimproject )
+{
+  fimType = prop( pfimproject, "fimType" )
+  fim = switch( fimType,
+                "population" = PopulationFim(),
+                "individual" = IndividualFim(),
+                "Bayesian" = BayesianFim(),
+                fimType )
+  return( fim )
+}
 
-#' @rdname setModel
+#' defineModelType: define the class of the model to be evaluated.
+#' @name defineModelType
+#' @param pfimproject An object \code{PFIMProject} giving the evaluation to be run.
+#' @return An object \code{Model} giving the model to be evaluated with its modelParameters, odeSolverParameters, modelError, modelEquations.
 #' @export
 
-setMethod("setModel",
-          "PFIMProject",
-          function(object, model )
-          {
-            object@model = model
-            return(object)
-          })
+method( defineModelType, PFIMProject ) = function( pfimproject )
+{
+  isModelODE = FALSE
+  isModelInfusion = FALSE
+  isDoseInEquation = FALSE
+  isDoseInInitialConditions = FALSE
 
-#' Get the model.
-#' @name getModel
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @return The model of the object.
-#' @export
+  equations = prop( pfimproject, "modelEquations" )
+  parameters = prop( pfimproject, "modelParameters")
 
-setGeneric("getModel",
-           function(object)
-           {
-             standardGeneric("getModel")
-           })
+  #  check if model ode
+  isModelODE = getListLastName( equations ) %>% str_detect("Deriv_") %>% any()
 
-#' @rdname getModel
-#' @export
+  # check if model analytic
+  isModelAnalytic = !( getListLastName( equations ) %>% str_detect("Deriv_") %>% all() )
 
-setMethod("getModel",
-          "PFIMProject",
-          function(object)
-          {
-            return(object@model)
-          })
+  # check if model steady state
+  isTauInEquations = equations %>% map_lgl( ~ if ( is.list(.x) ) {
+    any( map_lgl( .x, ~ str_detect( .x, "tau" ) ) )
+  } else {
+    str_detect( .x, "tau" )
+  }) %>% any()
 
-#' Get the model equations.
-#' @name getModelEquations
-#' @param object An object from the class \linkS4class{PFIMProject}.
+  # check if mode infusion
+  isModelInfusion = equations %>% map_lgl( ~ if ( is.list(.x) ) {
+    any( map_lgl( .x, ~ str_detect( .x, "Tinf_") ) )
+  } else {
+    str_detect( .x, "Tinf_" )
+  }) %>% any()
+
+  # check if dose in equations
+  isDoseInEquation = equations %>% map_lgl( ~ if ( is.list(.x) ) {
+    any( map_lgl( .x, ~ str_detect( .x, "dose_" ) ) )
+  } else {
+    str_detect( .x, "dose_" )
+  }) %>% any()
+
+  # check if dose in initial conditions
+  initialConditions = pfimproject %>%
+    pluck( "designs" ) %>%
+    map(~ {
+      arms = pluck( .x, "arms" )
+      names( arms ) = map_chr( arms, ~ prop( .x, "name" ) )
+      map( arms, ~ pluck( .x, "initialConditions" ) )
+    }) %>%
+    unlist()
+
+  isDoseInInitialConditions = any( map_lgl( initialConditions, ~ str_detect( .x, "dose_" ) ) )
+
+  # define the class of the model
+  if ( isModelODE ){
+    # ode model dose defined in equations
+    if ( isDoseInEquation )
+    {
+      model = ModelODEDoseInEquations()
+    }
+    # ode model dose as cmpt
+    if ( !isDoseInEquation )
+    {
+      model = ModelODEDoseNotInEquations()
+    }
+    # ode model & infusion & dose defined in equations
+    if ( isModelInfusion & isDoseInEquation )
+    {
+      model = ModelODEInfusionDoseInEquation()
+    }
+    # ode model bolus & dose defined in initial conditions
+    if ( isDoseInInitialConditions )
+    {
+      model = ModelODEBolus()
+    }
+  }
+
+  if ( isModelAnalytic ){
+    if ( !isModelInfusion & !isTauInEquations )
+    {
+      # model analytic
+      model = ModelAnalytic()
+    }
+    if ( !isModelInfusion & isTauInEquations )
+    {
+      # ModelAnalyticSteadyState
+      model = ModelAnalyticSteadyState()
+    }
+    if ( isModelInfusion & isDoseInEquation )
+    {
+      # model analytic with infusion
+      model = ModelAnalyticInfusion()
+    }
+    if ( isModelInfusion & isDoseInEquation & isTauInEquations )
+    {
+      # model analytic with infusion
+      model = ModelAnalyticInfusionSteadyState()
+    }
+  }
+
+  # model parameters order by names
+  prop( model, "modelParameters") = parameters
+  prop( model, "odeSolverParameters") = prop( pfimproject, "odeSolverParameters" )
+  prop( model, "modelError") = prop( pfimproject, "modelError" )
+  prop( model, "modelEquations") = equations
+
+  return( model )
+}
+
+#' defineModelEquationsFromLibraryOfModel: define the model equations giving the models in the library of models.
+#' @name defineModelEquationsFromLibraryOfModel
+#' @param pfimproject An object \code{PFIMProject} giving the evaluation to be run.
 #' @return A list giving the model equations.
 #' @export
 
-setGeneric("getModelEquations",
-           function(object)
-           {
-             standardGeneric("getModelEquations")
-           })
+method( defineModelEquationsFromLibraryOfModel, PFIMProject ) = function( pfimproject )
+{
+  equations = prop( pfimproject, "modelFromLibrary" )
+  outputs = prop( pfimproject, "outputs" )
 
-#' @rdname getModelEquations
-#' @export
+  pkModelName = equations[["PKModel"]]
+  pdModelName = equations[["PDModel"]]
 
-setMethod("getModelEquations",
-          "PFIMProject",
-          function(object)
-          {
-            return(object@modelEquations)
-          })
+  pkModels = prop( LibraryOfPKModels, "models")
+  prop( pfimproject, "modelEquations" ) = pkModels[[equations[["PKModel"]]]]
 
-#' Get the model parameters.
-#' @name getModelParameters
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @return A list giving the model parameters.
-#' @export
+  pkModel = defineModelType( pfimproject )
 
-setGeneric("getModelParameters",
-           function(object)
-           {
-             standardGeneric("getModelParameters")
-           })
-
-# ======================================================================================================
-# getModelParameters
-# ======================================================================================================
-
-#' @rdname getModelParameters
-#' @export
-
-setMethod("getModelParameters",
-          "PFIMProject",
-          function(object)
-          {
-            return(object@modelParameters)
-          })
-
-# ======================================================================================================
-# getModelError
-# ======================================================================================================
-
-#' @rdname getModelError
-#' @export
-
-setMethod("getModelError",
-          "PFIMProject",
-          function(object)
-          {
-            return(object@modelError)
-          })
-
-#' Get the designs.
-#' @name getDesigns
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @return A list giving the designs of the object.
-#' @export
-
-setGeneric("getDesigns",
-           function(object)
-           {
-             standardGeneric("getDesigns")
-           })
-
-#' @rdname getDesigns
-#' @export
-
-setMethod("getDesigns",
-          "PFIMProject",
-          function(object)
-          {
-            return(object@designs)
-          })
-
-# ======================================================================================================
-# getFim
-# ======================================================================================================
-
-#' @rdname getFim
-#' @export
-
-setMethod("getFim",
-          "PFIMProject",
-          function(object)
-          {
-            return(object@fim)
-          })
-
-# ======================================================================================================
-# getOdeSolverParameters
-# ======================================================================================================
-
-#' @rdname getOdeSolverParameters
-#' @export
-
-setMethod("getOdeSolverParameters",
-          "PFIMProject",
-          function(object) {
-            return( object@odeSolverParameters )
-          })
-
-# ======================================================================================================
-# getOutcomes
-# ======================================================================================================
-
-#' @rdname getOutcomes
-#' @export
-
-setMethod("getOutcomes",
-          "PFIMProject",
-          function(object) {
-            return( object@outcomes )
-          })
-
-#' Get the optimization algorithm.
-#' @name getOptimizer
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @return A string giving the name of the optimization algorithm.
-#' @export
-
-setGeneric("getOptimizer",
-           function(object)
-           {
-             standardGeneric("getOptimizer")
-           })
-
-#' @rdname getOptimizer
-#' @export
-
-setMethod("getOptimizer",
-          "PFIMProject",
-          function(object) {
-            return( object@optimizer )
-          })
-
-#' Get the optimization parameters.
-#' @name getOptimizerParameters
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @return A list giving the optimization parameters.
-#' @export
-
-setGeneric("getOptimizerParameters",
-           function(object)
-           {
-             standardGeneric("getOptimizerParameters")
-           })
-
-#' @rdname getOptimizerParameters
-#' @export
-
-setMethod("getOptimizerParameters",
-          "PFIMProject",
-          function(object) {
-            return( object@optimizerParameters )
-          })
-
-#' run
-#' @name run
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @return A list giving the results of evaluation or optimization.
-#' @export
-
-setGeneric("run",
-           function( object )
-           {
-             standardGeneric("run")
-           }
-)
-
-#' Generate the tables for the report.
-#' @name generateTables
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @param plotOptions A list giving the plot options.
-#' @return A list giving the kable able for the report ( evaluation and optimization).
-#' @export
-
-setGeneric(
-  "generateTables",
-  function( object, plotOptions ) {
-    standardGeneric("generateTables")
-  })
-
-#' Report
-#' @name Report
-#' @param object An object from the class \linkS4class{PFIMProject}.
-#' @param outputPath A string giving the output path.
-#' @param outputFile A string giving the name of the output file.
-#' @param  plotOptions A list giving the plot options.
-#' @return The report in html.
-#' @export
-
-setGeneric(
-  "Report",
-  function( object, outputPath, outputFile, plotOptions ) {
-    standardGeneric("Report")
-  })
+  # pkpd model
+  if ( !is.null( pdModelName ) ) {
+    pdModels = prop( LibraryOfPDModels, "models")
+    prop( pfimproject, "modelEquations" ) = pdModels[[equations[["PDModel"]]]]
+    pdModel = defineModelType( pfimproject )
+    pkpdModelEquations = definePKPDModel( pkModel, pdModel, pfimproject )
+  }else{
+    pkpdModelEquations = definePKModel( pkModel, pfimproject )
+  }
+  return( pkpdModelEquations )
+}
 
 
-##########################################################################################################
-# END Class PFIMProject
-##########################################################################################################
+
+
 
 
 

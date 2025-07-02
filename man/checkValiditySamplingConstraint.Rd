@@ -2,19 +2,13 @@
 % Please edit documentation in R/Design.R
 \name{checkValiditySamplingConstraint}
 \alias{checkValiditySamplingConstraint}
-\alias{checkValiditySamplingConstraint,Design-method}
-\title{checkValiditySamplingConstraint}
-\usage{
-checkValiditySamplingConstraint(object)
-
-\S4method{checkValiditySamplingConstraint}{Design}(object)
-}
+\title{checkValiditySamplingConstraint: check if the constraints used for the design optimization are valid.}
 \arguments{
-\item{object}{An object from the class \linkS4class{Design}.}
+\item{design}{An object \code{Design} giving the design.}
 }
 \value{
-An error message if a constraint is not valid.
+A boolean TRUE / FALSE, if FALSE it also gives an error message.
 }
 \description{
-Check the validity of he sampling times constraints
+checkValiditySamplingConstraint: check if the constraints used for the design optimization are valid.
 }

@@ -2,31 +2,30 @@
 % Please edit documentation in R/SimplexAlgorithm.R
 \name{fun.amoeba}
 \alias{fun.amoeba}
-\title{function fun.amoeba}
+\title{Compute the fun.amoeba}
 \usage{
 fun.amoeba(p, y, ftol, itmax, funk, outcomes, data, showProcess)
 }
 \arguments{
-\item{p}{input is a matrix p whose ndim+1 rows are ndim-dimensional vectors which are the vertices of the starting simplex.}
+\item{p}{parameter p}
 
-\item{y}{vector whose components must be pre-initialized to the values of funk evaluated at the ndim+1 vertices (rows) of p.}
+\item{y}{parameter y}
 
-\item{ftol}{the fractional convergence tolerance to be achieved in the function value.}
+\item{ftol}{parameter ftol}
 
-\item{itmax}{maximal number of iterations.}
+\item{itmax}{parameter itmax}
 
-\item{funk}{multidimensional function to be optimized.}
+\item{funk}{parameter funk}
 
-\item{outcomes}{A vector giving the outcomes.}
+\item{outcomes}{The model outcomes.}
 
-\item{data}{a fixed set of data.}
+\item{data}{parameter data}
 
-\item{showProcess}{A boolean for showing the process or not.}
+\item{showProcess}{Boolean.}
 }
 \value{
-A list containing the components of the optimized simplex.
-'getColumnAndParametersNamesFIMInLatex.
+fun.amoeba
 }
 \description{
-function fun.amoeba
+Compute the fun.amoeba
 }

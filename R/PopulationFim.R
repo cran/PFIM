@@ -1,109 +1,67 @@
-#' Class "PopulationFim"
-#'
 #' @description
-#' A class storing information regarding the population Fisher matrix.
-#' The class \code{PopulationFim} inherits from the class \code{Fim}.
-#'
-#' @name PopulationFim-class
-#' @aliases PopulationFim
-#' @docType class
+#' The class \code{PopulationFim} represents and stores information for the PopulationFim.
+#' @title PopulationFim
+#' @inheritParams Fim
 #' @include Fim.R
-#' @include GenericMethods.R
 #' @export
 
-PopulationFim = setClass(
-  Class="PopulationFim",
-  contains = "Fim"
-)
+PopulationFim = new_class( "PopulationFim", package = "PFIM", parent = Fim )
 
-# ======================================================================================================
-# EvaluateFisherMatrix
-# ======================================================================================================
-
-#' @rdname EvaluateFisherMatrix
+#' evaluateFim: evaluation of the Fim
+#' @name evaluateFim
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param model An object \code{Model} giving the model.
+#' @param arm An object \code{Arm} giving the arm.
+#' @return The object \code{IndividualFim} with the fisherMatrix and the shrinkage.
 #' @export
-#'
-setMethod("EvaluateFisherMatrix",
-          "PopulationFim",
-          function( object, model, arm, modelEvaluation, modelVariance )
-          {
-            # =======================================================
-            # name and fixed parameters
-            # =======================================================
 
-            parameters = getParameters( model )
+method( evaluateFim, list( PopulationFim, Model, Arm ) ) = function( fim, model, arm ) {
 
-            modelParametersName = getNames( parameters )
+  # variance for the FIM
+  evaluateVarianceFIM = evaluateVarianceFIM( fim, model, arm )
+  V = evaluateVarianceFIM$V
+  MFVar = evaluateVarianceFIM$MFVar
 
-            fixedParameters = getFixedParameters( model )
-            parameterfixedMu = fixedParameters$parameterfixedMu
-            parameterfixedOmega = fixedParameters$parameterfixedOmega
+  # fixed mu and fixed omega
+  parameters = prop( model, "modelParameters")
+  indexParameterNamesFixedMu = which( map_lgl( parameters, ~ prop( .x, "fixedMu" ) == TRUE ) )
+  indexParameterNamesFixedOmega = which( map_lgl( parameters, ~ prop( .x, "fixedOmega" ) == TRUE ) )
 
-            # =======================================================
-            # variance for the FIM
-            # =======================================================
+  # omega = 0 ie fixed omega
+  indicesOmegaZero = imap(parameters, ~ if (.x@distribution@omega == 0) .y) %>% compact() %>% unlist()
+  indexParameterNamesFixedOmega = unique(c(indexParameterNamesFixedOmega, indicesOmegaZero ))
 
-            evaluateVarianceFIM = EvaluateVarianceFIM( object, model, arm, modelEvaluation, modelVariance )
+  indicesMuZero = imap(parameters, ~ if (.x@distribution@mu == 0) .y) %>% compact() %>% unlist()
+  indexParameterNamesFixedMu = unique(c(indexParameterNamesFixedMu, indicesMuZero ))
 
-            # =======================================================
-            # components of the Fim
-            # =======================================================
+  evaluationGradients =  prop( arm, "evaluationGradients" ) %>% reduce( rbind ) %>% as.matrix()
 
-            MFVar = evaluateVarianceFIM$MFVar
-            V = evaluateVarianceFIM$V
+  # components of the Fim
+  if ( length( indexParameterNamesFixedMu ) != 0 )
+  {
+    evaluationGradients = prop( arm, "evaluationGradients" ) %>%
+      reduce( rbind ) %>%
+      { .[, -c( indexParameterNamesFixedMu ) ] } %>%
+      as.matrix()
+  }
 
-            outcomesAllGradient = as.matrix( modelEvaluation$outcomesAllGradient[,modelParametersName] )
+  MFbeta = t( evaluationGradients ) %*% chol2inv( chol( V ) ) %*% evaluationGradients
 
-            if ( length( parameterfixedMu ) != 0 )
-            {
-              outcomesAllGradient = outcomesAllGradient[, -c( parameterfixedMu ) ]
-            }
+  if ( length( indexParameterNamesFixedOmega ) != 0 )
+  {
+    MFVar = MFVar[ -c( indexParameterNamesFixedOmega ), -c( indexParameterNamesFixedOmega ) ]
+  }
 
-            MFbeta = t( outcomesAllGradient ) %*% chol2inv(chol(V)) %*% outcomesAllGradient
+  # Fisher matrix & adjust Fisher matrix with the number of individuals
+  MFbeta = MFbeta * prop( arm, "size" )
+  MFVar = MFVar * prop( arm, "size" )
 
-            if ( length( parameterfixedOmega ) != 0 )
-            {
-              MFVar = MFVar[ -c( parameterfixedOmega ),-c( parameterfixedOmega ) ]
-            }
+  prop( fim, "fisherMatrix" ) = as.matrix( bdiag( MFbeta, MFVar ) )
 
-            # =======================================================
-            # Fisher Matrix
-            # =======================================================
+  return( fim )
+}
 
-            fisherMatrix = as.matrix( bdiag( MFbeta, MFVar ) )
-
-            # =======================================================
-            # adjust Fisher matrix with the number of individuals
-            # =======================================================
-
-            fisherMatrix = fisherMatrix * getSize( arm )
-
-            # =======================================================
-            # set col and row names
-            # =======================================================
-
-            columnAndParametersNamesFIM = getColumnAndParametersNamesFIM( object, model )
-
-            colnames( fisherMatrix ) = c( columnAndParametersNamesFIM$namesParametersMu,
-                                          columnAndParametersNamesFIM$namesParametersOmega,
-                                          columnAndParametersNamesFIM$namesParametersSigma )
-
-            rownames( fisherMatrix ) = colnames( fisherMatrix )
-
-            # =======================================================
-            # set Fisher matrix, fixed effects and variance effects
-            # =======================================================
-
-            object = setFisherMatrix( object, fisherMatrix )
-
-            return( object )
-          })
-
-# ======================================================================================================
-# EvaluateVarianceFIM
-# ======================================================================================================
-
-#' function computeVMat
+#' computeVMat
 #' @name computeVMat
 #' @param varParam1 varParam1
 #' @param varParam2 varParam2
@@ -116,587 +74,605 @@ computeVMat = function( varParam1, varParam2, invCholV )
   1/2 * sum( diag( invCholV %*% varParam1 %*% invCholV %*% varParam2 ) )
 }
 
-#' @rdname EvaluateVarianceFIM
+#' evaluateVarianceFIM: evaluate the variance
+#' @name evaluateVarianceFIM
+#' @param arm A object of class \code{Arm} giving the arm.
+#' @param model A object of class \code{Model} giving the model.
+#' @param fim A object of class \code{PopulationFim} giving the Fim.
+#' @return The matrices MFVar and V.
 #' @export
-#'
-setMethod("EvaluateVarianceFIM",
-          "PopulationFim",
-          function( object, model, arm, modelEvaluation, modelVariance )
-          {
-            # =======================================================
-            # matrix Omega
-            # =======================================================
 
-            omegaFIM = list()
+method( evaluateVarianceFIM, list( PopulationFim, Model, Arm ) ) = function( fim, model, arm ) {
 
-            parameters = getParameters( model )
-            numberOfParameters = getNumberOfParameters( model )
-            modelParametersNames = getNames( parameters )
+  parameters = prop( model, "modelParameters")
+  parameterNames = map_chr( parameters, ~ prop( .x, "name" ) )
 
-            for ( i in 1:length( parameters ) )
-            {
-              parameter = parameters[[i]]
-              parameterName = getName( parameter )
-              omega = getOmega( parameter )
-              omegaFIM[[parameterName]] = omega**2
-            }
+  evaluationVariance = prop( arm, "evaluationVariance")
+  errorVariance = evaluationVariance$errorVariance
+  sigmaDerivatives = evaluationVariance$sigmaDerivatives
 
-            omegaFIM = diag( unlist( omegaFIM ), numberOfParameters, numberOfParameters )
+  # matrix Omega
+  omega = parameters %>% map_dbl( ~ pluck( .x, "distribution", "omega" ) ) %>% { (.^2) }
 
-            # =======================================================
-            # responses gradient adjusted
-            # =======================================================
+  # responses gradient adjusted
+  gradient = prop( arm, "evaluationGradients" ) %>% reduce( rbind )
 
-            outcomesAllGradient = modelEvaluation$outcomesAllGradient
+  adjustedGradient = map( parameters, function( parameter ) {
+    distribution = prop( parameter, "distribution" )
+    parameterName = prop( parameter, "name" )
+    adjustGradient( distribution, gradient[,parameterName] )
+  }) %>% reduce( rbind ) %>% t(.)
 
-            adjustedGradient = data.frame( matrix ( 0.0, ncol = numberOfParameters, nrow = dim( outcomesAllGradient )[1] ) )
-            colnames( adjustedGradient ) = modelParametersNames
+  # V matrix
+  if ( length(omega)[1] == 1)
+  { # cas omega is one scale
+    adjustedGradient = matrix(adjustedGradient)
+    V = omega * adjustedGradient %*% t( adjustedGradient ) + errorVariance
+  }else
+  {
+    V = adjustedGradient %*% diag(omega) %*% t( adjustedGradient ) + errorVariance
+  }
 
-            for ( parameter in parameters )
-            {
-              distribution = getDistribution( parameter )
-              parameterName = getName( parameter )
+  # B Block
+  dVdOmega = map( parameterNames, ~{
+    iter = which( parameterNames == .x )
+    dOmega = matrix( 0, ncol = length( parameters ), nrow = length( parameters ) )
+    dOmega[iter, iter] = 1
+    adjustedGradient %*% dOmega %*% t( adjustedGradient )
+  }) %>% setNames( parameterNames )
 
-              adjustedGradient[,parameterName] = getAdjustedGradient( distribution, outcomesAllGradient[,parameterName] )
-            }
+  # V matrix
+  dVdLambda = c( dVdOmega, sigmaDerivatives )
+  invCholV = chol2inv( chol( V ) )
+  VMat = outer( dVdLambda, dVdLambda, Vectorize( function(x, y) computeVMat( x, y, invCholV ) ) )
+  MFVar = matrix( VMat, nrow = length( dVdLambda ), ncol = length( dVdLambda ) )
 
-            adjustedGradient = as.matrix( adjustedGradient )
+  return( list( MFVar = MFVar, V = V ) )
+}
 
-            # =======================================================
-            # V matrix
-            # =======================================================
-
-            errorVariance = modelVariance$errorVariance
-
-            V = adjustedGradient %*% omegaFIM %*% t( adjustedGradient ) + errorVariance
-
-            # =======================================================
-            # B Block
-            # =======================================================
-
-            dVdOmega = list()
-
-            i = 1
-
-            for ( parameter in parameters )
-            {
-              parameterName = getName( parameter )
-
-              dOmega = matrix( 0, ncol = numberOfParameters, nrow = numberOfParameters )
-
-              dOmega[ i, i ] = 1
-
-              dVdOmega[[ parameterName ]] = adjustedGradient %*% dOmega %*% t( adjustedGradient  )
-
-              i=i+1
-            }
-
-            sigmaDerivatives = modelVariance$sigmaDerivatives
-
-            # =======================================================
-            # for taking account number of model error
-            # =======================================================
-
-            sigmaDerivatives = lapply( sigmaDerivatives, function( x, n = dim( outcomesAllGradient )[1] ) x[1:n,1:n] )
-
-            dVdLambda = c( dVdOmega, sigmaDerivatives )
-
-            # =======================================================
-            # VMat matrix
-            # =======================================================
-
-            invCholV = chol2inv( chol( V ) )
-
-            VMat = outer( dVdLambda, dVdLambda, Vectorize( function(x, y) computeVMat( x, y, invCholV ) ) )
-
-            MFVar = matrix( VMat, nrow = length( dVdLambda ), ncol = length( dVdLambda ) )
-
-            MFVar = bdiag( MFVar )
-
-            V = bdiag( V )
-
-            return( list( V = V, MFVar = MFVar ) )
-
-          })
-
-# ======================================================================================================
-# getRSE
-# ======================================================================================================
-
-#' @rdname getRSE
+#' setOptimalArms: set the optimal arms of an optimization algorithm.
+#' @name setOptimalArms
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param optimizationAlgorithm An object \code{MultiplicativeAlgorithm} giving the optimization algorithm.
+#' @return The list optimalArms.
 #' @export
-#'
-setMethod( "getRSE",
-           signature = "PopulationFim",
-           definition = function (object, model)
-           {
-             # parameter values
-             parameters = getParameters( model )
-             fixedParameters = getFixedParameters( model )
-             modelParametersValues = getModelParametersValues( model )
-             modelErrorParametersValues = getModelErrorParametersValues( model )
 
-             mu = modelParametersValues$mu
-             omega = modelParametersValues$omega**2
+method( setOptimalArms, list( PopulationFim, MultiplicativeAlgorithm ) ) = function( fim, optimizationAlgorithm ) {
 
-             # =======================================================
-             # fixed mu and omega
-             # =======================================================
+  # get the parameters of the MultiplicativeAlgorithm
+  multiplicativeAlgorithmOutputs = prop( optimizationAlgorithm, "multiplicativeAlgorithmOutputs" )
 
-             indexFixedMu = fixedParameters$parameterfixedMu
-             indexFixedOmega = fixedParameters$parameterfixedOmega
-             indexNoFixed = seq_along( parameters )
+  # get the inputs arms and FIMs for the MultiplicativeAlgorithm
+  armFims = multiplicativeAlgorithmOutputs$armFims
+  multiplicativeAlgorithmOutput = multiplicativeAlgorithmOutputs$multiplicativeAlgorithmOutput
+  numberOfArms = multiplicativeAlgorithmOutputs$numberOfArms
 
-             if ( length( indexFixedMu ) != 0 )
-             {
-               indexNoFixedMu = indexNoFixed[ -c( indexFixedMu ) ]
-               mu = mu[indexNoFixedMu]
-             }
+  # get the parameters of the MultiplicativeAlgorithm
+  weights = multiplicativeAlgorithmOutputs$optimalWeights
+  weightsIndex = multiplicativeAlgorithmOutputs$weightsIndex
 
-             if ( length( indexFixedOmega ) != 0 )
-             {
-               indexNoFixedOmega = indexNoFixed[ -c( indexFixedOmega ) ]
-               omega = omega[indexNoFixedOmega]
-             }
+  #number of individual per group
+  numberOfIndividualPerGroupTmp = numberOfArms*weights
+  numberOfIndividualPerGroup = numberOfIndividualPerGroupTmp / sum( numberOfIndividualPerGroupTmp )*numberOfArms
 
-             parametersValues = c( mu, omega, modelErrorParametersValues )
+  armList = list()
 
-             SE = getSE( object )
-             RSE = SE/parametersValues*100
+  for( index in weightsIndex )
+  {
+    arm = pluck( armFims[[index]], 1 )
+    prop( arm, "size" ) = numberOfIndividualPerGroup[ index == weightsIndex ]
+    prop( arm, "name" ) = paste0( "Arm", index )
+    armList = append( armList, arm )
+  }
 
-             return( list( RSE = RSE,
-                           parametersValues = parametersValues ) )
-           })
+  # sort by decreasing order
+  sizes = map_dbl( armList, "size" )
+  orderIndices = rev( order( sizes ) )
+  optimalArms = armList[orderIndices]
 
-# ======================================================================================================
-# getShrinkage
-# ======================================================================================================
+  return( optimalArms )
+}
 
-#' @rdname getShrinkage
+#' setOptimalArms: set the optimal arms of an optimization algorithm.
+#' @name setOptimalArms
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param optimizationAlgorithm An object \code{FedorovWynnAlgorithm} giving the optimization algorithm.
+#' @return The list optimalArms.
 #' @export
-#'
-setMethod( "getShrinkage",
-           signature = "PopulationFim",
-           definition = function (object)
-           {
-             return(NULL)
-           })
 
-# ======================================================================================================
-# setShrinkage
-# ======================================================================================================
+method( setOptimalArms, list( PopulationFim, FedorovWynnAlgorithm ) ) = function( fim, optimizationAlgorithm ) {
 
-#' @rdname setShrinkage
+  # get the parameters of the FedorovWynnAlgorithm
+  FedorovWynnAlgorithmOutputs = prop( optimizationAlgorithm, "FedorovWynnAlgorithmOutputs" )
+
+  numberOfIndividuals = FedorovWynnAlgorithmOutputs$numberOfIndividuals
+  listArms = FedorovWynnAlgorithmOutputs$listArms
+
+  optimalArms = imap(listArms, function(listArm, iter) {
+    prop( listArm$arm, "size" ) = numberOfIndividuals[iter]
+    prop( listArm$arm, "name" ) = paste0( "Arm", iter )
+    return(listArm)
+  })
+
+  return( optimalArms )
+}
+
+#' setEvaluationFim: set the Fim results.
+#' @name setEvaluationFim
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
+#' @return The object \code{PopulationFim} with its fisherMatrix, fixedEffects, shrinkage, condNumberFixedEffects, SEAndRSE.
 #' @export
-#'
-setMethod( "setShrinkage",
-           signature = "PopulationFim",
-           definition = function (object,value)
-           {
-             object@shrinkage = NA
-             return(object)
-           })
 
-# ======================================================================================================
-# getColumnAndParametersNamesFIM
-# ======================================================================================================
+method( setEvaluationFim, PopulationFim ) = function( fim, evaluation ) {
 
-#' @rdname getColumnAndParametersNamesFIM
+  # get parameters names and model error
+  parameters = prop( evaluation, "modelParameters" )
+  parametersNames = map_chr( parameters, ~ prop( .x, "name" ) )
+  modelError = prop( evaluation, "modelError" )
+
+  # Greek letter for column names
+  greeksLetterForCOnsole = c( mu = "\u03bc_", omega = "\u03c9\u00B2_", sigma = "\u03c3" )
+
+  # define the name for the columns and rows for mu, omega and sigma
+  columnNamesMu = parameters %>%
+    keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
+    keep( ~ .x@distribution@mu != 0 ) %>%
+    map_chr( "name" ) %>%
+    map_chr(~ paste0( greeksLetterForCOnsole['mu'], .x ) )
+
+  columnNamesOmega = parameters %>%
+    keep( ~ prop( .x, "fixedOmega" ) == FALSE ) %>%
+    keep( ~ .x@distribution@omega != 0 ) %>%
+    map_chr( "name" ) %>%
+    map_chr( ~ paste0( greeksLetterForCOnsole['omega'], .x ) )
+
+  columnNamesSigma = map( modelError, ~{
+    sigma = character()
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_inter_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_slope_", prop( .x ,"output" ) ) )
+    return( sigma )
+  }) %>% unlist()  %>% unname()
+
+  # get mu values
+  muValues = parameters %>% keep( ~ prop( .x, "fixedMu" ) == FALSE ) %>%
+    keep( ~ .x@distribution@mu != 0 ) %>%
+    map_dbl( ~ pluck( .x, "distribution", "mu" ) )
+
+  # get omega values
+  omegaValues = parameters %>%
+    keep( ~ prop( .x, "fixedOmega" ) == FALSE ) %>%
+    keep( ~ .x@distribution@omega != 0 ) %>%
+    map_dbl( ~ pluck( .x, "distribution", "omega" ) ) %>% { (.^2) }
+
+  # get sigma values
+  sigmaValues = map( modelError, ~ {
+    values = list()
+    if ( prop( .x, "sigmaInter" ) !=0 && prop( .x, "sigmaInterFixed" ) == FALSE )
+    {
+      values$sigmaInter = prop( .x, "sigmaInter" )
+    }
+    if ( prop( .x, "sigmaSlope" ) !=0 && prop( .x, "sigmaSlopeFixed" ) == FALSE )
+    {
+      values$sigmaSlope =  prop( .x, "sigmaSlope" )
+    }
+    return( values )
+  }) %>% unlist()
+
+  # get fisherMatrix
+  fisherMatrix = prop( fim, "fisherMatrix")
+  colnames( fisherMatrix ) = c( columnNamesMu, columnNamesOmega, columnNamesSigma )
+  rownames( fisherMatrix ) = c( columnNamesMu, columnNamesOmega, columnNamesSigma )
+
+  # fixed effects and variance effects
+  fixedEffects = fisherMatrix[ columnNamesMu, columnNamesMu ]
+  varianceEffects = fisherMatrix[ c( columnNamesOmega, columnNamesSigma ), c( columnNamesOmega, columnNamesSigma ) ]
+
+  # compute SE ans RSE
+  SE = sqrt( diag( chol2inv( chol( fisherMatrix ) ) ) )
+
+  parametersValues = c( muValues, omegaValues, sigmaValues )
+  RSE = SE / parametersValues * 100
+
+  SEAndRSE = data.frame( "parametersValues" = parametersValues, "SE" = SE, "RSE" = RSE )
+  SE = data.frame( "parametersValues" = parametersValues, "SE" = SE )
+  RSE = data.frame( "parametersValues" = parametersValues, "RSE" = RSE )
+
+  rownames( SEAndRSE ) = rownames( fisherMatrix )
+  rownames( SE ) = rownames( fisherMatrix )
+  rownames( RSE ) = rownames( fisherMatrix )
+
+  prop( fim, "fisherMatrix" ) = fisherMatrix
+  prop( fim, "fixedEffects" ) = fixedEffects
+  prop( fim, "varianceEffects" ) = varianceEffects
+  prop( fim, "condNumberFixedEffects" ) = cond(fixedEffects)
+  prop( fim, "condNumberVarianceEffects" ) = cond(varianceEffects)
+  prop( fim, "SEAndRSE" ) = list( SE = SE, RSE = RSE, SEAndRSE = SEAndRSE )
+
+  return( fim )
+}
+
+#' showFIM: show the Fim in the R console.
+#' @name showFIM
+#' @param fim An object \code{IndividualFim} giving the Fim.
+#' @return The fisherMatrix, fixedEffects, Determinant, condition numbers and D-criterion, Shrinkage and Parameters estimation
 #' @export
-#'
-setMethod( "getColumnAndParametersNamesFIM",
-           signature = "PopulationFim",
-           definition = function( object, model )
-           {
-             parameters = getParameters( model )
-             modelParametersName = getNames( parameters )
-             fixedParameters = getFixedParameters( model )
-             parameterfixedMu = fixedParameters$parameterfixedMu
-             parameterfixedOmega = fixedParameters$parameterfixedOmega
 
-             modelError = getModelError( model )
+method( showFIM, PopulationFim ) = function( fim ) {
 
-             # ---------------------------------------------------
-             # Greek letter for names
-             # ---------------------------------------------------
+  SEAndRSE = prop( fim, "SEAndRSE" )
+  fisherMatrix = prop( fim, "fisherMatrix")
+  fixedEffects =prop( fim, "fixedEffects")
+  varianceEffects = prop( fim, "varianceEffects")
+  condNumberFixedEffects = prop( fim, "condNumberFixedEffects" )
+  condNumberVarianceEffects = prop( fim, "condNumberVarianceEffects" )
 
-             greeksLetter = c( mu = "\u03bc_",
-                               omega = "\u03c9\u00B2_",
-                               sigma = "\u03c3_",
-                               sigmaInter = '\u03c3_inter',
-                               sigmaSlope = '\u03c3_slope' )
+  RSE = SEAndRSE$SE
+  RSE = SEAndRSE$RSE
+  SEAndRSE = SEAndRSE$SEAndRSE
 
-             namesParametersMu = modelParametersName
-             namesParametersOmega = modelParametersName
+  Dcriterion = Dcriterion( fim )
 
-             # ---------------------------------------------------
-             # mu and omega
-             # ---------------------------------------------------
+  determinant = det( fisherMatrix )
 
-             if ( length( parameterfixedMu ) !=0 )
-             {
-               namesParametersMu = modelParametersName[ -c( parameterfixedMu ) ]
-             }
+  cat("\n*************************************** \n")
+  cat(" Population Fisher Matrix \n" )
+  cat("*************************************** \n\n")
+  print( fisherMatrix )
+  cat("\n*************************************** \n")
+  cat(" Fixed effects \n" )
+  cat("*************************************** \n\n")
+  print( fixedEffects )
+  cat("\n*************************************** \n")
+  cat(" Variance components \n" )
+  cat("*************************************** \n\n")
+  print( varianceEffects )
+  cat("\n********************************************* \n")
+  cat(" Determinant, condition numbers and D-criterion  \n" )
+  cat("*********************************************** \n\n")
+  cat( c( "Determinant:", as.numeric(determinant) ), "\n")
+  cat( c( "D-criterion:", as.numeric(Dcriterion) ), "\n")
+  cat( c("Conditional number of the fixed effects:", as.numeric(condNumberFixedEffects) , "\n") )
+  cat( c("Conditional number of the random effects:", as.numeric(condNumberVarianceEffects) , "\n") )
+  cat("\n*************************************** \n")
+  cat(" Parameters estimation \n" )
+  cat("*************************************** \n\n")
+  print( SEAndRSE )
+}
 
-             if ( length( parameterfixedOmega ) !=0 )
-             {
-               namesParametersOmega = modelParametersName[ -c( parameterfixedOmega ) ]
-             }
-
-             namesFIMFixedEffectsParameters = namesParametersMu
-             namesFIMVarianceEffectsParameters = namesParametersOmega
-
-             namesParametersMu = paste0( greeksLetter['mu'], namesParametersMu )
-             namesParametersOmega = paste0( greeksLetter['omega'], namesParametersOmega )
-
-             # ---------------------------------------------------
-             # sigma
-             # ---------------------------------------------------
-
-             sigmaInterSlope = c()
-             namesFIMModelErrorParameters = c()
-
-             for ( modelErrorResponse in modelError )
-             {
-               outcomeName = getOutcome( modelErrorResponse )
-
-               sigmaInterSlopeTmp = c( getSigmaInter( modelErrorResponse ), getSigmaSlope( modelErrorResponse ) )
-               namesFIMModelErrorParameters = c( namesFIMModelErrorParameters , paste0( c( 'inter', 'slope' ), "_", outcomeName ) )
-               sigmaInterSlopeNames = paste0( c( greeksLetter['sigmaInter'], greeksLetter['sigmaSlope'] ), "_", outcomeName )
-               names( sigmaInterSlopeTmp ) = sigmaInterSlopeNames
-
-               sigmaInterSlope = c( sigmaInterSlope, sigmaInterSlopeTmp )
-             }
-
-             namesParametersSigma = names( sigmaInterSlope[ sigmaInterSlope != 0 ] )
-             namesFIMModelErrorParameters = namesFIMModelErrorParameters[ sigmaInterSlope != 0 ]
-
-             # ---------------------------------------------------
-             # names of the parameters
-             # ---------------------------------------------------
-
-             colnamesFIM = list(
-
-               namesFIMFixedEffectsParameters = namesFIMFixedEffectsParameters,
-               namesFIMVarianceEffectsParameters = namesFIMVarianceEffectsParameters,
-               namesFIMModelErrorParameters = namesFIMModelErrorParameters,
-
-               namesParametersMu = namesParametersMu,
-               namesParametersOmega = namesParametersOmega,
-               namesParametersSigma = namesParametersSigma )
-
-             return( colnamesFIM )
-           })
-
-# ======================================================================================================
-# getColumnAndParametersNamesFIMInLatex
-# ======================================================================================================
-
-#' @rdname getColumnAndParametersNamesFIMInLatex
+#' plotSEFIM: barplot for the SE
+#' @name plotSEFIM
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
+#' @return The bar plot of the SE.
 #' @export
-#'
-setMethod( "getColumnAndParametersNamesFIMInLatex",
-           signature = "PopulationFim",
-           definition = function( object, model )
-           {
-             parameters = getParameters( model )
-             modelParametersName = getNames( parameters )
-             fixedParameters = getFixedParameters( model )
-             parameterfixedMu = fixedParameters$parameterfixedMu
-             parameterfixedOmega = fixedParameters$parameterfixedOmega
 
-             modelError = getModelError( model )
+method( plotSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluation ) {
 
-             # =======================================================
-             # Greek letter for names
-             # =======================================================
+  # get parameter names and model error
+  parameters = prop( evaluation, "modelParameters" )
+  modelError = prop( evaluation, "modelError" )
 
-             greeksLetter = c( mu = "\\mu_",
-                               omega = "\\omega^2_",
-                               sigma = "\\sigma_",
-                               sigmaInter = '{\\sigma_{inter}}_',
-                               sigmaSlope = '{\\sigma_{slope}}_' )
+  # get SEAndRSE
+  fim = prop( evaluation, "fim" )
+  fim = setEvaluationFim( fim, evaluation )
+  standardErrors = prop( fim, "SEAndRSE" )
 
-             mu = c()
-             omega = c()
-             sigma = c()
+  # Greek letter for column names
+  greeksLetterForCOnsole = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
 
-             namesParametersMu = modelParametersName
-             namesParametersOmega = modelParametersName
+  parametersMu =  parameters %>%
+    keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
+    keep( ~ .x@distribution@mu != 0 ) %>%
+    map_chr( "name" )
 
-             # =======================================================
-             # mu and omega
-             # =======================================================
+  parametersOmega = parameters %>%
+    keep( ~ prop( .x, "fixedOmega" ) == FALSE ) %>%
+    keep( ~ .x@distribution@omega != 0 ) %>%
+    map_chr( "name" )
 
-             for ( parameter in parameters )
-             {
-               mu = c( mu, getMu( parameter ) )
-               omega = c( omega, getOmega( parameter ) )
-             }
+  parametersSigma = map( modelError, ~{
+    sigma = character()
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_inter_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_slope_", prop( .x ,"output" ) ) )
+    return( sigma )
+  }) %>% unlist()  %>% unname()
 
-             if ( length( parameterfixedMu ) !=0 )
-             {
-               mu = mu[ -c( parameterfixedMu ) ]
-               namesParametersMu = modelParametersName[ -c( parameterfixedMu ) ]
-             }
+  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForCOnsole['mu'] )
+  columnNamesOmega = parametersOmega %>% map_chr( ~  greeksLetterForCOnsole['omega']  )
+  columnNamesSigma = parametersSigma %>% map_chr( ~  greeksLetterForCOnsole['sigma']  )
 
-             if ( length( parameterfixedOmega ) !=0 )
-             {
-               omega = omega[ -c( parameterfixedOmega ) ]
-               namesParametersOmega = modelParametersName[ -c( parameterfixedOmega ) ]
-             }
+  # data for plot
+  data = data.frame( Parameter = c( parametersMu, parametersOmega, parametersSigma ),
+                     Value = standardErrors$SEAndRSE$parametersValues,
+                     SE = standardErrors$SE,
+                     cat = paste0( "SE ", c(columnNamesMu, columnNamesOmega, columnNamesSigma ) ) )
 
-             namesFIMFixedEffectsParameters = namesParametersMu
-             namesFIMVarianceEffectsParameters = namesParametersOmega
+  colnames( data ) = c("Parameter", "Value", "parametersValues", "SE", "cat")
 
-             namesParametersMu = paste0( greeksLetter['mu'], "{",namesParametersMu , "}" )
-             namesParametersOmega = paste0( greeksLetter['omega'], "{", namesParametersOmega , "}" )
+  # bar plot of the plot SE
+  plotSE = ggplot( data, aes( x = Parameter, y = SE ) ) +
+    geom_bar( stat = "identity", position = "dodge", show.legend = FALSE ) +
+    facet_wrap( ~factor( cat, levels =  paste0( "SE ", c( greeksLetterForCOnsole['mu'],  greeksLetterForCOnsole['omega'], greeksLetterForCOnsole["sigma"] ) ) ), scales = "free_x" ) +
+    theme(legend.position = "none",
+          plot.title = element_text(size=16, hjust = 0.5),
+          axis.title.x = element_text(size=16),
+          axis.title.y = element_text(size=16),
+          axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
+          axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+          strip.text.x = element_text(size=16))
 
-             # =======================================================
-             # sigma
-             # =======================================================
+  return( plotSE )
+}
 
-             sigmaInterSlope = c()
-             namesFIMModelErrorParameters = c()
-
-             for ( modelErrorResponse in modelError )
-             {
-               outcomeName = getOutcome( modelErrorResponse )
-
-               sigmaInterSlopeTmp = c( getSigmaInter( modelErrorResponse ), getSigmaSlope( modelErrorResponse ) )
-               namesFIMModelErrorParameters = c( namesFIMModelErrorParameters , paste0( c( 'inter', 'slope' ), "{", outcomeName, "}" ) )
-               sigmaInterSlopeNames = paste0( c( greeksLetter['sigmaInter'], greeksLetter['sigmaSlope'] ), "{", outcomeName, "}" )
-               names( sigmaInterSlopeTmp ) = sigmaInterSlopeNames
-
-               sigmaInterSlope = c( sigmaInterSlope, sigmaInterSlopeTmp )
-             }
-
-             namesParametersSigma = names( sigmaInterSlope[ sigmaInterSlope != 0 ] )
-
-             namesParametersMu = paste0('$',namesParametersMu,"$")
-             namesParametersOmega = paste0('$',namesParametersOmega,"$")
-             namesParametersSigma = paste0('$',namesParametersSigma,"$")
-
-             # =======================================================
-             # names of the parameters
-             # =======================================================
-
-             colnamesFIM = list(
-
-               namesParametersMu = namesParametersMu,
-               namesParametersOmega = namesParametersOmega,
-               namesParametersSigma = namesParametersSigma )
-
-             return( colnamesFIM )
-           })
-
-# ======================================================================================================
-# reportTablesFIM
-# ======================================================================================================
-
-#' @rdname reportTablesFIM
+#' plotRSEFIM: barplot for the RSE
+#' @name plotRSEFIM
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
+#' @return The bar plot of the RSE.
 #' @export
-#'
-setMethod( "reportTablesFIM",
-           signature = "PopulationFim",
-           definition = function( object, evaluationObject )
-           {
-             model = getModel( evaluationObject )
-             modelEquations = getEquations( model )
-             modelOutcomes = getOutcomes( model )
-             modelError = getModelError( model )
-             modelParameters = getParameters( model )
 
-             # =======================================================
-             # get initial designs
-             # =======================================================
+method( plotRSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluation ) {
 
-             designs = getDesigns( evaluationObject )
-             designNames = getNames( designs )
-             designName = designNames[[1]]
-             design = designs[[designName]]
+  # get parameter names and model error
+  parameters = prop( evaluation, "modelParameters" )
+  modelError = prop( evaluation, "modelError" )
 
-             columnAndParametersNamesFIM = getColumnAndParametersNamesFIMInLatex( object, model )
+  # get SEAndRSE
+  fim = prop( evaluation, "fim" )
+  fim = setEvaluationFim( fim, evaluation )
+  standardErrors = prop( fim, "SEAndRSE" )
 
-             muAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersMu
-             omegaAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersOmega
-             sigmaAndParameterNamesLatex = columnAndParametersNamesFIM$namesParametersSigma
+  # Greek letter for column names
+  greeksLetterForCOnsole = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
 
-             # =======================================================
-             # FIMFixedEffects
-             # =======================================================
+  parametersMu =  parameters %>%
+    keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
+    keep( ~ .x@distribution@mu != 0 ) %>%
+    map_chr( "name" )
 
-             FIMFixedEffects = getFixedEffects( object )
-             FIMFixedEffects = as.matrix( FIMFixedEffects )
-             colnames( FIMFixedEffects ) = muAndParameterNamesLatex
-             rownames( FIMFixedEffects ) = muAndParameterNamesLatex
+  parametersOmega = parameters %>%
+    keep( ~ prop( .x, "fixedOmega" ) == FALSE ) %>%
+    keep( ~ .x@distribution@omega != 0 ) %>%
+    map_chr( "name" )
 
-             # =======================================================
-             # FIMVarianceEffects
-             # =======================================================
+  parametersSigma = map( modelError, ~{
+    sigma = character()
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_inter_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_slope_", prop( .x ,"output" ) ) )
+    return( sigma )
+  }) %>% unlist()  %>% unname()
 
-             FIMVarianceEffects = getVarianceEffects( object )
-             FIMVarianceEffects = as.matrix( FIMVarianceEffects )
-             colnames( FIMVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
-             rownames( FIMVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
+  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForCOnsole['mu'] )
+  columnNamesOmega = parametersOmega %>% map_chr( ~  greeksLetterForCOnsole['omega']  )
+  columnNamesSigma = parametersSigma %>% map_chr( ~  greeksLetterForCOnsole['sigma']  )
 
-             # =======================================================
-             # correlation Matrix
-             # =======================================================
+  # data for plot
+  data = data.frame( Parameter = c( parametersMu, parametersOmega, parametersSigma ),
+                     Value = standardErrors$SEAndRSE$parametersValues,
+                     RSE = standardErrors$RSE,
+                     cat = paste0( "RSE ", c(columnNamesMu, columnNamesOmega, columnNamesSigma ) ) )
 
-             correlationMatrix = getCorrelationMatrix( object )
+  colnames( data ) = c("Parameter", "Value", "parametersValues", "RSE", "cat")
 
-             correlationMatrixFixedEffects = as.matrix( correlationMatrix$fixedEffects )
-             correlationMatrixVarianceEffects = as.matrix( correlationMatrix$varianceEffects )
+  # bar plot of the plot SE
+  plotRSE = ggplot( data, aes( x = Parameter, y = RSE ) ) +
+    geom_bar( stat = "identity", position = "dodge", show.legend = FALSE ) +
+    facet_wrap( ~factor( cat, levels =  paste0( "RSE ", c( greeksLetterForCOnsole['mu'],  greeksLetterForCOnsole['omega'], greeksLetterForCOnsole["sigma"] ) ) ), scales = "free_x" ) +
+    theme(legend.position = "none",
+          plot.title = element_text(size=16, hjust = 0.5),
+          axis.title.x = element_text(size=16),
+          axis.title.y = element_text(size=16),
+          axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
+          axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
+          strip.text.x = element_text(size=16))
 
-             colnames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
-             rownames( correlationMatrixFixedEffects ) = muAndParameterNamesLatex
+  return( plotRSE )
+}
 
-             colnames( correlationMatrixVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
-             rownames( correlationMatrixVarianceEffects ) = c( omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
-
-             # =======================================================
-             # SE and RSE
-             # =======================================================
-
-             fisherMatrix = getFisherMatrix( object )
-             SE = getSE( object )
-
-             rseAndParametersValues = getRSE( object, model )
-
-             RSE = rseAndParametersValues$RSE
-             parametersValues = rseAndParametersValues$parametersValues
-
-             SE = round( SE, 3 )
-             RSE = round( RSE, 3 )
-
-             SEandRSE = data.frame( parametersValues, SE, RSE )
-             colnames( SEandRSE ) = c("Value", "SE","RSE (%)" )
-             rownames( SEandRSE ) = c( muAndParameterNamesLatex, omegaAndParameterNamesLatex, sigmaAndParameterNamesLatex )
-
-             # =======================================================
-             # determinants, condition numbers and Dcriterion
-             # =======================================================
-
-             detFim = getDeterminant( object )
-             condFIMFixedEffects = getConditionNumberFixedEffects( object )
-             condFIMVarianceEffects = getConditionNumberVarianceEffects( object )
-             DCriterion = getDcriterion( object )
-
-             # =======================================================
-             # criteriaFim
-             # =======================================================
-
-             criteriaFim = t( data.frame( detFim, condFIMFixedEffects, condFIMVarianceEffects, DCriterion ) )
-
-             colnames( criteriaFim ) = c("Value")
-             rownames( criteriaFim ) = c("Determinant",
-                                         "Cond number fixed effects",
-                                         "Cond number variance components",
-                                         "D-criterion")
-
-             # =======================================================
-             # kable tables
-             # =======================================================
-
-             # =======================================================
-             # FIMFixedEffects
-             # =======================================================
-
-             FIMFixedEffectsTable = knitr::kable( FIMFixedEffects ) %>%
-               kable_styling( font_size = 12,
-                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                              full_width = T)
-
-             # =======================================================
-             # FIMVarianceEffectsTable
-             # =======================================================
-
-             FIMVarianceEffectsTable = knitr::kable( FIMVarianceEffects ) %>%
-               kable_styling( font_size = 12,
-                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                              full_width = T)
-
-             # =======================================================
-             # correlationMatrixFixedEffects
-             # =======================================================
-
-             correlationMatrixFixedEffectsTable = knitr::kable( correlationMatrixFixedEffects ) %>%
-               kable_styling( font_size = 12,
-                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                              full_width = T)
-
-             # =======================================================
-             # correlationMatrixVarianceEffects
-             # =======================================================
-
-             correlationMatrixVarianceEffectsTable = knitr::kable( correlationMatrixVarianceEffects ) %>%
-               kable_styling( font_size = 12,
-                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                              full_width = T)
-
-             # =======================================================
-             # criteriaFim
-             # =======================================================
-
-             rownames( criteriaFim ) = c("","Fixed effects","Variance effects","")
-             colnames( criteriaFim ) = NULL
-
-             criteriaFimTable = knitr::kable( t(criteriaFim) ) %>%
-               kable_styling( font_size = 12,  position = "center",
-                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                              full_width = T) %>%
-               add_header_above(c("Determinant" = 1, "Condition numbers" = 2, "D-criterion" = 1))
-
-             # =======================================================
-             # SEandRSE
-             # =======================================================
-
-             SEandRSETable = knitr::kable( SEandRSE ) %>%
-               kable_styling( font_size = 12,
-                              latex_options = c("hold_position","striped", "condensed", "bordered" ),
-                              full_width = T)
-
-             tablesPopulationFim = list( FIMFixedEffectsTable = FIMFixedEffectsTable,
-                                         FIMVarianceEffectsTable = FIMVarianceEffectsTable,
-                                         correlationMatrixFixedEffectsTable = correlationMatrixFixedEffectsTable,
-                                         correlationMatrixVarianceEffectsTable = correlationMatrixVarianceEffectsTable,
-                                         criteriaFimTable = criteriaFimTable,
-                                         SEandRSETable = SEandRSETable )
-
-             return( tablesPopulationFim )
-
-           })
-
-# ======================================================================================================
-# generateReportEvaluation
-# ======================================================================================================
-
-#' @rdname generateReportEvaluation
+#' tablesForReport: generate the table for the report.
+#' @name tablesForReport
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
+#' @return fixedEffectsTable, FIMCriteriaTable, SEAndRSETable.
 #' @export
-#'
-setMethod( "generateReportEvaluation",
-           signature = "PopulationFim",
-           definition = function( object, evaluationObject, outputPath, outputFile, plotOptions )
-           {
-             path = system.file(package = "PFIM")
-             path = paste0( path, "/rmarkdown/templates/skeleton/" )
-             nameInputFile = paste0( path, "templateEvaluationPopulationFim.rmd" )
 
-             projectName = getName( evaluationObject )
+method( tablesForReport, list( PopulationFim, PFIMProject ) ) = function( fim, evaluation ) {
 
-             tablesEvaluationFIMIntialDesignResults = generateTables( evaluationObject, plotOptions )
+  SEAndRSE = prop( fim, "SEAndRSE" )
+  fisherMatrix = prop( fim, "fisherMatrix")
+  fixedEffects = prop( fim, "fixedEffects")
+  varianceEffects = prop( fim, "varianceEffects")
+  condNumberFixedEffects = prop( fim, "condNumberFixedEffects" )
+  condNumberVarianceEffects = prop( fim, "condNumberVarianceEffects" )
+  Dcriterion = Dcriterion( fim )
+  determinant = det( fisherMatrix )
+  SEAndRSE = SEAndRSE$SEAndRSE
+  parameters = prop( evaluation, "modelParameters" )
+  modelError = prop( evaluation, "modelError" )
 
-             rmarkdown::render( input = nameInputFile,
-                                output_file = outputFile,
-                                output_dir = outputPath,
-                                params = list(
-                                  plotOptions = "plotOptions",
-                                  projectName = "projectName",
-                                  tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults" ) )
-           })
+  # Greek letter for column names
+  greeksLetterForCOnsole = c( mu = "$\\mu_{", omega = "$\\omega^2_{", sigma = "${\\sigma_" )
 
-##########################################################################################################
-# End class PopulationFim
-##########################################################################################################
+  # define the name for the columns and rows for mu, omega and sigma
+  columnNamesMu = parameters %>%
+    keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
+    keep( ~  prop( prop(.x,"distribution"), "mu" ) != 0 ) %>%
+    map_chr( "name" ) %>%
+    map_chr(~ paste0( greeksLetterForCOnsole['mu'], .x,"}$" ) )
 
+  columnNamesOmega = parameters %>%
+    keep( ~ prop( .x, "fixedOmega" ) == FALSE ) %>%
+    keep( ~  prop( prop(.x,"distribution"), "omega" ) != 0 ) %>%
+    map_chr( "name" ) %>%
+    map_chr( ~ paste0( greeksLetterForCOnsole['omega'], .x ,"}$" ) )
+
+  columnNamesSigma = map( modelError, ~{
+    sigma = character()
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "{inter}}_{", prop( .x ,"output" ),"}$" ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "{slope}}_{", prop( .x ,"output" ),"}$" ) )
+    return( sigma )
+  }) %>% unlist()  %>% unname()
+
+  fixedEffects = as.matrix( fixedEffects )
+  colnames( fixedEffects ) = columnNamesMu
+  rownames( fixedEffects ) = columnNamesMu
+  colnames( varianceEffects ) = c( columnNamesOmega, columnNamesSigma )
+  rownames( varianceEffects ) = c( columnNamesOmega, columnNamesSigma )
+
+  fixedEffectsTable = fixedEffects %>%
+    kbl() %>%
+    kable_styling(
+      bootstrap_options = c("hover"),
+      full_width = FALSE,
+      position = "center",
+      font_size = 13 )
+
+  varianceEffectsTable = varianceEffects %>%
+    kbl() %>%
+    kable_styling(
+      bootstrap_options = c("hover"),
+      full_width = FALSE,
+      position = "center",
+      font_size = 13 )
+
+  FIMCriteria = data.frame( Determinant = determinant, Dcriterion = Dcriterion, FixedEffects = condNumberFixedEffects, VarianceEffects = condNumberVarianceEffects )
+
+  FIMCriteriaTable = kbl(
+    FIMCriteria,
+    col.names = c("", "", "Fixed effects", "Variance effects"),
+    align = c("c", "c", "c", "c"),
+    format = "html" ) %>%
+    add_header_above(c(
+      "Determinant" = 1,
+      "D-criterion" = 1,
+      "Condition number" = 2
+    )) %>%
+    kable_styling(
+      bootstrap_options = c("hover"),
+      full_width = FALSE,
+      position = "center",
+      font_size = 13 )
+
+  # SEAndRSE table
+  SEAndRSE = data.frame( c( columnNamesMu, columnNamesOmega, columnNamesSigma ), round(SEAndRSE,3) )
+  row.names( SEAndRSE ) = NULL
+
+  SEAndRSETable = kbl(
+    SEAndRSE,
+    col.names = c("Parameters", "Parameter values", "SE", "RSE (%)"),
+    align = c("c", "c", "c", "c") ) %>%
+    kable_styling(
+      bootstrap_options = c("hover"),
+      full_width = FALSE,
+      position = "center",
+      font_size = 13 )
+
+  fimTables = list( fixedEffectsTable = fixedEffectsTable, varianceEffectsTable = varianceEffectsTable, FIMCriteriaTable = FIMCriteriaTable, SEAndRSETable =  SEAndRSETable)
+
+  return( fimTables )
+}
+
+#' generateReportEvaluation: generate the report for the model evaluation.
+#' @name generateReportEvaluation
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param tablesForReport The output list giving by the method tablesForReport.
+#' @return The html report for the model evaluation.
+#' @export
+
+method( generateReportEvaluation, PopulationFim ) = function( fim, tablesForReport ) {
+
+  path = system.file(package = "PFIM")
+  path = paste0( path, "/rmarkdown/templates/skeleton/" )
+  nameInputFile = paste0( path, "EvaluationPopulationFIM.rmd" )
+
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+}
+
+#' generateReportOptimization: generate the report for the design optimization.
+#' @name generateReportOptimization
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param optimizationAlgorithm An object \code{MultiplicativeAlgorithm} giving the MultiplicativeAlgorithm.
+#' @param tablesForReport The output list giving by the method tablesForReport.
+#' @return The html report.
+#' @export
+
+method( generateReportOptimization, list( PopulationFim, MultiplicativeAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+
+  path = system.file(package = "PFIM")
+  path = paste0( path, "/rmarkdown/templates/skeleton/" )
+  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmPopulationFIM.rmd" )
+
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+}
+
+#' generateReportOptimization: generate the report for the design optimization.
+#' @name generateReportOptimization
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param optimizationAlgorithm An object \code{FedorovWynnAlgorithm} giving the FedorovWynnAlgorithm
+#' @param tablesForReport The output list giving by the method tablesForReport.
+#' @return The html report.
+#' @export
+
+method( generateReportOptimization, list( PopulationFim, FedorovWynnAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+
+  path = system.file(package = "PFIM")
+  path = paste0( path, "/rmarkdown/templates/skeleton/" )
+  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmPopulationFIM.rmd" )
+
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+}
+
+#' generateReportOptimization: generate the report for the design optimization.
+#' @name generateReportOptimization
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param optimizationAlgorithm An object \code{SimplexAlgorithm} giving the SimplexAlgorithm
+#' @param tablesForReport The output list giving by the method tablesForReport.
+#' @return The html report.
+#' @export
+
+method( generateReportOptimization, list( PopulationFim, SimplexAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+
+  path = system.file(package = "PFIM")
+  path = paste0( path, "/rmarkdown/templates/skeleton/" )
+  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmPopulationFIM.rmd" )
+
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
+    #plotOptions = "plotOptions", #projectName = "projectName",
+    tablesForReport = "tablesForReport" ) )
+
+}
+
+#' generateReportOptimization: generate the report for the design optimization.
+#' @name generateReportOptimization
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param optimizationAlgorithm An object \code{PSOAlgorithm} giving the PSOAlgorithm
+#' @param tablesForReport The output list giving by the method tablesForReport.
+#' @return The html report.
+#' @export
+
+method( generateReportOptimization, list( PopulationFim, PSOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+
+  path = system.file(package = "PFIM")
+  path = paste0( path, "/rmarkdown/templates/skeleton/" )
+  nameInputFile = paste0( path, "OptimizationPSOAlgorithmPopulationFIM.rmd" )
+
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+}
+
+#' generateReportOptimization: generate the report for the design optimization.
+#' @name generateReportOptimization
+#' @param fim An object \code{PopulationFim} giving the Fim.
+#' @param optimizationAlgorithm An object \code{PGBOAlgorithm} giving the PGBOAlgorithm
+#' @param tablesForReport The output list giving by the method tablesForReport.
+#' @return The html report.
+#' @export
+
+method( generateReportOptimization, list( PopulationFim, PGBOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+
+  path = system.file(package = "PFIM")
+  path = paste0( path, "/rmarkdown/templates/skeleton/" )
+  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmPopulationFIM.rmd" )
+
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+}

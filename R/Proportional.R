@@ -1,100 +1,42 @@
-#' Class "Proportional"
-#'
-#' @description The Class "Proportional" defines the the residual error variance according
-#' to the formula  g(sigma_inter, sigma_slope, c_error, f(x, theta)) =  sigma_slope*f(x,theta).
-#'
-#' @name Proportional-class
-#' @aliases Proportional
-#' @docType class
-#' @include Combined1.R
-#' @export
-#'
-#' @section Objects from the Class \linkS4class{Proportional}:
-#' Objects are typically created by calls to \code{Proportional} and contain the following slots
-#' that are inherited from the class \linkS4class{Combined1}:
-#'
-#' @section Slots for the \code{Proportional} objects:
-#' \describe{
-#' \item{\code{.Object}:}{An object of the Class \code{Proportional}}
-#' \item{\code{sigma_inter}:}{A numeric value giving the sigma inter of the error model}
-#' \item{\code{sigma_slope}:}{A numeric value giving the sigma slope of the error model}
-#' }
-
-Proportional = setClass(Class = "Proportional",
-                        contains = "ModelError",
-                        representation = representation
-                        (
-                          outcome = "character",
-                          equation = "expression",
-                          derivatives = "list",
-                          sigmaInter = "numeric",
-                          sigmaSlope = "numeric",
-                          cError = "numeric"
-                        ),
-                        prototype = prototype( cError = 1,
-                                               sigmaInter = 0,
-                                               equation =  parse(text = "sigmaSlope")
-                        ))
-
-#' initialize
-#' @param .Object .Object
-#' @param outcome outcome
-#' @param equation equation
-#' @param derivatives derivatives
-#' @param sigmaInter sigmaInter
-#' @param sigmaSlope sigmaSlope
-#' @param cError cError
-#' @return Proportional
+#' @description The class \code{Proportional} is used to defined a model error.
+#' @title Proportional
+#' @param output A string giving the model error output.
+#' @param equation A expression giving the model error equation.
+#' @param derivatives A list giving the derivatives of the model error equation.
+#' @param sigmaInter A double giving the sigma inter.
+#' @param sigmaSlope A double giving the sigma slope
+#' @param sigmaInterFixed A Boolean giving if the  sigma inter is fixed or not. - not in the v7.0
+#' @param sigmaSlopeFixed A Boolean giving if the  sigma slope is fixed or not. - not in the v7.0
+#' @param cError A integer giving the power parameter.
+#' @include ModelError.R
 #' @export
 
-setMethod( f="initialize",
-           signature="Proportional",
-           definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError )
-           {
-             if(!missing(outcome))
-             {
-               .Object@outcome = outcome
-             }
-             if(!missing(equation))
-             {
-               .Object@equation = equation
-             }
-             if(!missing(derivatives))
-             {
-               .Object@derivatives = derivatives
-             }
-             if(!missing(sigmaInter))
-             {
-               .Object@sigmaInter = sigmaInter
-             }
-             if(!missing(sigmaSlope))
-             {
-               .Object@sigmaSlope = sigmaSlope
-             }
-             if( !missing( cError ) )
-             {
-               .Object@cError = cError
-             }
-
-             validObject(.Object)
-             return (.Object )
-           }
-)
-
-##########################################################################################################
-# End class Proportional
-##########################################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Proportional = new_class("Proportional", package = "PFIM", parent = ModelError,
+                         properties = list(
+                           output = new_property(class_character, default = character(0)),
+                           equation = new_property(class_expression, default = expression(sigmaSlope)),
+                           derivatives = new_property(class_list, default = list()),
+                           sigmaInter = new_property(class_double, default = 0.0),
+                           sigmaSlope = new_property(class_double, default = 0.0),
+                           sigmaInterFixed = new_property(class_logical, default = FALSE),
+                           sigmaSlopeFixed = new_property(class_logical, default = FALSE),
+                           cError = new_property(class_double, default = 1.0)
+                         ),
+                         constructor = function(output = character(0),
+                                                equation = expression(sigmaSlope),
+                                                derivatives = list(),
+                                                sigmaInter = 0.0,
+                                                sigmaSlope = 0.0,
+                                                sigmaInterFixed = FALSE,
+                                                sigmaSlopeFixed = FALSE,
+                                                cError = 1.0) {
+                           new_object(.parent = ModelError,
+                                      output = output,
+                                      equation = equation,
+                                      derivatives = derivatives,
+                                      sigmaInter = sigmaInter,
+                                      sigmaSlope = sigmaSlope,
+                                      sigmaInterFixed = sigmaInterFixed,
+                                      sigmaSlopeFixed = sigmaSlopeFixed,
+                                      cError = cError)
+                         })

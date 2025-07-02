@@ -39,6 +39,108 @@ ul.task-list{list-style: none;}
 
 
 
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -248,14 +350,35 @@ parameters</a></li>
 <li><a href="#models-with-linear-elimination" id="toc-models-with-linear-elimination">Models with linear
 elimination</a>
 <ul>
-<li><a href="#one-compartment-models-1" id="toc-one-compartment-models-1">One-compartment models</a></li>
-<li><a href="#two-compartment-models" id="toc-two-compartment-models">Two-compartment models</a></li>
+<li><a href="#one-compartment-models-1" id="toc-one-compartment-models-1">One-compartment models</a>
+<ul>
+<li><a href="#intravenous-bolus" id="toc-intravenous-bolus">Intravenous
+bolus</a></li>
+<li><a href="#infusion" id="toc-infusion">Infusion</a></li>
+<li><a href="#first-order-absorption" id="toc-first-order-absorption">First order absorption</a></li>
+</ul></li>
+<li><a href="#two-compartment-models" id="toc-two-compartment-models">Two-compartment models</a>
+<ul>
+<li><a href="#intravenous-bolus-1" id="toc-intravenous-bolus-1">Intravenous bolus</a></li>
+<li><a href="#infusion-1" id="toc-infusion-1">Infusion</a></li>
+<li><a href="#first-order-absorption-1" id="toc-first-order-absorption-1">First-order absorption</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#models-with-michaelis-menten-elimination" id="toc-models-with-michaelis-menten-elimination">Models with
 Michaelis-Menten elimination</a>
 <ul>
-<li><a href="#one-compartment-models-2" id="toc-one-compartment-models-2">One-compartment models</a></li>
-<li><a href="#two-compartment-models-1" id="toc-two-compartment-models-1">Two-compartment models</a></li>
+<li><a href="#one-compartment-models-2" id="toc-one-compartment-models-2">One-compartment models</a>
+<ul>
+<li><a href="#intravenous-bolus-2" id="toc-intravenous-bolus-2">Intravenous bolus</a></li>
+<li><a href="#infusion-2" id="toc-infusion-2">Infusion</a></li>
+<li><a href="#first-order-absorption-2" id="toc-first-order-absorption-2">First order absorption</a></li>
+</ul></li>
+<li><a href="#two-compartment-models-1" id="toc-two-compartment-models-1">Two-compartment models</a>
+<ul>
+<li><a href="#intravenous-bolus-3" id="toc-intravenous-bolus-3">Intravenous bolus</a></li>
+<li><a href="#infusion-3" id="toc-infusion-3">Infusion</a></li>
+<li><a href="#first-order-absorption-3" id="toc-first-order-absorption-3">First order absorption</a></li>
+</ul></li>
 </ul></li>
 </ul></li>
 <li><a href="#pharmacodynamic-models" id="toc-pharmacodynamic-models">Pharmacodynamic models</a>
@@ -285,11 +408,17 @@ h1.title {
 font-size: 40pt;
 }
 </style>
+<style>h1,h2,h3,h4 { border-bottom: 0; } </style>
+<style type="text/css">
+.boxModel {
+border: 1.5px solid black;
+}
+</style>
+<!-- The document presents the library of pharmacokinetic (PK) and pharmacodynamic (PD) models incorporated into the PFIM software.  -->
 <div id="pharmacokinetic-models" class="section level1">
 <h1>Pharmacokinetic models</h1>
 <div id="compartmental-models-and-parameters" class="section level2">
 <h2>Compartmental models and parameters</h2>
-<!-- In the ensuing section, the mammillary models with one, two or three compartments are presented with the associated parameters and the different parameterisations.  -->
 <p>Six parameters are common to one, two or three compartment
 models:</p>
 <ul>
@@ -343,11 +472,18 @@ C\left(t\right)=\sum^{n}_{i=1}\frac{D_{i}}{V}e^{-k\left(t-t_{D_{i}}\right)}\\
 \end{aligned}   
 \end {equation}\]</span></p>
 <ul>
+<li>Library of models</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>Linear1BolusSingleDose_kV</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>Linear1BolusSingleDose_ClV</span></code></pre></div>
+<ul>
 <li>steady state</li>
 </ul>
 <p><span class="math display">\[\begin {equation}
 C(t)=\frac{D}{V}\frac{e^{-k(t-t_D)}}{1-e^{-k\tau}}\\        
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>Linear1BolusSteadyState_kVtau</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>Linear1BolusSteadyState_ClVtau</span></code></pre></div>
 </div>
 <div id="infusion" class="section level4">
 <h4>Infusion</h4>
@@ -387,6 +523,8 @@ e^{-k\left(t-t_{D_{i}}-Tinf_i\right)}                                           
 \end{cases}
 \end{equation}
 \]</span></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>Linear1InfusionSingleDose_kV</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>Linear1InfusionSingleDose_ClV</span></code></pre></div>
 <ul>
 <li>steady state</li>
 </ul>
@@ -411,6 +549,8 @@ not.}\\
 &amp;
 \end{aligned}
 \end{equation}\]</span></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>Linear1InfusionSteadyState_kVtau</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>Linear1InfusionSteadyState_ClVtau</span></code></pre></div>
 </div>
 <div id="first-order-absorption" class="section level4">
 <h4>First order absorption</h4>
@@ -430,6 +570,8 @@ C\left(t\right)=\sum^{n}_{i=1}\frac{D_{i}}{V}
 \frac{k_{a}}{k_{a}-k}
 \left(e^{-k\left(t-t_{D_{i}}\right)}-e^{-k_{a}\left(t-t_{D_{i}}\right)}\right)
 \end {equation} \]</span></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>Linear1FirstOrderSingleDose_kakV</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>Linear1FirstOrderSingleDose_kaClV</span></code></pre></div>
 <ul>
 <li>steady state</li>
 </ul>
@@ -438,6 +580,8 @@ C\left(t\right)=\frac{D}{V}
 \frac{k_{a}}{k_{a}-k}
 \left(\frac{e^{-k(t-t_D)}}{1-e^{-k\tau}}-\frac{e^{-k_{a}(t-t_D)}}{1-e^{-k_a\tau}}\right)
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>Linear1FirstOrderSteadyState_kakVtau</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>Linear1FirstOrderSteadyState_kaClVtau</span></code></pre></div>
 </div>
 </div>
 <div id="two-compartment-models" class="section level3">
@@ -517,6 +661,8 @@ C\left(t\right)=D\left(Ae^{-\alpha \left(t-t_D\right)}+Be^{-\beta
 C\left(t\right)=\sum^{n}_{i=1}D_{i}\left(Ae^{-\alpha
 \left(t-t_{D_{i}}\right)}+Be^{-\beta \left(t-t_{D_{i}}\right)}\right)
 \end {equation} \]</span></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>Linear2BolusSingleDose_ClQV1V2</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>Linear2BolusSingleDose_kk12k21V</span></code></pre></div>
 <ul>
 <li>steady state</li>
 </ul>
@@ -524,6 +670,8 @@ C\left(t\right)=\sum^{n}_{i=1}D_{i}\left(Ae^{-\alpha
 C\left(t\right)=D\left(\frac{Ae^{-\alpha t}}{1-e^{-\alpha
 \tau}}+\frac{Be^{-\beta t}}{1-e^{-\beta \tau}}\right)
 \end{equation}\]</span></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>Linear2BolusSteadyState_ClQV1V2tau</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>Linear2BolusSteadyState_kk12k21Vtau</span></code></pre></div>
 </div>
 <div id="infusion-1" class="section level4">
 <h4>Infusion</h4>
@@ -594,10 +742,14 @@ Tinf$,}\\
 \text{if not.}
 \end{cases}                             
 \end {equation} \]</span></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>Linear2InfusionSingleDose_kk12k21V,</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>Linear2InfusionSingleDose_ClQV1V2,</span></code></pre></div>
 <ul>
 <li>steady state</li>
 </ul>
 <p>$$$$</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>Linear2InfusionSteadyState_kk12k21Vtau</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>Linear2InfusionSteadyState_ClQV1V2tau</span></code></pre></div>
 </div>
 <div id="first-order-absorption-1" class="section level4">
 <h4>First-order absorption</h4>
@@ -627,6 +779,8 @@ Ae^{-\alpha \left(t-t_{D_{i}}\right)}+Be^{-\beta
 \left(t-t_{D_{i}}\right)}-(A+B)e^{-k_a \left(t-t_{D_{i}}\right)}       
 \right)
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>Linear2FirstOrderSingleDose_kaClQV1V2</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>Linear2FirstOrderSingleDose_kakk12k21V</span></code></pre></div>
 <ul>
 <li>steady state</li>
 </ul>
@@ -638,17 +792,14 @@ C\left(t\right)=D
 -\frac{(A+B)e^{-k_a (t-t_D)}}{1-e^{-k_a \tau}}              
 \right)         
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>Linear2FirstOrderSteadyState_kaClQV1V2tau</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>Linear2FirstOrderSteadyState_kakk12k21Vtau</span></code></pre></div>
 </div>
 </div>
 </div>
 <div id="models-with-michaelis-menten-elimination" class="section level2">
 <h2>Models with Michaelis-Menten elimination</h2>
-<p>The list of PK models with Michaelis-Menten elimination implemented
-in PFIM are summarised in Appendix I.2. Presently, there is no
-implementation for multiple dosing with IV bolus administration in the
-PFIM software. For infusion and oral administration, the implementation
-in PFIM does not allow designs with different groups of doses as the
-dose is included in the model.</p>
+<!-- The list of PK models with Michaelis-Menten elimination implemented in PFIM are summarised in Appendix I.2. Presently, there is no implementation for multiple dosing with IV bolus administration in the PFIM software. For infusion and oral administration, the implementation in PFIM does not allow designs with different groups of doses as the dose is included in the model. -->
 <div id="one-compartment-models-2" class="section level3">
 <h3>One-compartment models</h3>
 <div id="intravenous-bolus-2" class="section level4">
@@ -665,6 +816,7 @@ C\left(t_{D}\right)&amp;= {\frac{D}{V}}\\
 &amp;\frac{dC}{dt}= -\frac{{V_m}\times C}{K_m+C}\\
 \end{aligned}
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>MichaelisMenten1BolusSingleDose_VmKmV</span></code></pre></div>
 </div>
 <div id="infusion-2" class="section level4">
 <h4>Infusion</h4>
@@ -701,6 +853,7 @@ Tinf_{i}$,}\\[0.05cm]
 \end{cases}
 \end{aligned}\label{infusion1mmss}  
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>??????</span></code></pre></div>
 </div>
 <div id="first-order-absorption-2" class="section level4">
 <h4>First order absorption</h4>
@@ -727,6 +880,8 @@ $t&lt; t_{D_{1}}$}\\[0.05cm]
 &amp;input\left(t\right)=\sum^{n}_{i=1}\frac{D_i}{V}k_ae^{-k_a\left(t-t_{D_{i}}\right)}
 \end{aligned}\label{oral11mmss}
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>MichaelisMenten1FirstOrderSingleDose_kaVmKmV,</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>MichaelisMenten2FirstOrderSingleDose_kaVmKmk12k21V1V2</span></code></pre></div>
 </div>
 </div>
 <div id="two-compartment-models-1" class="section level3">
@@ -749,6 +904,7 @@ k_{21 }V_2}{V}C_2\\[0.2cm]
 &amp;\frac{dC_{2}}{dt}=\frac{ k_{12 }V}{V_2}C_1-k_{21}C_2   \\
 \end{aligned}
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>MichaelisMenten2BolusSingleDose_VmKmk12k21V1V2</span></code></pre></div>
 </div>
 <div id="infusion-3" class="section level4">
 <h4>Infusion</h4>
@@ -791,6 +947,7 @@ Tinf_{i}$,}\\[0.05cm]
 \end{cases}
 \end{aligned}
 \end {equation}\]</span></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>MichaelisMenten2InfusionSingleDose_VmKmk12k21V1V2</span></code></pre></div>
 </div>
 <div id="first-order-absorption-3" class="section level4">
 <h4>First order absorption</h4>
@@ -825,6 +982,8 @@ k_{21}V_2}{V}C_2+input\\[0.2cm]
 &amp;input\left(t\right)=\sum^{n}_{i=1}\frac{D_i}{V}k_ae^{-k_a\left(t-t_{D_{i}}\right)}
 \end{aligned}
 \end {equation} \]</span></p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>MichaelisMenten2FirstOrderSingleDose_kaVmKmk12k21V1V2</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>MichaelisMenten2FirstOrderSingleDose_kaVmKmk12k21V1V2</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -874,27 +1033,48 @@ concentration unit.</p>
 <div id="drugactionmodels" class="section level3">
 <h3>Drug action models</h3>
 <ul>
-<li><p>linear model <span class="math display">\[\begin{equation}
+<li>linear model <span class="math display">\[\begin{equation}
 A\left(t\right)=A_{lin}C\left(t\right)
-\end{equation}\]</span></p></li>
-<li><p>quadratic model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>ImmediateDrugLinear_S0Alin</span></code></pre></div>
+<ul>
+<li>quadratic model <span class="math display">\[\begin{equation}
 A\left(t\right)=A_{lin}C\left(t\right)+A_{quad}C\left(t\right)^{2}
-\end{equation}\]</span></p></li>
-<li><p>logarithmic model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>ImmediateDrugImaxQuadratic_S0AlinAquad</span></code></pre></div>
+<ul>
+<li>logarithmic model <span class="math display">\[\begin{equation}
 A\left(t\right)=A_{log}log(C\left(t\right))
-\end{equation}\]</span></p></li>
-<li><p><span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>ImmediateDrugImaxLogarithmic_S0Alog</span></code></pre></div>
+<ul>
+<li><span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
 A\left(t\right)=\frac{E_{max}C\left(t\right)}{C\left(t\right)+C_{50}}
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd <span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>ImmediateDrugEmax_S0EmaxC50</span></code></pre></div>
+<ul>
+<li>sigmoïd <span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
 A\left(t\right)=\frac{E_{max}C\left(t\right)^{\gamma}}{C\left(t\right)^{\gamma}+C_{50}^{\gamma}}
-\end{equation}\]</span></p></li>
-<li><p><span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a>ImmediateDrugSigmoidEmax_S0EmaxC50gamma</span></code></pre></div>
+<ul>
+<li><span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 A\left(t\right)=1-\frac{I_{max}C\left(t\right)}{C\left(t\right)+C_{50}}
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a>ImmediateDrugImax_S0ImaxC50</span></code></pre></div>
+<ul>
+<li>sigmoïd <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 A\left(t\right)=1-\frac{I_{max}C\left(t\right)^{\gamma}}{C\left(t\right)^{\gamma}+C_{50}^{\gamma}}
-\end{equation}\]</span></p></li>
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>ImmediateDrugImax_S0ImaxC50_gamma</span></code></pre></div>
+<ul>
 <li><p>full <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 A\left(t\right)=-\frac{C\left(t\right)}{C\left(t\right)+C_{50}}
 \end{equation}\]</span></p></li>
@@ -903,6 +1083,7 @@ A\left(t\right)=-\frac{C\left(t\right)}{C\left(t\right)+C_{50}}
 A\left(t\right)=-\frac{C\left(t\right)^{\gamma}}{C\left(t\right)^{\gamma}+C_{50}^{\gamma}}
 \end{equation}\]</span></p></li>
 </ul>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>ImmediateDrugImax_S0ImaxC50_gamma</span></code></pre></div>
 </div>
 <div id="baselinediseasemodel" class="section level3">
 <h3>Baseline/disease models</h3>
@@ -912,30 +1093,35 @@ A\left(t\right)=-\frac{C\left(t\right)^{\gamma}}{C\left(t\right)^{\gamma}+C_{50}
 <p><span class="math display">\[\begin{equation}
 S\left(t\right)=0
 \end{equation}\]</span></p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a>ImmediateBaselineConstant_S0</span></code></pre></div>
 <ul>
 <li>constant baseline with no disease progression</li>
 </ul>
 <p><span class="math display">\[\begin{equation}
 S\left(t\right)=S_{0}
 \end{equation}\]</span></p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a>ImmediateBaselineConstant_S0</span></code></pre></div>
 <ul>
 <li>linear disease progression</li>
 </ul>
 <p><span class="math display">\[\begin{equation}
 S\left(t\right)=S_{0}+k_{prog}t
 \end{equation}\]</span></p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a>ImmediateBaselineLinear_S0kprog</span></code></pre></div>
 <ul>
 <li>exponential disease increase</li>
 </ul>
 <p><span class="math display">\[\begin{equation}
 S\left(t\right)=S_{0}e^{-k_{prog}t}
 \end{equation}\]</span></p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a>ImmediateBaselineExponentialincrease_S0kprog</span></code></pre></div>
 <ul>
 <li>exponential disease decrease</li>
 </ul>
 <p><span class="math display">\[\begin{equation}
 S\left(t\right)=S_{0}\left(1-e^{-k_{prog}t}\right)
 \end{equation}\]</span></p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a>ImmediateBaselineExponentialdecrease_S0kprog</span></code></pre></div>
 </div>
 </div>
 <div id="turnover-response-models" class="section level2">
@@ -964,57 +1150,89 @@ rate constant</li>
 <div id="models-with-impact-on-the-input-r_in" class="section level3">
 <h3>Models with impact on the input <span class="math inline">\((R_{in})\)</span></h3>
 <ul>
-<li><p><span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
+<li><span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}\left(1+\frac{E_{max}C}{C+C_{50}}\right)-k_{out}E
 \label{indirect_emax}   
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd <span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a>TurnoverRinEmax_RinEmaxCC50koutE</span></code></pre></div>
+<ul>
+<li>sigmoïd <span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}\left(1+\frac{E_{max}C^{\gamma}}{C^{\gamma}+C_{50}^{\gamma}}\right)-k_{out}E    
 \label{indirect_sig_emax}               
-\end{equation}\]</span></p></li>
-<li><p><span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a>TurnoverRinSigmoidEmax_RinEmaxCC50koutE</span></code></pre></div>
+<ul>
+<li><span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}\left(1-\frac{I_{max}C}{C+C_{50}}\right)-k_{out}E   
 \label{indirect_imax}
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>TurnoverRinFullImax_RinCC50koutE</span></code></pre></div>
+<ul>
+<li>sigmoïd <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}\left(1-\frac{I_{max}C^{\gamma}}{C^{\gamma}+C_{50}^{\gamma}}\right)-k_{out}E    
 \label{indirect_simax}
-\end{equation}\]</span></p></li>
-<li><p>full <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>TurnoverRinImax_RinImaxCC50koutE</span></code></pre></div>
+<ul>
+<li>full <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}\left(1-\frac{C}{C+C_{50}}\right)-k_{out}E  
 \label{indirect_fimax}
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd full <span class="math inline">\(I_{max}\)</span> model
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a>TurnoverRinSigmoidImax_RinImaxCC50koutE</span></code></pre></div>
+<ul>
+<li>sigmoïd full <span class="math inline">\(I_{max}\)</span> model
 <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}\left(1-\frac{C^{\gamma}}{C^{\gamma}+C_{50}^{\gamma}}\right)-k_{out}E   
 \label{indirect_sfimax}             
-\end{equation}\]</span></p></li>
+\end{equation}\]</span></li>
 </ul>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a>TurnoverRinFullImax_RinCC50koutE</span></code></pre></div>
 </div>
 <div id="models-with-impact-on-the-output-k_out" class="section level3">
 <h3>Models with impact on the output <span class="math inline">\((k_{out})\)</span></h3>
 <ul>
-<li><p><span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
+<li><span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}-k_{out}\left(1+\frac{E_{max}C}{C+C_{50}}\right)E   
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd <span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a>TurnoverkoutEmax_RinEmaxCC50koutE</span></code></pre></div>
+<ul>
+<li>sigmoïd <span class="math inline">\(E_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}-k_{out}\left(1+\frac{E_{max}C^{\gamma}}{C^{\gamma}+C_{50}^{\gamma}}\right)E    
-\end{equation}\]</span></p></li>
-<li><p><span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a>TurnoverkoutSigmoidEmax_RinEmaxCC50koutEgamma</span></code></pre></div>
+<ul>
+<li><span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}-k_{out}\left(1-\frac{I_{max}C}{C+C_{50}}\right)E   
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a>TurnoverkoutImax_RinImaxCC50koutE</span></code></pre></div>
+<ul>
+<li>sigmoïd <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}-k_{out}\left(1-\frac{I_{max}C^{\gamma}}{C^{\gamma}+C_{50}^{\gamma}}\right)E    
-\end{equation}\]</span></p></li>
-<li><p>full <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a>TurnoverkoutSigmoidImax_RinImaxCC50koutEgamma</span></code></pre></div>
+<ul>
+<li>full <span class="math inline">\(I_{max}\)</span> model <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}-k_{out}\left(1-\frac{C}{C+C_{50}}\right)E  
-\end{equation}\]</span></p></li>
-<li><p>sigmoïd full <span class="math inline">\(I_{max}\)</span> model
+\end{equation}\]</span></li>
+</ul>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a>TurnoverkoutFullImax_RinCC50koutE</span></code></pre></div>
+<ul>
+<li>sigmoïd full <span class="math inline">\(I_{max}\)</span> model
 <span class="math display">\[\begin{equation}
 \frac{dE}{dt}=R_{in}-k_{out}\left(1-\frac{C^{\gamma}}{C^{\gamma}+C_{50}^{\gamma}}\right)E   
 \label{indirect_osfimax}
-\end{equation}\]</span></p></li>
+\end{equation}\]</span></li>
 </ul>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r boxModel"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a>TurnoverkoutSigmoidFullImax_RinCC50koutE</span></code></pre></div>
 </div>
 </div>
 </div>

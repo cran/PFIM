@@ -1,36 +1,46 @@
-#' Class "ModelODEInfusion"
-#'
-#' @description The class \code{ModelODEInfusion} defines information concerning the construction of an ode model in infusion.
-#' The class \code{ModelODEInfusion} inherits from the class \code{ModelInfusion}.
-#'
-#' @name ModelODEInfusion-class
-#' @aliases ModelODEInfusion
-#' @include ModelInfusion.R
+#' @description The class \code{ModelODEInfusion} is used to defined a model ModelODEInfusion.
+#' @title ModelODEInfusion
+#' @inheritParams ModelInfusion
 #' @export
 
-ModelODEInfusion = setClass(
-  Class = "ModelODEInfusion",
-  contains = "ModelInfusion")
+ModelODEInfusion = new_class( "ModelODEInfusion", package = "PFIM", parent = ModelInfusion )
 
-
-#' @rdname getVariables
+#' evaluateInitialConditions: evaluate the initial conditions.
+#' @name evaluateInitialConditions
+#' @param arm A object of class \code{Arm} giving the arm.
+#' @param model A object of class \code{ModelODEInfusion} giving the model.
+#' @param doseEvent A data frame giving the dose event for the ode solver.
 #' @export
 
-setMethod("getVariables",
-          signature("ModelInfusion"),
-          function( object )
-          {
-            equationsDuringInfusion = getEquationsDuringInfusion( object )
+method( evaluateInitialConditions, ModelODEInfusion ) = function( model, arm ) {
 
-            variablesNamesDerivatives = names( equationsDuringInfusion )
+  initialConditions = prop( arm, "initialConditions")
+  parameters = prop( model, "modelParameters")
 
-            variablesNames = gsub( "Deriv_", "", variablesNamesDerivatives )
+  # assign mu values of the parameters
+  mu = set_names(
+    map( parameters, ~ {
+      pluck(.x, "distribution", "mu")
+    }),
+    map( parameters, ~ prop( .x, "name") )
+  )
 
-            return( list( variablesNames = variablesNames, variablesNamesDerivatives = variablesNamesDerivatives ) )
+  list2env( mu, envir = environment())
 
-          })
+  # evaluate the initial conditions
+  initialConditions = map( initialConditions, ~ {
 
-##########################################################################################################
-# END Class ModelODEInfusion
-##########################################################################################################
+    if ( is.numeric(.x) ) {
+      return(.x)
+    } else {
+      eval( parse( text = .x ) )
+    }
+  })%>%unlist()
+
+  return( initialConditions )
+}
+
+
+
+
 

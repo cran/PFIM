@@ -1,183 +1,41 @@
-#' Class "ModelInfusion"
-#' @description ...
-#' @name ModelInfusion-class
-#' @aliases ModelInfusion
-#' @docType class
+#' @description The class \code{ModelInfusion} is used to defined a model in infusion.
+#' @title ModelInfusion
+#' @inheritParams Model
 #' @include Model.R
 #' @export
 
-ModelInfusion = setClass("ModelInfusion",
-                         contains = "Model",
-                         prototype = prototype(
-                           equations = list(
-                             duringInfusion = list(),
-                             afterInfusion = list())))
+ModelInfusion = new_class( "ModelInfusion", package = "PFIM", parent = Model )
 
-#' initialize
-#' @param .Object .Object
-#' @param name name
-#' @param description description
-#' @param equations equations
-#' @param outcomes outcomes
-#' @param parameters parameters
-#' @param modelError modelError
-#' @param initialConditions initialConditions
-#' @param odeSolverParameters odeSolverParameters
-#' @return ModelInfusion
+#' convertPKModelAnalyticToPKModelODE: conversion from analytic to ode
+#' @name convertPKModelAnalyticToPKModelODE
+#' @param pkModel An object of class \code{ModelInfusion} that defines the model.
 #' @export
 
-setMethod( f="initialize",
-           signature="ModelInfusion",
-           definition= function (.Object, name, description, equations, outcomes, parameters,
-                                 modelError, initialConditions, odeSolverParameters )
-           {
-             if(!missing(name))
-             {
-               .Object@name = name
-             }
-             if(!missing( description ) )
-             {
-               .Object@description = description
-             }
-             if(!missing( equations ) )
-             {
-               .Object@equations = equations
-             }
-             if(!missing( outcomes ) )
-             {
-               .Object@outcomes = outcomes
-             }
-             if(!missing( parameters ) )
-             {
-               .Object@parameters = parameters
-             }
-             if(!missing( initialConditions ) )
-             {
-               .Object@initialConditions = initialConditions
-             }
-             if(!missing( modelError ) )
-             {
-               .Object@modelError = modelError
-             }
-             if(!missing( odeSolverParameters ) )
-             {
-               .Object@odeSolverParameters = odeSolverParameters
-             }
-             validObject(.Object)
-             return (.Object )
-           }
-)
+method( convertPKModelAnalyticToPKModelODE, ModelInfusion ) = function( pkModel  ) {
 
-#' Get the equations during infusion.
-#'
-#' @name getEquationsDuringInfusion
-#' @param object An object from the class \linkS4class{Model}.
-#' @return A list giving the equations during the infusion.
-#' @export
+  pkModelEquations = prop(pkModel, "modelEquations")
 
-setGeneric(
-  "getEquationsDuringInfusion",
-  function(object) {
-    standardGeneric("getEquationsDuringInfusion")
-  })
+  pkModelEquations = list( duringInfusion = pkModelEquations$duringInfusion,
+                           afterInfusion = pkModelEquations$afterInfusion )
 
+  convertEquation = function( equation ) {
+    dtEquationPKsubstitute = D( parse( text = equation ), "t")
+    dtEquationPKsubstitute = str_c( deparse( dtEquationPKsubstitute ), collapse = "" )
 
-#' @rdname getEquationsDuringInfusion
-#' @export
+    if ( str_detect( equation, "Cl" ) ) {
+      return( str_c( dtEquationPKsubstitute, "+(Cl/V)*", equation, "- (Cl/V)*C1" ) )
+    } else {
+      return( str_c( dtEquationPKsubstitute, "+k*", equation, "- k*C1" ) )
+    }
+  }
 
-setMethod("getEquationsDuringInfusion",
-          "Model",
-          function(object) {
-            equations = getEquations( object )
-            equations = equations$duringInfusion
-            return( equations )
-          })
+  equations = map( pkModelEquations, convertEquation )
+  equations = map( equations, str_replace_all, " ", "" )
+  equations =  list( duringInfusion = list( "Deriv_C1" = equations$duringInfusion ),
+                     afterInfusion = list( "Deriv_C1" = equations$afterInfusion ) )
 
-#' Get the equations after infusion.
-#'
-#' @name getEquationsAfterInfusion
-#' @param object An object from the class \linkS4class{Model}.
-#' @return A list giving the equations after the infusion.
-#' @export getEquationsAfterInfusion
-
-setGeneric(
-  "getEquationsAfterInfusion",
-  function(object) {
-    standardGeneric("getEquationsAfterInfusion")
-  })
-
-#' @rdname getEquationsAfterInfusion
-#' @export
-
-setMethod("getEquationsAfterInfusion",
-          "Model",
-          function(object) {
-            equations = getEquations( object )
-            equations = equations$afterInfusion
-            return( equations )
-          })
-
-#' Set the equations after infusion.
-#'
-#' @name setEquationsAfterInfusion
-#' @param object An object from the class \linkS4class{Model}.
-#' @param equations A list giving the equations after the infusion.
-#' @return The model with the updated equations after the infusion.
-#' @export
-
-setGeneric(
-  "setEquationsAfterInfusion",
-  function(object, equations) {
-    standardGeneric("setEquationsAfterInfusion")
-  })
-
-#' @rdname setEquationsAfterInfusion
-#' @export
-
-setMethod("setEquationsAfterInfusion",
-          "Model",
-          function(object,equations) {
-            object@equations$afterInfusion = equations
-            return( object )
-          })
-
-#' Set the equations during infusion.
-#'
-#' @name setEquationsDuringInfusion
-#' @param object An object from the class \linkS4class{Model}.
-#' @param equations A list giving the equations during the infusion.
-#' @return The model with the updated equations during the infusion.
-#' @export
-
-setGeneric(
-  "setEquationsDuringInfusion",
-  function(object, equations) {
-    standardGeneric("setEquationsDuringInfusion")
-  })
-
-#' @rdname setEquationsDuringInfusion
-#' @export
-
-setMethod("setEquationsDuringInfusion",
-          "Model",
-          function(object,equations) {
-            object@equations$duringInfusion = equations
-            return( object )
-          })
-
-###########################################################################################
-# End class ModelInfusion
-###########################################################################################
-
-
-
-
-
-
-
-
-
-
+  return( equations )
+}
 
 
 

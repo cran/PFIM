@@ -1,173 +1,42 @@
-#' Class "SimplexAlgorithm"
-#'
-#' @description Class "SimplexAlgorithm" implements the Multiplicative algorithm.
-#'
-#' @name SimplexAlgorithm-class
-#' @aliases SimplexAlgorithm
-#' @docType class
-#' @include OptimizationAlgorithm.R
-#' @include Design.R
-#' @include GenericMethods.R
-#' @export
-#'
-#' @section Objects from the class \code{SimplexAlgorithm}:
-#' Objects form the class \code{SimplexAlgorithm} can be created by calls of the form \code{SimplexAlgorithm(...)} where
-#' (...) are the parameters for the \code{SimplexAlgorithm} objects.
-#'
-#'@section Slots for \code{SamplingTimes} objects:
-#'  \describe{
-#'    \item{\code{pctInitialSimplexBuilding}:}{A numeric giving the percentage of the initial simplex.}
-#'    \item{\code{maxIteration}:}{A numeric giving the number of maximum iteration.}
-#'    \item{\code{tolerance}:}{A numeric giving the tolerance threshold.}
-#'    \item{\code{showProcess}:}{A boolean to show or not the process.}
-#'    \item{\code{optimalDesign}:}{A \code{Design} object giving the optimal design.}
-#'    \item{\code{iterationAndCriteria}:}{A list giving the optimal criteria at each iteration.}
-#'  }
-
-SimplexAlgorithm = setClass(
-  Class = "SimplexAlgorithm",
-  contains = "OptimizationAlgorithm",
-  representation = representation(
-    pctInitialSimplexBuilding = "numeric",
-    maxIteration = "numeric",
-    tolerance = "numeric",
-    showProcess = "logical",
-    optimalDesign = "Design",
-    iterationAndCriteria = "list"
-  ),
-  prototype = prototype(
-    showProcess = F
-  )
-)
-
-#' initialize
-#' @param .Object .Object
-#' @param pctInitialSimplexBuilding pctInitialSimplexBuilding
-#' @param maxIteration maxIteration
-#' @param tolerance tolerance
-#' @param optimalDesigns optimalDesigns
-#' @param iterationAndCriteria iterationAndCriteria
-#' @param showProcess showProcess
-#' @return SimplexAlgorithm
+#' @description The class \code{SimplexAlgorithm} implements the Simplex algorithm.
+#' @title SimplexAlgorithm
+#' @inheritParams Optimization
+#' @param pctInitialSimplexBuilding A numeric giving the pctInitialSimplexBuilding.
+#' @param maxIteration  A numeric giving the maxIteration.
+#' @param tolerance  A numeric giving the tolerance.
+#' @param seed  A numeric giving the seed.
+#' @param showProcess A Boolean giving the showProcess.
+#' @include Optimization.R
 #' @export
 
-setMethod( f="initialize",
-           signature="SimplexAlgorithm",
-           definition= function ( .Object,
-                                  pctInitialSimplexBuilding,
-                                  maxIteration,
-                                  tolerance,
-                                  optimalDesigns,
-                                  iterationAndCriteria,
-                                  showProcess )
-           {
-             .Object@pctInitialSimplexBuilding = 20
-             .Object@maxIteration = 5000
-             .Object@tolerance = 1e-6
-             .Object@showProcess = F
-             if ( !missing( pctInitialSimplexBuilding ) )
-             {
-               .Object@pctInitialSimplexBuilding = pctInitialSimplexBuilding
-             }
-             if ( !missing( maxIteration ) )
-             {
-               .Object@maxIteration = maxIteration
-             }
-             if ( !missing( tolerance ) )
-             {
-               .Object@tolerance = tolerance
-             }
-             if ( !missing( showProcess ) )
-             {
-               .Object@showProcess = showProcess
-             }
-             if ( !missing( optimalDesigns ) )
-             {
-               .Object@optimalDesigns = optimalDesigns
-             }
-             if ( !missing( iterationAndCriteria ) )
-             {
-               .Object@iterationAndCriteria = iterationAndCriteria
-             }
-             validObject( .Object )
-             return ( .Object )
-           }
-)
+SimplexAlgorithm = new_class( "SimplexAlgorithm", package = "PFIM", parent = Optimization,
 
-#' @rdname setParameters
-#' @export
+                          properties = list( pctInitialSimplexBuilding = new_property(class_double, default = numeric(0)),
+                                             maxIteration = new_property(class_double, default = numeric(0)),
+                                             seed = new_property(class_double, default = numeric(0)),
+                                             tolerance = new_property(class_double, default = numeric(0)),
+                                             showProcess = new_property(class_logical, default = FALSE ) ) )
 
-setMethod("setParameters",
-          "SimplexAlgorithm",
-          function( object, parameters ) {
-            object@pctInitialSimplexBuilding = parameters$pctInitialSimplexBuilding
-            object@name = "SimplexAlgorithm"
-            object@maxIteration = parameters$maxIteration
-            object@showProcess = parameters$showProcess
-            return( object )
-          })
+fisherSimplex = new_generic( "fisherSimplex", c( "optimizationObject" ) )
 
-# function nelder simplex amoeba
-#
-# add of a Splus function for the Simplex (taken on the Splus User Group)
-# ~/rtns/S/optfcn.q
-# Splus functions useful in numerical optimization.
-#   Daniel Heitjan, 13 September 1990
-#   Revised, 10 March 1992
-#   Style changes, 94.02.26
-#' function fun.amoeba
+#' Compute the fun.amoeba
+#'
 #' @name fun.amoeba
-#' @param p input is a matrix p whose ndim+1 rows are ndim-dimensional vectors which are the vertices of the starting simplex.
-#' @param y vector whose components must be pre-initialized to the values of funk evaluated at the ndim+1 vertices (rows) of p.
-#' @param ftol the fractional convergence tolerance to be achieved in the function value.
-#' @param itmax maximal number of iterations.
-#' @param funk multidimensional function to be optimized.
-#' @param outcomes A vector giving the outcomes.
-#' @param data a fixed set of data.
-#' @param showProcess A boolean for showing the process or not.
-#' @return A list containing the components of the optimized simplex.
-#' 'getColumnAndParametersNamesFIMInLatex.
+#' @param p parameter p
+#' @param y parameter y
+#' @param ftol parameter ftol
+#' @param itmax parameter itmax
+#' @param funk parameter funk
+#' @param outcomes The model outcomes.
+#' @param data parameter data
+#' @param showProcess Boolean.
+#' @return fun.amoeba
 #' @export
 
 fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
-  ## Multidimensional minimization of the function funk(x,data) where x
-  ## is an ndim-dimensional vector and data is a fixed set of data, by
-  ## the downhill simplex method of Nelder and Mead.  The structure data
-  ## is arbitrary and is evaluated only in funk.  Input is a matrix p
-  ## whose ndim+1 rows are ndim-dimensional vectors which are the
-  ## vertices of the starting simplex, and a data vector in a suitable
-  ## format.  Also input is the vector y of length ndim+1, whose
-  ## components must be pre-initialized to the values of funk evaluated
-  ## at the ndim+1 vertices (rows) of p  and ftol the fractional
-  ## convergence tolerance to be achieved in the function value (n.b.!).
-  ## The output list will contain components p, ndim+1 new points all
-  ## within ftol of a minimum function value, y, the function value,
-  ## iter, the number of iterations taken, and converge, a convergence
-  ## indicator.
-  ##   Translated from *Numerical Recipes*, 13 March 1989
-  ##   Revised for model fitting, 16 March 1989
-  ##   Revised to handle univariate parameters, 29 July 1989
-  ##   Comments and printing revised, 28 April 1990
-  ##   Stopping criterion revised, 3 May 1990
-  ##   Error in contraction routine fixed, 4 May 1990
-  ##   Replaced 'order' with 'sort.list', 4 May 1990
-  ##   Modified digits to print, 20 June 1990
-  ##   Changed print to cat, 13 September 1990
-  ##   Modify printing, 8 February 1991
-  ##   Added verbose mode, 94.12.25
-  ##   Daniel F. Heitjan
-  ##
-  # ===============================================================
-  ## Three parameters which define the expansions and contractions.
-  # ===============================================================
-
   alpha = 1.0
   beta = 0.5
   gamma = 2.0
-
-  # ========================================================================
-  ## A parameter that governs stopping if the function is converging to zero.
-  # ========================================================================
 
   eps = 1.e-10
   mpts = nrow(p)
@@ -177,10 +46,6 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
   results = data.frame()
 
   while (contin) {
-
-    # ========================
-    # show process
-    # ========================
 
     if ( showProcess == TRUE )
     {
@@ -233,7 +98,7 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
       # ======================================================================
 
       pr=(1+alpha)*pbar-alpha*p[ihi,]
-      ypr=funk(pr,data,outcomes)
+      ypr=funk(data,pr,outcomes)
       if (ypr<=y[ilo])
       {
         # ======================================================================
@@ -241,7 +106,7 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
         ## extrapolation by a factor gamma, and check out the function there.
         # ======================================================================
         prr=gamma*pr+(1-gamma)*pbar
-        yprr=funk(prr,data,outcomes)
+        yprr=funk(data,prr,outcomes)
         if (yprr<y[ilo])
         {
           # ========================================================================
@@ -277,7 +142,7 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
           ## function.
           # ========================================================================
           prr=beta*p[ihi,]+(1-beta)*pbar
-          yprr=funk(prr,data,outcomes)
+          yprr=funk(data,prr,outcomes)
           if (yprr<y[ihi])
           {
             # ========================================================================
@@ -293,7 +158,7 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
             p=0.5*(p+matrix(p[ilo,],nrow=nrow(p),ncol=ncol(p),byrow=T))
             for (j in 1:length(y)) {
               if (j!=ilo) {
-                y[j]=funk(p[j,],data,outcomes)
+                y[j]=funk(data,p[j,],outcomes)
               }
             }
           }
@@ -312,379 +177,257 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
 } # end function amoeba
 
 #' Compute the fisher.simplex
-#'
-#' @name fisher.simplex
+#' @name fisherSimplex
 #' @param simplex A list giving the parameters of the simplex.
-#' @param optimizationObject An object from the class \linkS4class{Optimization}.
+#' @param optimizationObject An object \code{Optimization}.
 #' @param outcomes A vector giving the outcomes of the arms.
 #' @return A list giving the results of the optimization.
 #' @export
 
-fisher.simplex = function( simplex, optimizationObject, outcomes )
+method( fisherSimplex, Optimization ) = function( optimizationObject, simplex, outcomes )
 {
-  # ===============================================
-  # get outcomes
-  # ===============================================
-
-  modelEquations = getModelEquations( optimizationObject )
-  outcomesForEvaluation = modelEquations$outcomes
-
-  # ===============================================
-  # set fim for evaluation
-  # ===============================================
-
-  fimOptimization = getFim( optimizationObject )
-  fimEvaluation = setFimTypeToString( fimOptimization )
-
-  # ===============================================
-  # designs and arms for optimization
-  # ===============================================
-
-  designs = getDesigns( optimizationObject )
-
   samplingTimeConstraintsForContinuousOptimization = list( )
+
+  # designs and arms
+  designs = prop( optimizationObject, "designs" )
 
   for ( design in designs )
   {
-    designName = getName( design )
+    designName = prop( design, "name" )
+    arms = prop( design, "arms" )
 
-    arms = getArms( design )
-
-    # ===============================================
     # set sampling times in each arm
-    # ===============================================
-
-    listArms = list()
+    armsList = list()
 
     for ( arm in arms )
     {
-      armName = getName( arm )
+      armName = prop( arm, "name" )
 
-      # ===============================================
       # get constraints
-      # ===============================================
-
       samplingTimesArms = list()
+      samplingTimesConstraints = prop( arm, "samplingTimesConstraints" )
+      samplingTimes = prop( arm, "samplingTimes" )
 
       for ( outcome in outcomes[[armName]] )
       {
-        # ===============================================
         # get the samplings times by design-arm-outcome
-        # ===============================================
-
         namesSamplings = toString( c( designName, armName, outcome ) )
         indexSamplingTimes = which( names( simplex ) == namesSamplings )
         newSamplings = simplex[indexSamplingTimes]
         names( newSamplings ) = NULL
 
-        # =======================================================
         # check the constraints on the samplings times
-        # =======================================================
-
-        samplingTimesConstraints = getSamplingTimeConstraint( arm, outcome )
+        samplingTimesConstraint = keep( samplingTimesConstraints, ~ prop( .x,"outcome" ) == outcome ) %>% pluck(1)
 
         samplingTimeConstraintsForContinuousOptimization[[ armName ]][[ outcome ]] =
-          checkSamplingTimeConstraintsForContinuousOptimization( samplingTimesConstraints, arm, newSamplings, outcome )
+          checkSamplingTimeConstraintsForMetaheuristic( samplingTimesConstraint, arm, newSamplings, outcome )
 
-        # =======================================================
-        # set the samplingTimes
-        # =======================================================
-
-        samplingTime = getSamplingTime( arm, outcome )
-        samplingTime = setSamplings( samplingTime, newSamplings )
-        arm = setSamplingTime( arm, samplingTime )
+        samplingTimes = samplingTimes %>%
+          modify_at(
+            .at = which( map_chr( ., ~ prop( .x, "outcome" ) ) == outcome ),
+            .f = ~ {
+              prop( .x, "samplings" ) = newSamplings
+              .x
+            })
       }
-      design = setArm( design, arm )
+      prop( arm, "samplingTimes" ) = samplingTimes
+      armsList = append( armsList, arm )
     }
+
+    # set new arms to the design
+    prop( design, "arms" ) = armsList
 
     samplingTimeConstraintsForContinuousOptimization = unlist( samplingTimeConstraintsForContinuousOptimization )
 
-    # =======================================================
     # if constraints are satisfied evaluate design
-    # =======================================================
-
     if( all( samplingTimeConstraintsForContinuousOptimization ) == TRUE )
     {
-      # ==================================
-      # get parameters for the evaluation
-      # ==================================
-
-      modelEquations = getModelEquations( optimizationObject )
-      modelParameters = getModelParameters( optimizationObject )
-      modelError = getModelError( optimizationObject )
-      outcomes = getOutcomes( optimizationObject )
-      designs = getDesigns( optimizationObject )
-      odeSolverParameters = getOdeSolverParameters( optimizationObject )
-
-      # ================================
-      # evaluate fim
-      # ================================
-
+      # evaluate the fim
       evaluationFIM = Evaluation( name = "",
-                                  modelEquations = modelEquations,
-                                  modelParameters = modelParameters,
-                                  modelError = modelError,
-                                  outcomes = outcomesForEvaluation,
+                                  modelEquations = prop( optimizationObject, "modelEquations" ),
+                                  modelParameters = prop( optimizationObject, "modelParameters" ),
+                                  modelError = prop( optimizationObject, "modelError" ),
+                                  fimType = prop( optimizationObject, "fimType" ),
+                                  outputs = prop( optimizationObject, "outputs" ),
                                   designs = list( design ),
-                                  fim = fimEvaluation,
-                                  odeSolverParameters = odeSolverParameters )
+                                  odeSolverParameters = prop( optimizationObject, "odeSolverParameters" ) )
 
       evaluationFIM =  run( evaluationFIM )
 
-      # ================================
-      # get criteria
-      # ================================
-
-      designs = getDesigns( evaluationFIM )
-      fim = getFim( designs[[1]] )
-      Dcriterion = 1/getDcriterion( fim )
+      # get D-criterion
+      fim = prop( evaluationFIM, "fim" )
+      Dcriterion = 1/Dcriterion( fim )
 
     }else{
       Dcriterion = 1
     }
   }
 
-  # ================================
   # in case of Inf
-  # ================================
-
   Dcriterion[is.infinite(Dcriterion)] = 1.0
-
   return( Dcriterion )
 }
 
-#' @rdname optimize
+#' Optimization SimplexAlgorithm
+#' @name optimizeDesign
+#' @param optimizationObject A object \code{Optimization}.
+#' @param optimizationAlgorithm A object \code{SimplexAlgorithm}.
+#' @return The object \code{optimizationObject} with the slots updated.
 #' @export
 
-setMethod( f = "optimize",
-           signature = "SimplexAlgorithm",
-           definition = function( object, optimizerParameters, optimizationObject )
-           {
-             # ================================
-             # get simplex parameters
-             # ================================
+method( optimizeDesign, list( Optimization, SimplexAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm )
+{
+  # get simplex parameters
+  optimizerParameters = prop( optimizationObject, "optimizerParameters")
+  showProcess = optimizerParameters$showProcess
+  pctInitialSimplexBuilding = optimizerParameters$pctInitialSimplexBuilding
+  tolerance = optimizerParameters$tolerance
+  maxIteration = optimizerParameters$maxIteration
 
-             optimizationParameters = getOptimizerParameters( optimizationObject )
-             showProcess = optimizationParameters$showProcess
+  # get the design to be optimized
+  designs = prop( optimizationObject, "designs" )
+  design = pluck( designs, 1 )
+  optimalDesign =  pluck( designs, 1 )
+  designName = prop( design, "name" )
 
-             designs = getDesigns( optimizationObject )
-             design = designs[[1]]
+  # check validity of the sampling Times Constraints
+  checkValiditySamplingConstraint( design )
 
-             # ==============================================
-             # check validity of the samplingTimesConstraints
-             # ==============================================
+  # in case of partial sampling constraints set the new arms with the sampling constraints
+  design = setSamplingConstraintForOptimization( design )
 
-             checkValiditySamplingConstraint( design )
+  # get the arms
+  arms = prop( design, "arms" )
 
-             # ===============================================
-             # in case of partial sampling constraints
-             # set the new arms with the sampling constraints
-             # ===============================================
+  # set the new designs in the optimizationObject
+  prop( optimizationObject, "designs" ) = list( design )
 
-             design = setSamplingConstraintForOptimization( design )
+  # get arm outcomes
+  outcomes = map( set_names( arms, map_chr( arms, ~ prop( .x, 'name' ) ) ), ~ {
+    map_chr( prop( .x, "samplingTimesConstraints" ), ~ prop( .x, "outcome"))
+  })
 
-             designName = getName( design )
-             arms = getArms( design )
+  # create the initial simplex
+  namesSamplingsSimplex = list()
+  samplingsSimplex = list()
+  initialSimplex = list()
 
-             # ===============================================
-             # set the new designs in the optimizationObject
-             # ===============================================
+  k=1
+  for ( arm in arms )
+  {
+    armName = prop( arm, "name" )
+    samplingTimesConstraints = prop( arm, "samplingTimesConstraints" )
 
-             optimizationObject = setDesigns( optimizationObject, designs = list( design ) )
+    for ( outcome in outcomes[[armName]] )
+    {
+      samplingTimesConstraint = keep( samplingTimesConstraints, ~ prop(.x,"outcome") == outcome ) %>% pluck(1)
+      samplingsSimplex[[k]] = prop( samplingTimesConstraint, "initialSamplings" )
+      namesSamplingsSimplex[[k]] = rep( toString( c( designName, armName, outcome ) ), length( samplingsSimplex[[k]] ) )
+      k=k+1
+    }
+  }
 
-             # ===============================================
-             # get arm outcomes
-             # ===============================================
+  samplingsSimplex = unlist( samplingsSimplex )
+  samplingsSimplex = matrix( rep( samplingsSimplex,length( samplingsSimplex ) + 1 ), ncol = length( samplingsSimplex ), byrow=TRUE )
+  colnames( samplingsSimplex ) = unlist( namesSamplingsSimplex )
+  samplingsSimplex = t( apply( samplingsSimplex, 1, sort ) )
 
-             outcomes = list()
+  # percentage initial simplex
+  for ( i in 1:dim( samplingsSimplex )[2] )
+  {
+    samplingsSimplex[i+1,i] = samplingsSimplex[i+1,i]*( 1-pctInitialSimplexBuilding/100 )
+  }
 
-             for ( arm in arms )
-             {
-               armName = getName( arm )
-               outcomes[[armName]] = unlist( lapply( getSamplingTimesConstraints( arm ), function( x ) getOutcome( x ) ) )
-             }
+  # evaluate criteria
+  y = c()
+  for ( i in 1:dim( samplingsSimplex )[1] )
+  {
+    y[i] = fisherSimplex( optimizationObject, samplingsSimplex[i,], outcomes )
+  }
 
-             # ================================
-             # create the initial simplex
-             # ================================
+  # Run the simplex
+  opti = fun.amoeba( samplingsSimplex, y, tolerance, maxIteration, fisherSimplex, outcomes, data = optimizationObject, showProcess )
 
-             namesSamplingsSimplex = list()
-             samplingsSimplex = list()
-             initialSimplex = list()
+  # get the results of the simplex
+  optimalDCriteria = opti$y
+  samplingTimesSimplex = opti$p
+  indexOptimalDCriteria = which( opti$y == min( opti$y ) )
+  results = opti$results
+  optimalsamplingTimes = samplingTimesSimplex[indexOptimalDCriteria,]
 
-             k=1
-             for ( arm in arms )
-             {
-               armName = getName( arm )
+  # set optimal design
+  namesDesignArmOutcome = unique( names( optimalsamplingTimes ) )
+  arms = prop( optimalDesign, "arms" )
+  armsList = list()
 
-               for ( outcome in outcomes[[armName]] )
-               {
-                 samplingTimeConstraint = getSamplingTimeConstraint( arm, outcome )
-                 samplingsSimplex[[k]] = getSamplings( samplingTimeConstraint )
-                 namesSamplingsSimplex[[k]] = rep( toString( c( designName, armName, outcome ) ), length( samplingsSimplex[[k]] ) )
-                 k=k+1
-               }
-             }
+  for ( arm in arms )
+  {
+    armName = prop( arm, "name" )
 
-             samplingsSimplex = unlist( samplingsSimplex )
-             samplingsSimplex = matrix( rep( samplingsSimplex,length( samplingsSimplex ) + 1 ), ncol = length( samplingsSimplex ), byrow=TRUE )
-             colnames( samplingsSimplex ) = unlist( namesSamplingsSimplex )
-             samplingsSimplex = t( apply( samplingsSimplex,1,sort.int ) )
+    listOfSamplingTimes = list()
 
-             # ================================
-             # percentage initial simplex
-             # ================================
+    for ( outcome in outcomes[[armName]] )
+    {
+      namesSamplings = toString(c( designName, armName, outcome ))
+      indexSamplingTimes = which( names( optimalsamplingTimes ) == namesSamplings )
+      samplings = optimalsamplingTimes[indexSamplingTimes]
+      names(samplings) = NULL
+      samplingTimes = SamplingTimes( outcome, samplings = samplings )
+      listOfSamplingTimes = append( listOfSamplingTimes, samplingTimes )
+    }
+    prop( arm, "samplingTimes" ) = listOfSamplingTimes
+    armsList = append( armsList, arm )
+  }
 
-             for ( i in 1:dim( samplingsSimplex )[2] )
-             {
-               samplingsSimplex[i+1,i] = samplingsSimplex[i+1,i]*( 1-optimizerParameters$pctInitialSimplexBuilding/100 )
-             }
+  # set optimal arms
+  prop( optimalDesign, "arms" ) = armsList
 
-             # ================================
-             # evaluate criteria
-             # ================================
+  # evaluate the optimal design
+  evaluationOptimalDesign = Evaluation( name = "",
+                                        modelEquations = prop( optimizationObject, "modelEquations" ),
+                                        modelParameters = prop( optimizationObject, "modelParameters" ),
+                                        modelError = prop( optimizationObject, "modelError" ),
+                                        designs = list( optimalDesign ),
+                                        fimType = prop( optimizationObject, "fimType" ),
+                                        outputs = prop( optimizationObject, "outputs" ),
+                                        odeSolverParameters = prop( optimizationObject, "odeSolverParameters" ) )
 
-             y = c()
+  evaluationOptimalDesign = run( evaluationOptimalDesign )
 
-             for ( i in 1:dim( samplingsSimplex )[1] )
-             {
-               y[i] = fisher.simplex( samplingsSimplex[i,], optimizationObject, outcomes )
-             }
+  # evaluate the initial design
+  evaluationInitialDesign = Evaluation( name = "",
+                                        modelEquations = prop( optimizationObject, "modelEquations" ),
+                                        modelParameters = prop( optimizationObject, "modelParameters" ),
+                                        modelError = prop( optimizationObject, "modelError" ),
+                                        designs = list( design ),
+                                        fimType = prop( optimizationObject, "fimType" ),
+                                        outputs = prop( optimizationObject, "outputs" ),
+                                        odeSolverParameters = prop( optimizationObject, "odeSolverParameters" ) )
 
-             # ================================
-             # Run the simplex
-             # ================================
+  evaluationInitialDesign = run( evaluationInitialDesign )
 
-             opti = fun.amoeba( samplingsSimplex, y,
-                                optimizerParameters$tolerance,
-                                optimizerParameters$maxIteration,
-                                fisher.simplex,
-                                outcomes,
-                                data = optimizationObject, showProcess )
+  # set the results in evaluation
+  prop( optimizationObject, "optimisationDesign" ) = list( evaluationInitialDesign = evaluationInitialDesign, evaluationOptimalDesign = evaluationOptimalDesign )
+  prop( optimizationObject, "optimisationAlgorithmOutputs" ) = list( "optimizationAlgorithm" = optimizationAlgorithm, "optimalArms" = armsList )
+  return( optimizationObject )
+}
 
-             optimalDCriteria = opti$y
-             samplingTimesSimplex = opti$p
-             indexOptimalDCriteria = which( opti$y == min( opti$y ) )
-             results = opti$results
-             optimalsamplingTimes = samplingTimesSimplex[indexOptimalDCriteria,]
-
-             # ================================
-             # set optimal design
-             # ================================
-
-             namesDesignArmOutcome = unique(names( optimalsamplingTimes ))
-             designs = getDesigns( optimizationObject )
-
-             for ( design in designs )
-             {
-               designName = getName( design )
-               arms = getArms( design )
-
-               for ( arm in arms )
-               {
-                 armName = getName( arm )
-
-                 for ( outcome in outcomes[[armName]] )
-                 {
-                   namesSamplings = toString(c( designName, armName, outcome ))
-                   indexSamplingTimes = which( names( optimalsamplingTimes ) == namesSamplings )
-                   samplings = optimalsamplingTimes[indexSamplingTimes]
-                   names(samplings) = NULL
-                   samplingTimes = SamplingTimes( outcome, samplings = samplings )
-                   arm = setSamplingTime( arm, samplingTimes )
-                 }
-                 design = setArm( design, arm )
-               }
-               object = setOptimalDesign( object, design )
-             }
-
-             # ================================
-             # Iteration & Criteria
-             # ================================
-
-             colnames( results ) = c("Iteration","Criterion")
-             results = results[rev(rownames(results)),]
-             object = setIterationAndCriteria( object, results )
-             return( object )
-           })
-
-#' @title show
-#' @rdname show
-#' @param object object
+#' constraintsTableForReport: table of the SimplexAlgorithm constraints for the report.
+#' @name constraintsTableForReport
+#' @param optimizationAlgorithm A object \code{SimplexAlgorithm}.
+#' @param arms List of the arms.
+#' @return The table for the constraints in the arms.
 #' @export
 
-setMethod(f="show",
-          signature = "SimplexAlgorithm",
-          definition = function( object )
-          {
-            cat( " ************************************************* ")
-            cat("\n")
-            cat( " Criterion ")
-            cat("\n")
-            cat( " ************************************************* ")
-            cat("\n")
-            iterationAndCriteria = getIterationAndCriteria( object )
-            rownames(iterationAndCriteria )=NULL
+method( constraintsTableForReport, SimplexAlgorithm ) = function( optimizationAlgorithm, arms  )
+{
+  armsConstraints = map( pluck( arms, 1 ) , ~ getArmConstraints( .x, optimizationAlgorithm ) )
+  armsConstraints = map_dfr( armsConstraints, ~ map_df(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
+  colnames( armsConstraints ) = c( "Arms name" , "Number of subjects", "Outcome", "Initial samplings", "Samplings windows", "Number of times by windows","Min sampling" )
+  armsConstraintsTable = kbl( armsConstraints, align = c( "l","c","c","c","c","c","c") ) %>% kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+  return( armsConstraintsTable )
+}
 
-            # ================================
-            # keep only criterion change
-            # ================================
 
-            iterationAndCriteriaUnique = iterationAndCriteria[!duplicated(iterationAndCriteria$Criteria),]
 
-            iterationAndCriteriaUnique = rbind(iterationAndCriteriaUnique,
-                                               iterationAndCriteria[max(iterationAndCriteria$Iteration)+1,])
 
-            print( iterationAndCriteriaUnique )
-          })
-
-# ======================================================================================================
-# generateReportOptimization
-# ======================================================================================================
-
-#' @rdname generateReportOptimization
-#' @export
-
-setMethod( "generateReportOptimization",
-           signature = "SimplexAlgorithm",
-           definition = function( object, optimizationObject, outputPath, outputFile, plotOptions )
-           {
-             # ===================================================
-             # projectName and outputs tables
-             # ===================================================
-
-             projectName = getName( optimizationObject )
-
-             evaluationFIMResults = getEvaluationFIMResults( optimizationObject )
-             fimType = is( getFim( evaluationFIMResults ) )[1]
-
-             evaluationFIMIntialDesignResults = getEvaluationInitialDesignResults( optimizationObject )
-
-             tablesEvaluationFIMIntialDesignResults = generateTables( evaluationFIMIntialDesignResults, plotOptions )
-
-             tablesOptimizationObject = generateTables( optimizationObject, plotOptions )
-
-             # ============================
-             # markdown template
-             # ============================
-
-             path = system.file(package = "PFIM")
-             path = paste0( path, "/rmarkdown/templates/skeleton/" )
-             nameInputFile = paste0( path, "template_SimplexAlgorithm.rmd" )
-
-             rmarkdown::render( input = nameInputFile,
-                                output_file = outputFile,
-                                output_dir = outputPath,
-                                params = list(
-                                  object = "object",
-                                  plotOptions = "plotOptions",
-                                  projectName = "projectName",
-                                  fimType = "fimType",
-                                  tablesEvaluationFIMIntialDesignResults = "tablesEvaluationFIMIntialDesignResults",
-                                  tablesOptimizationObject = "tablesOptimizationObject" ) )
-
-           })
-
-##############################################################################
-# END Class SimplexAlgorithm
-##############################################################################

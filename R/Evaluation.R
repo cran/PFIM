@@ -1,645 +1,409 @@
-#' Class "Evaluation"
-#'
-#' @description A class storing information concerning the evaluation of a design.
-#'
-#' @name Evaluation-class
-#' @aliases Evaluation
-#' @docType class
+#' @description
+#' The class \code{Evaluation} represents and stores information for the evaluation of a design
+#' @title Evaluation
+#' @inheritParams PFIMProject
+#' @param evaluationDesign A list giving the evaluation of the design.
 #' @include PFIMProject.R
-#' @include GenericMethods.R
-#' @include Model.R
-#' @include ModelError.R
-#' @include Fim.R
-#' @export
-#'
-#' @section Objects from the class:
-#' Objects form the class \code{Evaluation} can be created by calls of the form \code{Evaluation(...)} where (...) are the parameters for the \code{Evaluation} objects.
-#'
-#'@section Slots for the \code{Evaluation} objects:
-#' \describe{
-#' \item{\code{name}:}{A string giving the name of the project.}
-#' \item{\code{model}:}{A object of class \linkS4class{Model} giving the model.}
-#' \item{\code{modelEquations}:}{A list giving the model equations.}
-#' \item{\code{modelParameters}:}{A list giving the model parameters.}
-#' \item{\code{modelError}:}{A list giving the model error for each outcome of the model.}
-#' \item{\code{outcomes}:}{A list giving the model outcomes.}
-#' \item{\code{designs}:}{A list giving the designs to be evaluated.}
-#' \item{\code{fim}:}{An object of the class \code{Fim} containing the Fisher Information Matrix of the design.}
-#' \item{\code{odeSolverParameters}:}{}
-#' }
-
-Evaluation = setClass(
-  Class = "Evaluation",
-  contains = "PFIMProject",
-  representation = representation(
-    name = "character",
-    model = "Model",
-    modelEquations = "list",
-    modelParameters ="list",
-    modelError = "list",
-    outcomes = "list",
-    designs = "list",
-    fim = "Fim",
-    odeSolverParameters = "list"),
-
-  prototype = prototype( odeSolverParameters = list( atol = 1e-6, rtol = 1e-6 ) ) )
-
-#' initialize
-#' @param .Object .Object
-#' @param name name
-#' @param model model
-#' @param modelEquations modelEquations
-#' @param modelParameters modelParameters
-#' @param modelError modelError
-#' @param outcomes outcomes
-#' @param designs designs
-#' @param fim fim
-#' @param odeSolverParameters odeSolverParameters
-#' @return Evaluation
 #' @export
 
-setMethod(f="initialize",
-          signature="Evaluation",
-          definition=function(.Object, name, model, modelEquations, modelParameters, modelError, outcomes, designs, fim, odeSolverParameters )
-          {
-            if(!missing(name))
-            {
-              .Object@name = name
-            }
+Evaluation = new_class("Evaluation", package = "PFIM", parent = PFIMProject,
+                       properties = list(
+                         evaluationDesign = new_property(class_list, default = list()),
+                         name = new_property(class_character, default = character(0)),
+                         modelParameters = new_property(class_list, default = list()),
+                         modelEquations = new_property(class_list, default = list()),
+                         modelFromLibrary  = new_property(class_list, default = list()),
+                         modelError = new_property(class_list, default = list()),
+                         designs = new_property(class_list, default = list()),
+                         outputs = new_property(class_list, default = list()),
+                         fimType = new_property(class_character, default = character(0)),
+                         odeSolverParameters =  new_property(class_list, default = list())
+                       ),
+                       constructor = function(evaluationDesign = list(),
+                                              name = character(0),
+                                              modelParameters = list(),
+                                              modelEquations = list(),
+                                              modelFromLibrary = list(),
+                                              modelError = list(),
+                                              designs = list(),
+                                              outputs = list(),
+                                              fimType = character(0),
+                                              odeSolverParameters = list() ) {
+                         new_object(
+                           .parent = PFIMProject(),
+                           evaluationDesign = evaluationDesign,
+                           name = name,
+                           modelParameters = modelParameters,
+                           modelEquations = modelEquations,
+                           modelFromLibrary = modelFromLibrary,
+                           modelError = modelError,
+                           designs = designs,
+                           outputs = outputs,
+                           fimType = fimType,
+                           odeSolverParameters = odeSolverParameters
+                         )
+                       })
 
-            if(!missing(model))
-            {
-              .Object@model = model
-            }
+getFim = new_generic( "getFim", c( "evaluation" ) )
 
-            if(!missing(modelEquations))
-            {
-              .Object@modelEquations = modelEquations
-            }
-
-            if(!missing(outcomes))
-            {
-              .Object@outcomes = outcomes
-            }
-
-            if(!missing(designs))
-            {
-              .Object@designs = designs
-            }
-
-            if(!missing(fim))
-            {
-              if ( fim == "population")
-              {
-                .Object@fim = PopulationFim()
-              }
-              else if ( fim == "individual")
-              {
-                .Object@fim = IndividualFim()
-              }
-              else if ( fim == "Bayesian")
-              {
-                .Object@fim = BayesianFim()
-              }
-            }
-
-            if(!missing(odeSolverParameters))
-            {
-              .Object@odeSolverParameters = odeSolverParameters
-            }
-
-            # ===========================================
-            # set the names of the designs
-            # ===========================================
-
-            names(.Object@designs)= getNames( designs )
-
-            if(!missing(modelError))
-            {
-              .Object@modelError = modelError
-            }
-
-            if(!missing(modelParameters))
-            {
-              .Object@modelParameters = modelParameters
-            }
-
-            validObject(.Object)
-            return (.Object )
-          }
-)
-
-# ======================================================================================================
-# run
-# ======================================================================================================
-
-#' @rdname run
+#' getListLastName: routine to get the names of last element of a nested list.
+#' @name getListLastName
+#' @param list The list to be used.
+#' @return The names of last element.
 #' @export
 
-setMethod(f = "run",
-          signature = "Evaluation",
-          definition = function( object )
-          {
-            # define the new model
-            # designs, fim, model error, ode solver parameters
-            designs = getDesigns( object )
+# names of last element nested list
+getListLastName = function( list ) {
+  if ( is.list( list ) ) {
+    result = map( list, getListLastName )
+    result = unlist( result, recursive = FALSE )
+    if ( length( result ) == 0 ) {
+      return( names( list ) )
+    } else {
+      return( result )
+    }
+  }
+}
 
-            designsNames = lapply( designs, function(x) getName( x ) )
-
-            fim = getFim( object )
-
-            # define a new model: user defined or from library of models
-            model = getModel( object )
-
-            modelEquations = getModelEquations( object )
-            odeSolverParameters = getOdeSolverParameters( object )
-            equations = modelEquations$equations
-            outcomes = modelEquations$outcomes
-            modelFromLibrary = modelEquations$modelFromLibrary
-
-            model = setEquations( model, equations )
-            model = setModelFromLibrary( model, modelFromLibrary )
-            model = setOutcomes( model, outcomes )
-            model = setParameters( model, getModelParameters( object ) )
-            model = setModelError( model, getModelError( object ) )
-            model = defineModel( model, designs )
-
-            # set outcomes for the evaluation and ode solver parameters
-            outcomesForEvaluation = getOutcomes( object )
-            model = setOutcomesForEvaluation( model, outcomesForEvaluation )
-            model = setOdeSolverParameters( model, odeSolverParameters )
-
-            # set the the model
-            object = setModel( object, model )
-
-            # evaluate the model for each design
-            for ( design in designs )
-            {
-              designName = getName( design )
-
-              object@designs[[designName]] = EvaluateDesign( design, model, fim )
-            }
-
-            return( object )
-          })
-
-#' @title show
-#' @rdname show
-#' @param object object
+#' run: run the evaluation of a design.
+#' @name run
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The object \code{Evaluation} giving the design evaluation.
 #' @export
 
-setMethod(f="show",
-          signature = "Evaluation",
-          definition = function( object )
-          {
-            # get initial designs
-            designs = getDesigns( object )
-            designsNames = getNames( designs )
+# run the model evaluation
+method( run, Evaluation ) = function( pfimproject )
+{
+  # define the model equations if model from library of model
+  modelFromLibraryOfModel = prop( pfimproject, "modelFromLibrary" )
 
-            # get model
-            model = getModel( object )
+  if ( length( modelFromLibraryOfModel ) != 0 ) {
+    prop( pfimproject, "modelEquations" ) = defineModelEquationsFromLibraryOfModel( pfimproject ) }
 
-            for ( designName in designsNames )
-            {
-              design = designs[[designName]]
-              fim = getFim( design )
+  # define the class of the model
+  model = defineModelType( pfimproject )
+  # define the parameters for computing the gradients
+  model = finiteDifferenceHessian( model )
+  # define the function to evaluate from the model
+  model = defineModelWrapper( model, pfimproject )
+  # define the type of the Fim
+  fim = defineFim( pfimproject )
 
-              fisherMatrix = getFisherMatrix( fim )
-              FIMFixedEffects = getFixedEffects( fim )
-              FIMVarianceEffects = getVarianceEffects( fim )
+  # evaluate the designs
+  designs = prop( pfimproject, "designs" )
+  evaluationDesign = map( designs, ~ evaluateDesign( .x, model, fim ) )
+  prop( pfimproject, "evaluationDesign" ) = evaluationDesign
 
-              correlationMatrix = getCorrelationMatrix( fim )
-              correlationMatrixFixedEffects = correlationMatrix$fixedEffects
-              correlationMatrixVarianceEffects = correlationMatrix$varianceEffects
+  # results of the evaluation
+  designNumber = 1
+  evaluationDesign = pluck( evaluationDesign, designNumber )
+  prop( pfimproject, "fim" ) = prop( evaluationDesign, "fim" )
 
-              # SE and RSE
-              fisherMatrix = getFisherMatrix( fim )
+  return( pfimproject )
+}
 
-              # Fisher matrix inversible or not
-              resultSEFim = tryCatch(
-                {
-                  SE = getSE( fim )
-                  SE
-                },
-                error = function( errorMessage ) {
-                  message( "Error: Unable to solve the Fisher matrix - ", errorMessage$message )
-                  return( NULL )
-                }
-              )
-
-              if ( !is.null( resultSEFim ) )
-              {
-                # show results
-                SE = getSE( fim )
-                rseAndParametersValues = getRSE( fim, model )
-
-                RSE = rseAndParametersValues$RSE
-                parametersValues = rseAndParametersValues$parametersValues
-
-                SEandRSE = data.frame( parametersValues, SE, RSE )
-                colnames( SEandRSE ) = c("Value", "SE","RSE (%)" )
-
-                # determinants, condition numbers and D criterion
-                detFim = getDeterminant( fim )
-                condFIMFixedEffects = getConditionNumberFixedEffects( fim )
-                condFIMVarianceEffects = getConditionNumberVarianceEffects( fim )
-                DCriterion = getDcriterion( fim )
-
-                # shrinkage
-                shrinkage = getShrinkage( fim )
-
-                if (!is.null(shrinkage))
-                {
-                  names( shrinkage) = colnames( FIMFixedEffects )
-                }
-
-                criteriaFim = t( data.frame( detFim, condFIMFixedEffects, condFIMVarianceEffects, DCriterion ) )
-
-                colnames(criteriaFim) = c("Value")
-                rownames(criteriaFim) = c("Determinant",
-                                          "Cond number fixed effects",
-                                          "Cond number variance components",
-                                          "D-criterion")
-
-                # display results in R console
-                designName = getName( design )
-
-                cat("*************************\n\n" )
-                cat(paste0("Design: ", designName, "\n\n" ))
-                cat("*************************\n\n" )
-
-                cat("*************************\n" )
-                cat("Fisher information matrix \n" )
-                cat("*************************\n" )
-                cat("\n" )
-                cat("**** Fixed effect","\n\n" )
-
-                print( FIMFixedEffects )
-
-                cat("\n" )
-                cat("**** Variance components","\n\n" )
-
-                print( FIMVarianceEffects )
-
-                cat("\n" )
-                cat("******************\n" )
-                cat("Correlation matrix  \n" )
-                cat("******************\n" )
-                cat("\n" )
-                cat("**** Fixed effect","\n\n" )
-
-                print( correlationMatrixFixedEffects )
-
-                cat("\n" )
-                cat("**** Variance components","\n\n" )
-
-                print( correlationMatrixVarianceEffects )
-
-                cat("\n" )
-                cat("**********************************************\n" )
-                cat("Determinant, condition numbers and D-criterion \n" )
-                cat("**********************************************\n" )
-                cat("\n" )
-
-                print( criteriaFim, row.names = FALSE )
-
-                cat("\n" )
-                cat("**********\n" )
-                cat("Shrinkage \n" )
-                cat("**********\n" )
-                cat("\n" )
-
-                print( shrinkage )
-
-                cat("\n" )
-                cat("**********\n" )
-                cat("SE and RSE \n" )
-                cat("**********\n" )
-                cat("\n" )
-
-                print( SEandRSE )
-
-                cat("\n" )
-
-              } else {
-                cat("Standard errors could not be calculated due to a singular Fisher matrix.\n")
-              }
-            }
-          })
-
-#' Generate all the table for the evaluation report
-#'
-#' @title reportTablesPlot
-#' @param object An object \code{evaluation} from the class \linkS4class{Evaluation}.
-#' @param plotOptions A list containing the options for the plots.
-#' @return The list \code{tables} containing the tables for the evaluation report.
+#' getFim: get the Fisher matrix.
+#' @name getFim
+#' @param evaluation An object \code{Evaluation} giving the evaluation to be run.
+#' @return The matrices fisherMatrix, fixedEffects, varianceEffects.
 #' @export
 
-setGeneric("reportTablesPlot",
-           function( object, plotOptions )
-           {
-             standardGeneric("reportTablesPlot")
-           })
+method( getFim, Evaluation ) = function( evaluation )
+{
+  fim = prop( evaluation, "fim" )
+  fisherMatrix = prop( fim, "fisherMatrix" )
+  fixedEffects = prop( fim, "fixedEffects" )
+  varianceEffects = prop( fim, "varianceEffects" )
 
-#' @rdname reportTablesPlot
+  return( list( fisherMatrix = fisherMatrix, fixedEffects = fixedEffects, varianceEffects = varianceEffects ) )
+}
+
+#' getFisherMatrix: display the Fisher matrix components
+#' @name getFisherMatrix
+#' @param evaluation An object \code{Evaluation} giving the evaluation to be run.
+#' @return The matrices fisherMatrix, fixedEffects, varianceEffects.
 #' @export
 
-setMethod(f="reportTablesPlot",
-          signature("Evaluation"),
-          function( object, plotOptions )
-          {
-            plotOutcomesEvaluation = plotEvaluation( object, plotOptions )
-            plotOutcomesGradient = plotSensitivityIndice( object, plotOptions )
+method( getFisherMatrix, Evaluation ) = function( pfimproject )
+{
+  fim = prop( pfimproject, "fim" )
+  fim = setEvaluationFim( fim, pfimproject )
+  fisherMatrix = prop( fim, "fisherMatrix" )
+  fixedEffects = prop( fim, "fixedEffects" )
+  varianceEffects = prop( fim, "varianceEffects" )
 
-            plotSE = plotSE( object, plotOptions )
-            plotRSE = plotRSE( object, plotOptions )
-            plotShrinkage = plotShrinkage( object, plotOptions )
+  return( list( fisherMatrix = fisherMatrix, fixedEffects = fixedEffects, varianceEffects = varianceEffects ) )
+}
 
-            tables = list( plotOutcomesEvaluation = plotOutcomesEvaluation,
-                           plotOutcomesGradient = plotOutcomesGradient,
-                           plotSE = plotSE,
-                           plotRSE = plotRSE,
-                           plotShrinkage = plotShrinkage )
-
-            return( tables )
-          })
-
-# ======================================================================================================
-
-#' @rdname generateTables
+#' show: show the evaluation in the R console.
+#' @name show
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The show of the evaluation of the design.
 #' @export
 
-setMethod(f="generateTables",
-          signature("Evaluation"),
-          function( object, plotOptions )
-          {
-            # get model and model error
-            model = getModel( object )
+method( show, Evaluation ) = function( pfimproject )
+{
+  fim = prop( pfimproject, "fim" )
+  fim = setEvaluationFim( fim, pfimproject )
+  showFIM( fim )
+}
 
-            # get design
-            designs = getDesigns( object )
-            designNames = getNames( designs )
-            designName = designNames[[1]]
-            design = designs[[designName]]
-
-            # get fim
-            fim = getFim( design )
-
-            # tables for model equations
-            modelEquations = getEquations( model )
-            modelOutcomes = getOutcomes( object )
-            tablesModelEquations = list( outcomes = modelOutcomes, equations = modelEquations )
-
-            # tables for model error
-            # tables for model parameters
-            tablesModelParameters = reportTablesModelParameters( model )
-            tablesModelError = reportTablesModelError( model )
-
-            # tables for administration
-            tablesAdministration = reportTablesAdministration( design  )
-
-            # tables for design
-            tablesDesign = reportTablesDesign( design  )
-
-            # tables for FIM
-            tablesFIM = reportTablesFIM( fim, object )
-
-            # tables for plot design, SI, SE and RSE
-            tablesPlot = reportTablesPlot( object, plotOptions )
-
-            # tables for report
-            reportTables = list( tablesModelEquations = tablesModelEquations,
-                                 tablesModelError = tablesModelError,
-                                 tablesModelParameters = tablesModelParameters,
-                                 tablesDesign = tablesDesign,
-                                 tablesAdministration = tablesAdministration,
-                                 tablesFIM = tablesFIM,
-                                 tablesPlot = tablesPlot )
-
-            return( reportTables )
-
-          })
-
-# ======================================================================================================
-
-#' @rdname Report
+#' plotEvaluation: plots for the evaluation of the model responses.
+#' @name plotEvaluation
+#' @param pfimproject A object \code{PFIMProject}.
+#' @param plotOptions A list giving the plot options.
+#' @return All the plots for the evaluation of the model responses.
 #' @export
 
-setMethod(f="Report",
-          signature("Evaluation"),
-          function( object, outputPath, outputFile, plotOptions )
-          {
-            designs = getDesigns( object )
-            designNames = getNames( designs )
-            designName = designNames[[1]]
-            design = designs[[designName]]
-            fim = getFim( design )
+method( plotEvaluation, Evaluation ) = function( pfimproject, plotOptions )
+{
+  designs = prop( pfimproject, "designs" )
+  model = defineModelType( pfimproject ) %>% finiteDifferenceHessian() %>% defineModelWrapper( pfimproject )
+  fim = defineFim( pfimproject )
+  design = pluck( designs, 1 )
+  designName = prop( design, "name" )
+  arms = prop( design, "arms" )
+  # generate and print all plots
+  allPlots = map( arms, ~ processArmEvaluationResults( .x, model, fim, designName, plotOptions ) )
+  allPlots = setNames( list( allPlots %>% map( ~ .x[[designName]] ) %>% flatten() ), designName )
+  return( allPlots )
+}
 
-            generateReportEvaluation( fim, object, outputPath, outputFile, plotOptions )
-
-          })
-
-# ======================================================================================================
-
-#' @rdname getFisherMatrix
+#' plotSensitivityIndices:  plots for the evaluation of the gradient of the model responses.
+#' @name plotSensitivityIndices
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @param plotOptions A list giving the plot options.
+#' @return All the plots for the evaluation of the gradient of the model responses.
 #' @export
 
-setMethod("getFisherMatrix",
-          signature = "Evaluation",
-          definition = function (object)
-          {
-            designs = getDesigns( object )
-            designsNames = getNames( designs )
+method( plotSensitivityIndices, Evaluation ) = function( pfimproject, plotOptions )
+{
+  designs = prop( pfimproject, "designs" )
+  model = defineModelType( pfimproject ) %>% finiteDifferenceHessian() %>% defineModelWrapper( pfimproject )
+  fim = defineFim( pfimproject )
+  design = pluck( designs, 1 )
+  designName = prop( design, "name" )
+  arms = prop( design, "arms" )
 
-            fisherMatrices = list()
+  # generate and print all plots
+  allPlots = map( arms, ~ processArmEvaluationSI( .x, model, fim, designName, plotOptions ) )
+  allPlots = setNames( list( allPlots %>% map( ~ .x[[designName]] ) %>% flatten() ), designName )
+  return( allPlots )
+}
 
-            for ( designName in designsNames )
-            {
-              design = designs[[designName]]
-
-              fim = getFim( design )
-
-              fisherMatrix = getFisherMatrix( fim )
-
-              fixedEffect = getFixedEffects( fim )
-
-              varianceEffects = getVarianceEffects( fim )
-
-              fisherMatrices[[designName]] = list( fisherMatrix = fisherMatrix,
-                                                   fixedEffect = fixedEffect,
-                                                   varianceEffects = varianceEffects )
-            }
-
-            return( fisherMatrices )
-
-          })
-
-#' @rdname getCorrelationMatrix
+#' plotSE: bar plot of the SE.
+#' @name plotSE
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The bar plot of the SE.
 #' @export
 
-setMethod("getCorrelationMatrix",
-          signature = "Evaluation",
-          definition = function (object)
-          {
-            designs = getDesigns( object )
-            designsNames = getNames( designs )
+# plot SE  from evaluation
+method( plotSE, Evaluation ) = function( pfimproject )
+{
+  # set the FIM and plot SE
+  fim = prop( pfimproject, "fim" )
+  plotSE = plotSEFIM( fim, pfimproject )
+  return( plotSE )
+}
 
-            model = getModel( object )
-
-            correlationMatrix = list()
-
-            for ( designName in designsNames )
-            {
-              design = designs[[designName]]
-
-              fim = getFim( design )
-
-              correlationMatrix[[designName]] = getCorrelationMatrix( fim )
-            }
-            return( correlationMatrix )
-          })
-
-#' @rdname getSE
+#' plotRSE: bar plot of the RSE.
+#' @name plotRSE
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The bar plot of the RSE.
 #' @export
 
-setMethod("getSE",
-          signature = "Evaluation",
-          definition = function (object)
-          {
-            designs = getDesigns( object )
+method( plotRSE, Evaluation ) = function( pfimproject )
+{
+  # set the FIM and plot RSE
+  fim = prop( pfimproject, "fim" )
+  plotRSE = plotRSEFIM( fim, pfimproject )
+  return( plotRSE )
+}
 
-            designsNames = getNames( designs )
-
-            model = getModel( object )
-
-            SE = list()
-
-            for ( designName in designsNames )
-            {
-              design = designs[[designName]]
-
-              fim = getFim( design )
-
-              SE[[designName]] = getSE( fim )
-            }
-            return( SE )
-          })
-
-#' @rdname getRSE
+#' getSE: get the SE
+#' @name getSE
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The SE.
 #' @export
 
-setMethod("getRSE",
-          signature = "Evaluation",
-          definition = function ( object, model )
-          {
-            designs = getDesigns( object )
-            designsNames = getNames( designs )
+method( getSE, Evaluation ) = function( pfimproject )
+{
+  # set the FIM and plot SE
+  fim = prop( pfimproject, "fim" )
+  fim = setEvaluationFim( fim, pfimproject )
+  SEAndRSE = prop( fim, "SEAndRSE" )
+  SE = SEAndRSE$SE
+  return( SE )
+}
 
-            model = getModel( object )
-
-            RSE = list()
-
-            for ( designName in designsNames )
-            {
-              design = designs[[designName]]
-
-              fim = getFim( design )
-
-              rseAndParametersValues = getRSE( fim, model )
-
-              RSE[[designName]] = rseAndParametersValues$RSE
-            }
-            return( RSE )
-          })
-
-#' @rdname getDcriterion
+#' getRSE: get the RSE
+#' @name getRSE
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The RSE
 #' @export
 
-setMethod( "getDcriterion",
-           signature = "Evaluation",
-           definition = function(object)
-           {
-             designs = getDesigns( object )
-             designsNames = getNames( designs )
+method( getRSE, Evaluation ) = function( pfimproject )
+{
+  # set the FIM and plot SE
+  fim = prop( pfimproject, "fim" )
+  fim = setEvaluationFim( fim, pfimproject )
+  SEAndRSE = prop( fim, "SEAndRSE" )
+  RSE = SEAndRSE$RSE
+  return( RSE )
+}
 
-             model = getModel( object )
-
-             Dcriterion = list()
-
-             for ( designName in designsNames )
-             {
-               design = designs[[designName]]
-
-               fim = getFim( design )
-
-               Dcriterion[[designName]] = getDcriterion( fim )
-
-             }
-
-             return( Dcriterion )
-           })
-
-#' @rdname getShrinkage
+#' getShrinkage: get the shrinkage
+#' @name getShrinkage
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The shrinkage
 #' @export
 
-setMethod( "getShrinkage",
-           signature = "Evaluation",
-           definition = function(object)
-           {
-             designs = getDesigns( object )
-             designsNames = getNames( designs )
+method( getShrinkage, Evaluation ) = function( pfimproject )
+{
+  # set the FIM and plot SE
+  fim = prop( pfimproject, "fim" )
+  fim = setEvaluationFim( fim, pfimproject )
+  shrinkage = prop( fim, "shrinkage" )
+  return( shrinkage )
+}
 
-             model = getModel( object )
-
-             shrinkage = list()
-
-             for ( designName in designsNames )
-             {
-               design = designs[[designName]]
-
-               fim = getFim( design )
-
-               shrinkage[[designName]] = getShrinkage( fim )
-
-               FIMFixedEffects = getFixedEffects( fim )
-
-               if ( !is.null( shrinkage[[designName]]  ) )
-               {
-                 names( shrinkage[[designName]]  ) = colnames( FIMFixedEffects )
-               }
-
-               return( shrinkage )
-             }
-           })
-
-#' @rdname getDeterminant
+#' getDeterminant: get the determinant
+#' @name getDeterminant
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The determinant
 #' @export
 
-setMethod( "getDeterminant",
-           signature = "Evaluation",
-           definition = function(object)
-           {
-             designs = getDesigns( object )
-             designsNames = getNames( designs )
+method( getDeterminant, Evaluation ) = function( pfimproject )
+{
+  fisherMatrix = getFisherMatrix( pfimproject )
+  return( det( fisherMatrix$fisherMatrix ) )
+}
 
-             model = getModel( object )
+#' getDcriterion : get the Dcriterion
+#' @name getDcriterion
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The Dcriterion
+#' @export
 
-             determinant = list()
+method( getDcriterion, Evaluation ) = function( pfimproject )
+{
+  fim = prop( pfimproject, "fim" )
+  fim = setEvaluationFim( fim, pfimproject )
+  return( Dcriterion( fim ) )
+}
 
-             for ( designName in designsNames )
-             {
-               design = designs[[designName]]
+#' getCorrelationMatrix : get the correlation matrix
+#' @name getCorrelationMatrix
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The Dcriterion
+#' @export
 
-               fim = getFim( design )
+method( getCorrelationMatrix, Evaluation ) = function( pfimproject )
+{
+  fisherMatrix = getFisherMatrix( pfimproject )
+  fisherMatrix = fisherMatrix$fisherMatrix
 
-               determinant[[designName]] = getDeterminant( fim )
-             }
+  return( cor( fisherMatrix ) )
+}
 
-             return( determinant )
-           })
+#' Report: generate the report.
+#' @name Report
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation or Optimization.
+#' @param outputPath A string giving the path where the output are saved.
+#' @param outputFile A string giving the name of the output file.
+#' @param plotOptions A list giving the plot options.
+#' @return The html report of the design evaluation or optimization.
+#' @export
 
-##########################################################################################################
-# END Class "Evaluation"
-##########################################################################################################
+method( Report, Evaluation ) = function( pfimproject, outputPath, outputFile, plotOptions  )
+{
+  # projectName
+  projectName = prop( pfimproject, "name" )
+
+  # outputs
+  evaluationOutputs = prop( pfimproject , "outputs" )
+
+  # model
+  model = defineModelType( pfimproject  )
+  modelEquations = prop( model, "modelEquations" )
+
+  # model error table
+  modelError = prop( pfimproject, "modelError" )
+  modelError = map( modelError, getModelErrorData )
+  modelErrorData = map_df( modelError, ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  colnames( modelErrorData ) = c( "Output", "Type", "$\\sigma_{slope}$", "$\\sigma_{inter}$" )
+
+  modelErrorTable = kbl( modelErrorData, align = c( "c","c","c","c" ) ) %>%
+    kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # model parameters table
+  modelParameters = prop( pfimproject, "modelParameters" )
+  modelParameters = map( modelParameters, getModelParametersData )
+  modelParametersData = map_df( modelParameters, ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  colnames( modelParametersData ) = c("Parameter","$\\mu$","$\\omega$","Distribution", paste0("$\\mu$"," fixed"), paste0("$\\omega$"," fixed"))
+
+  modelParametersTable = kbl( modelParametersData, align = c( "l","l","l","c","c","c" ) ) %>%
+    kable_styling( bootstrap_options = c( "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # arms
+  designs = prop( pfimproject, "designs" )
+  designsNames = map_chr( designs, "name" )
+  arms = map( designs, ~ prop( .x, "arms" ))
+  armsData = flatten( map( pluck(arms,1), getArmData ) )
+
+  # administration table
+  administration = flatten( map( pluck(arms, 1), armAdministration ) )
+  administrationData = map_df( administration, ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  colnames( administrationData ) = c( "Design name","Arms name" , "Number of subject ", "Outcome", "Dose","Time dose", "$\\tau$", "$T_{inf}$" )
+
+  administrationTable = kbl( administrationData, align = c( "l","l","l","c","c","c","c" ) ) %>%
+    kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # initial design
+  initialDesignData = map_df( armsData, ~ as.data.frame( .x, stringsAsFactors = FALSE ) )
+  colnames( initialDesignData ) = c( "Arms name" , "Number of subjects", "Outcome", "Dose","Sampling times" )
+
+  initialDesignTable = kbl( initialDesignData, align = c( "l","c","c","c") ) %>%
+    kable_styling( bootstrap_options = c( "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # Fisher matrix and SE
+  fim = prop( pfimproject, "fim" )
+  fim = setEvaluationFim( fim, pfimproject )
+  fimInitialDesignTable = tablesForReport( fim, pfimproject )
+
+  # plotsEvaluation & plotSensitivityIndices
+  plotsEvaluation = plotEvaluation( pfimproject, plotOptions )
+  plotSensitivityIndices = plotSensitivityIndices( pfimproject, plotOptions )
+  plotSE = plotSE( pfimproject )
+  plotRSE = plotRSE( pfimproject )
+
+  # tablesForReport
+  tablesForReport = list(
+    evaluationOutputs = evaluationOutputs,
+    modelEquations = modelEquations,
+    modelErrorTable = modelErrorTable,
+    modelParametersTable = modelParametersTable,
+    administrationTable = administrationTable,
+    initialDesignTable = initialDesignTable,
+    fimInitialDesignTable = fimInitialDesignTable,
+    plotsEvaluation = plotsEvaluation,
+    plotSensitivityIndices = plotSensitivityIndices,
+    plotSE = plotSE,
+    plotRSE = plotRSE,
+    fim = fim,
+    pfimproject = pfimproject,
+    projectName = projectName )
+
+  # generate the report
+  generateReportEvaluation( fim, tablesForReport )
+}
+
+
+
+
+
+
+
+
 
 

@@ -16,22 +16,25 @@ MultiplicativeAlgorithm_Rcpp(
 )
 }
 \arguments{
-\item{fisherMatrices_input}{fisherMatrices_input}
+\item{fisherMatrices_input}{The parameter fotfisherMatrices_input.}
 
-\item{numberOfFisherMatrices_input}{numberOfFisherMatrices_input}
+\item{numberOfFisherMatrices_input}{The parameter numberOfFisherMatrices_input.}
 
-\item{weights_input}{weights_input}
+\item{weights_input}{The parameter weights_input.}
 
-\item{numberOfParameters_input}{numberOfParameters_input}
+\item{numberOfParameters_input}{The parameter numberOfParameters_input.}
 
-\item{dim_input}{dim_input}
+\item{dim_input}{The parameter dim_input.}
 
-\item{lambda_input}{lambda_input}
+\item{lambda_input}{The parameter lambda_input.}
 
-\item{delta_input}{delta_input}
+\item{delta_input}{The parameter delta_input.}
 
-\item{iterationInit_input}{iterationInit_input}
+\item{iterationInit_input}{The parameter iterationInit_input.}
+}
+\value{
+The list output with the outputs of the MultiplicativeAlgorithm_Rcpp.
 }
 \description{
-Run the MultiplicativeAlgorithm_Rcpp in Rcpp
+Run the MultiplicativeAlgorithm_Rcpp in Rcpp.
 }

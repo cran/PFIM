@@ -1,1042 +1,539 @@
-#' Class "Optimization"
-#'
-#' @description A class storing information concerning the design optimization.
-#'
-#' @name Optimization-class
-#' @aliases Optimization
-#' @docType class
+#' @description The class \code{Optimization} implements the Optimization.
+#' @title Optimization
+#' @inheritParams PFIMProject
+#' @param optimisationDesign A list giving the evaluation of initial and optimal design.
+#' @param optimisationAlgorithmOutputs A list giving the outputs of the optimization process.
 #' @include PFIMProject.R
-#' @include Model.R
-#' @include Fim.R
-#' @include GenericMethods.R
-#' @include OptimizationAlgorithm.R
-#' @export
-#'
-#' @section Objects from the class:
-#' Objects form the class \code{Optimization} can be created by calls of the form \code{Optimization(...)} where
-#' (...) are the parameters for the \code{Optimization} objects.
-#'
-#' @section Slots for \code{Administration} objects:
-#'  \describe{
-#'    \item{\code{name}:}{A character string giving the name of the optimization process.}
-#'    \item{\code{model}:}{A object of class \code{Model} giving the model.}
-#'    \item{\code{modelEquations}:}{A list giving the model equations.}
-#'    \item{\code{modelParameters}:}{A list giving the model parameters.}
-#'    \item{\code{modelError}:}{A list giving the model error.}
-#'    \item{\code{optimizer}:}{A object of class \code{OptimizationAlgorithm} giving the optimization algorithm.}
-#'    \item{\code{optimizerParameters}:}{A list giving the parameters of the optimization algorithm.}
-#'    \item{\code{outcomes}:}{A list giving the outcomes of the model.}
-#'    \item{\code{designs}:}{A list giving the designs to be optimized.}
-#'    \item{\code{fim}:}{A object of class \code{FIM} giving the Fisher information matrix.}
-#'    \item{\code{odeSolverParameters}:}{A list giving the parameters for the ode solver.}
-#'    \item{\code{optimizationResults}:}{A object of class \code{OptimizationAlgorithm} giving the results of the optimization.}
-#'    \item{\code{evaluationFIMResults}:}{A object of class \code{Evaluation} giving the results of the evaluation of the optimal design.}
-#'    \item{\code{evaluationInitialDesignResults}:}{A object of class \code{Evaluation} giving the results of the evaluation of the initial design.}
-#'  }
-
-Optimization = setClass(
-  Class = "Optimization",
-  contains = "PFIMProject",
-  representation = representation(
-    name = "character",
-    model = "Model",
-    modelEquations = "list",
-    modelParameters ="list",
-    modelError = "list",
-    optimizer = "OptimizationAlgorithm",
-    optimizerParameters = "list",
-    outcomes = "list",
-    designs = "list",
-    fim = "Fim",
-    odeSolverParameters = "list",
-    optimizationResults = "OptimizationAlgorithm",
-    evaluationFIMResults = "Evaluation",
-    evaluationInitialDesignResults = "Evaluation" ),
-
-  prototype = prototype( odeSolverParameters = list( atol = 1e-6, rtol = 1e-6 ) ) )
-
-#' initialize
-#' @param .Object .Object
-#' @param name name
-#' @param model model
-#' @param modelEquations modelEquations
-#' @param modelParameters modelParameters
-#' @param modelError modelError
-#' @param optimizer optimizer
-#' @param optimizerParameters optimizerParameters
-#' @param outcomes outcomes
-#' @param designs designs
-#' @param fim fim
-#' @param odeSolverParameters odeSolverParameters
-#' @param optimizationResults optimizationResults
-#' @param evaluationFIMResults evaluationFIMResults
-#' @param evaluationInitialDesignResults evaluationInitialDesignResults
-#' @return Optimization
 #' @export
 
-setMethod( f="initialize",
-           signature="Optimization",
-           definition=function(.Object, name, model, modelEquations, modelParameters, modelError, optimizer,
-                               optimizerParameters, outcomes, designs, fim, odeSolverParameters, optimizationResults,
-                               evaluationFIMResults, evaluationInitialDesignResults )
-           {
-             if(!missing(name))
-             {
-               .Object@name = name
-             }
-
-             if(!missing(model))
-             {
-               .Object@model = model
-             }
-
-             if(!missing(modelEquations))
-             {
-               .Object@modelEquations = modelEquations
-             }
-
-             if(!missing(modelParameters))
-             {
-               .Object@modelParameters = modelParameters
-             }
-
-             if(!missing(modelError))
-             {
-               .Object@modelError = modelError
-             }
-
-             if(!missing(optimizer))
-             {
-               if ( optimizer == "MultiplicativeAlgorithm")
-               {
-                 .Object@optimizer = MultiplicativeAlgorithm()
-
-               } else  if ( optimizer == "SimplexAlgorithm")
-               {
-                 .Object@optimizer = SimplexAlgorithm()
-
-               } else  if ( optimizer == "PSOAlgorithm")
-               {
-                 .Object@optimizer = PSOAlgorithm()
-
-               } else  if ( optimizer == "PGBOAlgorithm")
-               {
-                 .Object@optimizer = PGBOAlgorithm()
-
-               }else  if ( optimizer == "FedorovWynnAlgorithm")
-               {
-                 .Object@optimizer = FedorovWynnAlgorithm()
-               }
-             }
-
-             if(!missing(optimizerParameters))
-             {
-               .Object@optimizerParameters = optimizerParameters
-             }
-
-             if(!missing(outcomes))
-             {
-               .Object@outcomes = outcomes
-             }
-
-             if(!missing(designs))
-             {
-               .Object@designs = designs
-             }
-
-             if(!missing(fim))
-             {
-               if ( fim == "population")
-               {
-                 .Object@fim = PopulationFim()
-               }
-               else if ( fim == "individual")
-               {
-                 .Object@fim = IndividualFim()
-               }
-               else if ( fim == "Bayesian")
-               {
-                 .Object@fim = BayesianFim()
-               }
-             }
-
-             if(!missing(odeSolverParameters))
-             {
-               .Object@odeSolverParameters = odeSolverParameters
-             }
-
-             # set the names of the designs
-             names(.Object@designs)= getNames( designs )
-
-             if(!missing(optimizationResults))
-             {
-               .Object@optimizationResults = optimizationResults
-             }
-
-             if(!missing(evaluationFIMResults))
-             {
-               .Object@evaluationFIMResults = evaluationFIMResults
-             }
-
-             if(!missing(evaluationInitialDesignResults))
-             {
-               .Object@evaluationInitialDesignResults = evaluationInitialDesignResults
-             }
-
-             validObject(.Object)
-             return (.Object )
-           }
-)
-
-#' Set the designs.
-#' @name setDesigns
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @param designs A list of objects from the class \linkS4class{Design}.
-#' @return The object with the new designs.
-#' @export setDesigns
-
-setGeneric("setDesigns",
-           function( object, designs )
-           {
-             standardGeneric("setDesigns")
-           })
-
-#' @rdname setDesigns
-#' @export
-
-setMethod(f="setDesigns",
-          signature="Optimization",
-          definition = function( object, designs )
-          {
-            object@designs = designs
-
-            return( object )
-          })
-
-#' Get the proportion of subjects.
-#' @name getProportionsOfSubjects
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @return A vector giving the proportion of subjects.
-#' @export
-
-setGeneric("getProportionsOfSubjects",
-           function( object )
-           {
-             standardGeneric("getProportionsOfSubjects")
-           })
-
-#' @rdname getProportionsOfSubjects
-#' @export
-
-setMethod(f="getProportionsOfSubjects",
-          signature="Optimization",
-          definition = function( object )
-          {
-            optimizerParameters = getOptimizerParameters( object )
-
-            return( optimizerParameters$proportionsOfSubjects )
-          })
-
-#' Get the optimization results.
-#' @name getOptimizationResults
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @return An object from the class \linkS4class{OptimizationAlgorithm} giving the optimization results.
-#' @export
-
-setGeneric("getOptimizationResults",
-           function( object )
-           {
-             standardGeneric("getOptimizationResults")
-           })
-
-
-#' @rdname getOptimizationResults
-#' @export
-
-setMethod(f="getOptimizationResults",
-          signature="Optimization",
-          definition = function( object )
-          {
-            return( object@optimizationResults )
-          })
-
-#' Set the optimization results.
-#' @name setOptimizationResults
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @param value An object from the class \linkS4class{OptimizationAlgorithm} giving the optimization results.
-#' @return The object with the updated object from the class \linkS4class{OptimizationAlgorithm}.
-#' @export
-
-setGeneric("setOptimizationResults",
-           function( object, value )
-           {
-             standardGeneric("setOptimizationResults")
-           })
-
-#' @rdname setOptimizationResults
-#' @export
-
-setMethod(f="setOptimizationResults",
-          signature="Optimization",
-          definition = function( object, value )
-          {
-            object@optimizationResults = value
-            return( object )
-          })
-
-#' Get the results of the evaluation.
-#' @name getEvaluationFIMResults
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @return An object from the class \linkS4class{Evaluation} giving the evaluation results for the optimal design.
-#' @export
-
-setGeneric("getEvaluationFIMResults",
-           function( object )
-           {
-             standardGeneric("getEvaluationFIMResults")
-           })
-
-#' @rdname getEvaluationFIMResults
-#' @export
-
-setMethod(f="getEvaluationFIMResults",
-          signature="Optimization",
-          definition = function( object )
-          {
-            return( object@evaluationFIMResults )
-          })
-
-#' Set the evaluation results.
-#' @name setEvaluationFIMResults
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @param value An object from the class \linkS4class{Evaluation} giving the evaluation results.
-#' @return The object with the updated object from the class \linkS4class{Evaluation}.
-#' @export
-
-setGeneric("setEvaluationFIMResults",
-           function( object, value )
-           {
-             standardGeneric("setEvaluationFIMResults")
-           })
-
-#' @rdname setEvaluationFIMResults
-#' @export
-
-setMethod(f="setEvaluationFIMResults",
-          signature="Optimization",
-          definition = function( object, value )
-          {
-            object@evaluationFIMResults = value
-            return( object )
-          })
-
-#' Set the evaluation results of the initial design.
-#' @name setEvaluationInitialDesignResults
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @param value An object from the class \linkS4class{Evaluation} giving the evaluation results of the initial design.
-#' @return The object with the updated object from the class \linkS4class{Evaluation}.
-#' @export
-
-setGeneric("setEvaluationInitialDesignResults",
-           function( object, value )
-           {
-             standardGeneric("setEvaluationInitialDesignResults")
-           })
-
-#' @rdname setEvaluationInitialDesignResults
-#' @export
-
-setMethod(f="setEvaluationInitialDesignResults",
-          signature="Optimization",
-          definition = function( object, value )
-          {
-            object@evaluationInitialDesignResults = value
-            return( object )
-          })
-
-#' Get the evaluation results of the initial design.
-#' @name getEvaluationInitialDesignResults
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @return The object from the class \linkS4class{Evaluation} giving the results of the evaluation of the initial design.
-#' @export
-
-setGeneric("getEvaluationInitialDesignResults",
-           function( object )
-           {
-             standardGeneric("getEvaluationInitialDesignResults")
-           })
-
-#' @rdname getEvaluationInitialDesignResults
-#' @export
-
-setMethod(f="getEvaluationInitialDesignResults",
-          signature="Optimization",
-          definition = function( object )
-          {
-            return( object@evaluationInitialDesignResults )
-          })
-
-#' Get the elementary protocols.
-#' @name getElementaryProtocols
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @param fims A list of object from the class \linkS4class{Fim}.
-#' @return A list containing the results of the evaluation of the elementary protocols giving
-#' the numberOfTimes, nbOfDimensions, totalCost, samplingTimes and the fisherMatrices
-#' @export
-
-setGeneric("getElementaryProtocols",
-           function( object, fims )
-           {
-             standardGeneric("getElementaryProtocols")
-           })
-
-#' @rdname getElementaryProtocols
-#' @export
-
-setMethod(f="getElementaryProtocols",
-          signature="Optimization",
-          definition = function( object, fims )
-          {
-            # design ,arm and fims
-            designs = getDesigns( object )
-            design = designs[[1]]
-
-            arms = getArms( design )
-
-            samplingTimes = getSamplingTimes( arms[[1]] )
-            outcomes = unlist( lapply( samplingTimes, function(x) getOutcome(x) ) )
-
-            fisherMatrices = fims$listFims
-            fisherMatricesArms = fims$listArms
-
-            # samplings by outcomes
-            samplings = list()
-
-            for ( outcome in outcomes )
-            {
-              samplingTime = lapply( fisherMatricesArms, function(x) getSamplingTime(x, outcome) )
-              samplings[[outcome]] = lapply( samplingTime, function(x) getSamplings(x) )
-              samplings[[outcome]] = do.call( rbind, samplings[[outcome]] )
-            }
-
-            combinedTimes = do.call(cbind, samplings)
-
-            # total cost
-            optimizerParameters = getOptimizerParameters( object )
-            initialSamplings = optimizerParameters$elementaryProtocols
-            totalNumberOfIndividuals = optimizerParameters$numberOfSubjects
-            totalCost = sum( lengths( initialSamplings ) * totalNumberOfIndividuals )
-
-            # ====================================================================================
-            # reshape the fims
-            # in initFedo.C : Fisher matrices = vector of lower element fisher matrix + diagonal
-            # nota bene: initFedo.C implemented by Sylvie Retout in 2007 (see doc for references)
-            # elements = [(1,1) ,(2,1:2),(3,1:3),etc ..]
-            # number of elements = n*(n+1)/2 ; n = dim Fisher matrix
-            # ====================================================================================
-
-            dimFim = dim(fisherMatrices[[1]])[[1]]
-            dimVectorTriangularInfWithDiagFisherMatrices = dimFim*(dimFim+1)/2
-            fisherMatrices = lapply( fisherMatrices, function( x ) x[ rev( lower.tri( t( x ), diag=TRUE ) ) ] )
-            fisherMatrices = matrix( unlist( fisherMatrices ), ncol = dimVectorTriangularInfWithDiagFisherMatrices, byrow = TRUE )
-
-            # elementaryProtocols
-            elementaryProtocolsFW = list()
-            elementaryProtocolsFW$numberOfprotocols = dim( combinedTimes )[1]
-            elementaryProtocolsFW$numberOfTimes = dim( combinedTimes )[2]
-            elementaryProtocolsFW$nbOfDimensions = dimFim
-            elementaryProtocolsFW$totalCost = totalCost
-            elementaryProtocolsFW$samplingTimes = combinedTimes
-            elementaryProtocolsFW$fisherMatrices = fisherMatrices
-            return( elementaryProtocolsFW )
-
-          })
-
-#' Generate the fim from the constraints
+Optimization = new_class("Optimization",
+                         package = "PFIM",
+                         parent = PFIMProject,
+                         properties = list(
+                           optimisationDesign = new_property(class_list, default = list()),
+                           optimisationAlgorithmOutputs = new_property(class_list, default = list())
+                         ))
+
+defineOptimizationAlgorithm = new_generic( "defineOptimizationAlgorithm", c( "optimization" ) )
+generateFimsFromConstraints = new_generic( "generateFimsFromConstraints", c( "optimization" ) )
+plotWeights = new_generic( "plotWeights", c( "optimization" ) )
+plotFrequencies = new_generic( "plotFrequencies", c( "optimization" ) )
+optimizeDesign = new_generic( "optimizeDesign", c("optimizationObject", "optimizationAlgorithm" ) )
+constraintsTableForReport = new_generic( "constraintsTableForReport", c( "optimizationAlgorithm" ) )
+
+#' Generate FIMs from constraints
 #' @name generateFimsFromConstraints
-#' @param object An object from the class \linkS4class{Optimization}.
-#' @param fims A list of object from the class \linkS4class{Fim}.
-#' @return A list giving the arms with their fims.
+#' @param optimization An \code{Optimization} object.
+#' @return A list containing FIMs from constraints.
 #' @export
 
-setGeneric("generateFimsFromConstraints",
-           function( object, fims )
-           {
-             standardGeneric("generateFimsFromConstraints")
-           })
+method( generateFimsFromConstraints, Optimization ) = function( optimization ) {
 
-#' @rdname generateFimsFromConstraints
+  listArms = list()
+  listFimsAlgoFW = list()
+  listFimsAlgoMult = list()
+
+  samplingsForFedorovWynnAlgo = list()
+
+  # set the evaluation parameters from the optimization object
+  evaluation = Evaluation( name = "",
+                           modelEquations = prop( optimization, "modelEquations" ),
+                           modelParameters = prop( optimization, "modelParameters" ),
+                           modelError = prop( optimization, "modelError" ),
+                           designs =  prop( optimization, "designs" ),
+                           fimType = prop( optimization, "fimType" ),
+                           outputs = prop( optimization, "outputs" ),
+                           odeSolverParameters = prop( optimization, "odeSolverParameters" ) )
+
+  # Extract the designs from the optimization object
+  designs = prop( optimization, "designs" )
+  designNames = map( designs, ~ prop( .x, "name" ) )
+
+  # All combinations for administration times constraints
+  dosesForFIMs = map( designs, ~ generateDosesCombination( .x ) ) %>% set_names( designNames )
+
+  # All combinations for sampling times constraints
+  samplingsForFIMs = map( designs, ~ generateSamplingTimesCombination( .x ) ) %>% set_names( designNames )
+
+  # evaluate the FIMs
+  # for each dose combination associate each sampling time combination
+  for ( design in designs )
+  {
+    numberOfFims = 1
+
+    designName = prop( design, "name" )
+    arms = prop( design, "arms" )
+
+    dosesForFIMs = dosesForFIMs[[designName]]
+    numberOfDoses = dosesForFIMs$numberOfDoses
+
+    for ( iterDose in seq( numberOfDoses ) )
+    {
+      # assign the new doses for each arm
+      arms = map( arms, function( arm )
+      {
+        armName = prop( arm, "name")
+        administrations = prop( arm, "administrations" )
+        administrations = map( administrations, function( administration )
+        {
+          outcome = prop( administration, "outcome")
+          prop( administration, "dose") = dosesForFIMs[[armName]][[outcome]][iterDose]
+          return(administration )
+        })
+        prop( arm, "administrations" ) = administrations
+        return( arm )
+      })
+
+      # Create combination indices for the sampling times
+      combinationIndicesSamplingTimes = expand.grid( map( samplingsForFIMs[[designName]], ~ seq_along(.x) ) )
+      numberOfCombinationIndicesSamplingTimes = dim( combinationIndicesSamplingTimes )[1]
+
+      for ( iterCombinationIndicesSamplingTimes in 1:numberOfCombinationIndicesSamplingTimes )
+      {
+        # Update arms with new sampling times for the current combination
+        armsWithNewSamplingTimes = map(arms, function(arm) {
+          armName = prop( arm, 'name' )
+          indexSamplingsForFims = combinationIndicesSamplingTimes[iterCombinationIndicesSamplingTimes, armName]
+
+          samplingsForFedorovWynnAlgoTmp = pluck( samplingsForFIMs, designName, armName, indexSamplingsForFims ) %>%
+            map(~ prop( .x, "samplings" ) ) %>%
+            flatten_dbl()
+
+          prop( arm, "samplingTimes" ) = pluck( samplingsForFIMs, designName, armName, indexSamplingsForFims )
+          list( arm = arm,  samplingsForFedorovWynnAlgoTmp = samplingsForFedorovWynnAlgoTmp )
+        })
+
+        armsWithNewSamplingTimes = pluck( armsWithNewSamplingTimes, 1 )
+
+        # samplings for FW method
+        samplingsForFedorovWynnAlgo[[designName]][[numberOfFims]] = armsWithNewSamplingTimes$samplingsForFedorovWynnAlgoTmp
+
+        # Update the design with the new arms
+        prop( design, "arms" ) = list( armsWithNewSamplingTimes$arm )
+        prop( evaluation, "designs" ) = list( design )
+
+        # design evaluation and get the FIM
+        evaluationFIM = run( evaluation )
+        fim = getFim( evaluationFIM )
+        fisherMatrix = fim$fisherMatrix
+
+        # reshape the fims
+        # in initFedo.C : Fisher matrices = vector of lower element fisher matrix + diagonal
+        # elements = [(1,1) ,(2,1:2),(3,1:3),etc ..]
+        # number of elements = n*(n+1)/2 ; n = dim Fisher matrix
+        dimFim = pluck( dim(fisherMatrix), 1 )
+        dimVectorTriangularInfWithDiagFisherMatrices = dimFim*(dimFim+1)/2
+        fisherMatrixForAlgoFW = fisherMatrix[ rev( lower.tri( t( fisherMatrix ), diag = TRUE ) ) ]
+        fisherMatrixForAlgoFW = matrix( fisherMatrixForAlgoFW , ncol = dimVectorTriangularInfWithDiagFisherMatrices, byrow = TRUE )
+
+        listArms[[designName]][[numberOfFims]] = armsWithNewSamplingTimes
+        listFimsAlgoFW[[designName]][[numberOfFims]] = fisherMatrixForAlgoFW
+        listFimsAlgoMult[[designName]][[numberOfFims]] = fisherMatrix
+        # Print the iteration for progress tracking
+        print( paste0( "Evaluation of the FIMs: ",  numberOfFims, "/", numberOfCombinationIndicesSamplingTimes*numberOfDoses ) )
+        numberOfFims = numberOfFims + 1
+      } # end samplingTimes
+    } #end doses
+  } # end designs
+  return( list( listArms = listArms, dimFim = dimFim, listFimsAlgoFW = listFimsAlgoFW ,
+                listFimsAlgoMult = listFimsAlgoMult, samplingsForFedorovWynnAlgo = samplingsForFedorovWynnAlgo ) ) }
+
+#' Define optimization algorithm
+#' @name defineOptimizationAlgorithm
+#' @param optimization An \code{Optimization} object.
+#' @return An optimization algorithm.
+#' @export
+#
+method( defineOptimizationAlgorithm, Optimization ) = function( optimization )
+{
+  optimizerParameters = prop( optimization, "optimizer")
+
+  optimizationAlgorithm = switch( optimizerParameters,
+                                  "MultiplicativeAlgorithm" = MultiplicativeAlgorithm(),
+                                  "FedorovWynnAlgorithm" = FedorovWynnAlgorithm(),
+                                  "PSOAlgorithm" = PSOAlgorithm(),
+                                  "PGBOAlgorithm" = PGBOAlgorithm(),
+                                  "SimplexAlgorithm" = SimplexAlgorithm(),
+                                  optimizationAlgorithm )
+
+  return( optimizationAlgorithm )
+}
+
+#' Run optimization
+#' @name run
+#' @param optimization An \code{Optimization} object.
+#' @return The optimization design results.
 #' @export
 
-setMethod(f="generateFimsFromConstraints",
-          signature="Optimization",
-          definition = function( object )
-          {
-            designArmDose = list()
+method( run, Optimization ) = function( pfimproject )
+{
+  # set the optimization parameters
+  optimizationAlgorithm = defineOptimizationAlgorithm( pfimproject )
 
-            modelEquations = getModelEquations( object )
-            modelParameters = getModelParameters( object )
-            modelError = getModelError( object )
-            outcomesForEvaluation = getOutcomes( object )
-            designs = getDesigns( object )
-            fim = getFim( object )
-            odeSolverParameters = getOdeSolverParameters( object )
-            fimEvaluation = setFimTypeToString( fim )
+  # define the type of the Fim
+  prop( pfimproject, "fim" ) = defineFim( pfimproject )
 
-            # generate the sampling times
-            samplingTimesCombinations = list()
-            numberOfSamplings = list()
-            indexAllCombinaisonsSamplings = list()
-            numberOfFims = 0
-            doses = list()
+  # define model equations
+  modelFromLibraryOfModel = prop( pfimproject, "modelFromLibrary" )
+  if ( length( modelFromLibraryOfModel ) != 0 ) { prop( pfimproject, "modelEquations" ) = defineModelEquationsFromLibraryOfModel( pfimproject ) }
 
-            designs = getDesigns( object )
+  # Run the optimization process
+  optimizationDesign = optimizeDesign( pfimproject, optimizationAlgorithm  )
 
-            for ( design in designs )
-            {
-              designName = getName( design )
+  return( optimizationDesign )
+}
 
-              arms = getArms( design )
-
-              for ( arm in arms )
-              {
-                armName = getName( arm )
-
-                samplingTimesConstraints = getSamplingTimesConstraints( arm )
-                administrationConstraints = getAdministrationsConstraints( arm )
-
-                outcomes = unlist( lapply( samplingTimesConstraints, function(x) getOutcome( x ) ) )
-                doses[[armName]] = getDose( administrationConstraints[[1]] )
-
-                for ( indiceDose in 1:length( doses[[armName]] ) )
-                {
-                  for ( outcome in outcomes )
-                  {
-                    samplingTimeConstraint = getSamplingTimeConstraint( arm, outcome )
-
-                    samplings = getSamplings( samplingTimeConstraint )
-                    fixedTimes = getFixedTimes( samplingTimeConstraint )
-                    numberOfsamplingsOptimisable = getNumberOfsamplingsOptimisable( samplingTimeConstraint )
-
-                    combinations = t( combn( samplings, numberOfsamplingsOptimisable ) )
-
-                    n = length( samplings )
-
-                    if ( length( fixedTimes ) != 0 )
-                    {
-                      p = length( fixedTimes )
-                    }else
-                    {
-                      p = 0
-                    }
-
-                    numberOfSamplings[[outcome]] = 1:dim(combn(n-p,numberOfsamplingsOptimisable-p))[2]
-
-                    samplingTimesCombinationsTmp = list()
-
-                    if ( length( fixedTimes ) != 0 )
-                    {
-                      k = 1
-
-                      for ( i in 1:dim( combinations )[1] )
-                      {
-                        if (all( fixedTimes %in% combinations[i,]) == TRUE )
-                        {
-                          samplingTimesCombinationsTmp[[k]] = combinations[i,]
-                          k = k+1
-                        }
-                      }
-                    } else if ( length( fixedTimes ) == 0 )
-                    {
-                      for ( i in 1:dim( combinations )[1] )
-                      {
-                        samplingTimesCombinationsTmp[[i]] = combinations[i,]
-                      }
-                    }
-
-                    samplingTimesCombinations[[designName]][[armName]][[outcome]] = do.call( rbind, samplingTimesCombinationsTmp )
-                  }
-
-                  indexAllCombinaisonsSamplings[[designName]][[armName]] = as.data.frame( do.call( expand.grid, numberOfSamplings ) )
-                  numberOfFims = numberOfFims + dim(  indexAllCombinaisonsSamplings[[designName]][[armName]] )[1]
-                  colnames( indexAllCombinaisonsSamplings[[designName]][[armName]] ) = outcomes
-                }
-              }
-            }
-
-            # create list of arms with constraints
-            listArms = list()
-            listFims = list()
-
-            for ( design in designs )
-            {
-              designName = getName( design )
-
-              arms = getArms( design )
-
-              iter = 1
-
-              print(" Generate Fims ")
-
-              for ( arm in arms )
-              {
-                armName = getName( arm )
-
-                samplingTimesConstraints = getSamplingTimesConstraints( arm )
-
-                outcomes = unlist( lapply( samplingTimesConstraints, function(x) getOutcome( x ) ) )
-
-                administrations = getAdministrations( arm )
-
-                # set doses
-                for( dose in doses[[armName]] )
-                {
-                  administration = setDose( administrations[[1]],  dose )
-                  arm = setAdministrations( arm, list( administration ) )
-
-                  # set sampling times
-                  for ( i in 1:dim( indexAllCombinaisonsSamplings[[designName]][[armName]] )[1] )
-                  {
-                    for ( outcome in outcomes )
-                    {
-                      indexSamplingTimes = indexAllCombinaisonsSamplings[[designName]][[armName]][,outcome][i]
-
-                      samplingTimes = SamplingTimes( outcome,
-                                                     samplings =
-                                                     samplingTimesCombinations[[designName]][[armName]][[outcome]][indexSamplingTimes,] )
-
-                      arm = setSamplingTime( arm, samplingTimes )
-                    }
-
-                    design = setArm( design, arm )
-
-                    outcomesForEvaluation = getOutcomes( object )
-
-                    evaluationFIM = Evaluation( name = "",
-                                                modelEquations = modelEquations,
-                                                modelParameters = modelParameters,
-                                                modelError = modelError,
-                                                outcomes = outcomesForEvaluation,
-                                                designs = list( design ),
-                                                fim = fimEvaluation,
-                                                odeSolverParameters = odeSolverParameters )
-
-                    evaluationFIM =  run( evaluationFIM )
-
-                    designs = getDesigns( evaluationFIM )
-
-                    fim = getFim( designs[[1]] )
-
-                    fisherMatrix = getFisherMatrix( fim )
-
-                    listArms[[iter]] = arm
-                    listFims[[iter]] = fisherMatrix
-                    designArmDose[[iter]] = dose
-
-                    print( paste0( c( iter,"/", numberOfFims ),collapse="" ) )
-
-
-                    iter = iter + 1
-                  }
-                }
-              }
-            }
-
-            return( list( listArms = listArms, listFims = listFims, designArmDose = designArmDose ) )
-          })
-
-#' @rdname run
+#' Show optimization results
+#' @name show
+#' @param optimization An \code{Optimization} object.
+#' @return Prints results to console.
 #' @export
 
-setMethod(f = "run",
-          signature = "Optimization",
-          definition = function( object )
-          {
-            # evaluate initial design (for comparison with the optimal design )
-            modelEquations = getModelEquations( object )
-            modelParameters = getModelParameters( object )
-            modelError = getModelError( object )
-            outcomes = getOutcomes( object )
-            designs = getDesigns( object )
+method( show, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  evaluationInitialDesign = optimisationDesign$evaluationInitialDesign
 
-            # get and set the fim
-            fim = getFim( object )
-            fimEvaluation = setFimTypeToString( fim )
-            odeSolverParameters = getOdeSolverParameters( object )
+  # initial design
+  designs = prop( evaluationInitialDesign, "designs" )
+  designsNames = map_chr( designs, "name" )
+  arms = map( designs, ~ prop( .x, "arms" ))
+  armsData = flatten(map( pluck( arms,1), getArmData ) )
+  initialDesignData = map_df( armsData, ~ as.data.frame( .x, stringsAsFactors = FALSE ) )
+  colnames( initialDesignData ) = c( "Arms name" , "Number of subjects", "Outcome", "Dose","Sampling times" )
 
-            # evaluate the initial design and set its evaluation results
-            evaluationFIMInitialDesign = Evaluation( name = "",
-                                                     modelEquations = modelEquations,
-                                                     modelParameters = modelParameters,
-                                                     modelError = modelError,
-                                                     outcomes = outcomes,
-                                                     designs = designs,
-                                                     fim = fimEvaluation,
-                                                     odeSolverParameters = odeSolverParameters )
+  # optimal design
+  designs = prop( evaluationOptimalDesign, "designs" )
+  designsNames = map_chr( designs, "name" )
+  arms = map( designs, ~ prop( .x, "arms" ))
+  armsData = flatten(map( pluck( arms,1), getArmData ) )
+  optimalDesignData = map_df( armsData, ~ as.data.frame( .x, stringsAsFactors = FALSE ) )
+  colnames( optimalDesignData ) = c( "Arms name" , "Number of subjects", "Outcome", "Dose","Sampling times" )
 
-            evaluationFIMInitialDesignResults = run( evaluationFIMInitialDesign )
+  # Fisher matrix and SE
+  fim = prop( evaluationInitialDesign, "fim" )
+  fimInitialDesign = setEvaluationFim( fim, evaluationInitialDesign )
+  fim = prop( evaluationOptimalDesign, "fim" )
+  fimOptimalDesign = setEvaluationFim( fim, evaluationOptimalDesign )
 
-            object = setEvaluationInitialDesignResults( object, evaluationFIMInitialDesignResults )
+  cat("\n===================================== \n")
+  cat("  Initial design \n" )
+  cat("===================================== \n\n")
+  print( initialDesignData )
+  showFIM( fimInitialDesign )
+  cat("\n===================================== \n")
+  cat("  Optimal design \n" )
+  cat("===================================== \n\n")
+  print( optimalDesignData )
+  showFIM( fimOptimalDesign )
+}
 
-            # set parameters of the optimizer
-            optimizationAlgo = getOptimizer( object )
-            optimizerParameters = getOptimizerParameters( object )
-            optimizationAlgo = setParameters( optimizationAlgo, optimizerParameters )
-
-            # set the outcomes design
-            model = getModel( object )
-            model = setOutcomes( model, outcomes )
-            object = setModel( object, model )
-
-            # design optimization
-            optimizationResults = optimize( optimizationAlgo, optimizerParameters, object )
-
-            # evaluate the fim for the optimal design
-            optimalDesign = getOptimalDesign( optimizationResults )
-
-            # Evaluation parameters
-            modelEquations = getModelEquations( object )
-            modelParameters = getModelParameters( object )
-            modelError = getModelError( object )
-            outcomes = getOutcomes( object )
-
-            # get and set the fim
-            fim = getFim( object )
-            fimEvaluation = setFimTypeToString( fim )
-            odeSolverParameters = getOdeSolverParameters( object )
-
-            # evaluate the optimal design
-            evaluationFIM = Evaluation( name = "",
-                                        modelEquations = modelEquations,
-                                        modelParameters = modelParameters,
-                                        modelError = modelError,
-                                        outcomes = outcomes,
-                                        designs = list( optimalDesign ),
-                                        fim = fimEvaluation,
-                                        odeSolverParameters = odeSolverParameters )
-
-            evaluationFIMResults = run( evaluationFIM )
-
-            # set the optimization and evaluation results
-            designs = getDesigns( evaluationFIMResults )
-            optimizationResults = setOptimalDesign( optimizationResults, designs[[1]] )
-            object = setOptimizationResults( object, optimizationResults )
-            object = setEvaluationFIMResults( object, evaluationFIMResults )
-
-            return( object )
-          })
-
-#' @title show
-#' @rdname show
-#' @param object object
+#' getFisherMatrix: display the Fisher matrix components
+#' @name getFisherMatrix
+#' @param evaluation An object \code{Evaluation} giving the evaluation to be run.
+#' @return The matrices fisherMatrix, fixedEffects, varianceEffects.
 #' @export
 
-setMethod(f="show",
-          signature = "Optimization",
-          definition = function( object )
-          {
-            optimizationResults = getOptimizationResults( object )
-            evaluationFIMResults = getEvaluationFIMResults( object )
-            optimalDesign = getOptimalDesign( optimizationResults )
+method( getFisherMatrix, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  fim = prop( evaluationOptimalDesign, "fim" )
+  fim = setEvaluationFim( fim, evaluationOptimalDesign )
+  fisherMatrix = prop( fim, "fisherMatrix" )
+  fixedEffects = prop( fim, "fixedEffects" )
+  varianceEffects = prop( fim, "varianceEffects" )
+  return( list( fisherMatrix = fisherMatrix, fixedEffects = fixedEffects, varianceEffects = varianceEffects ) )
+}
 
-            show( optimizationResults )
-
-            cat("\n")
-
-            cat( " ************************************************** ")
-            cat("\n")
-            cat( " Optimal Design ")
-            cat("\n")
-            cat( " ************************************************** ")
-
-            cat("\n\n")
-
-            show( optimalDesign )
-
-            cat("\n")
-
-            show( evaluationFIMResults )
-          })
-
-# ======================================================================================================
-
-#' @rdname getFisherMatrix
+#' getSE: get the SE
+#' @name getSE
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The SE of the parameters.
 #' @export
 
-setMethod("getFisherMatrix",
-          signature = "Optimization",
-          definition = function (object)
-          {
-            optimizationResults = getOptimizationResults( object )
+method( getSE, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  fim = prop( evaluationOptimalDesign, "fim" )
+  fim = setEvaluationFim( fim, evaluationOptimalDesign )
+  SEAndRSE = prop( fim, "SEAndRSE" )
+  SE = SEAndRSE$SE
+  return( SE )
+}
 
-            optimalDesign = getOptimalDesign( optimizationResults )
-
-            fim = getFim( optimalDesign )
-
-            fisherMatrix = getFisherMatrix( fim )
-
-            fixedEffect = getFixedEffects( fim )
-
-            varianceEffects = getVarianceEffects( fim )
-
-             return( list( fisherMatrix = fisherMatrix,  fixedEffect = fixedEffect, varianceEffects = varianceEffects) )
-          })
-
-#' @rdname getCorrelationMatrix
+#' getRSE: get the RSE
+#' @name getRSE
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The RSE of the parameters.
 #' @export
 
-setMethod("getCorrelationMatrix",
-          signature = "Optimization",
-          definition = function (object)
-          {
-            optimizationResults = getOptimizationResults( object )
+method( getRSE, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  fim = prop( evaluationOptimalDesign, "fim" )
+  fim = setEvaluationFim( fim, evaluationOptimalDesign )
+  SEAndRSE = prop( fim, "SEAndRSE" )
+  RSE = SEAndRSE$RSE
+  return( RSE )
+}
 
-            optimalDesign = getOptimalDesign( optimizationResults )
-
-            fim = getFim( optimalDesign )
-
-            correlationMatrix = getCorrelationMatrix( fim )
-
-            return( correlationMatrix )
-          })
-
-#' @rdname getSE
+#' getShrinkage: get the shrinkage
+#' @name getShrinkage
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The shrinkage of the FIM.
 #' @export
 
-setMethod("getSE",
-          signature = "Optimization",
-          definition = function ( object )
-          {
-            optimizationResults = getOptimizationResults( object )
+method( getShrinkage, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  fim = prop( evaluationOptimalDesign, "fim" )
+  fim = setEvaluationFim( fim, evaluationOptimalDesign )
+  shrinkage = prop( fim, "shrinkage" )
+  return( shrinkage )
+}
 
-            optimalDesign = getOptimalDesign( optimizationResults )
-
-            fim = getFim( optimalDesign )
-
-            SE = getSE( fim )
-
-            return( SE )
-
-          })
-
-#' @rdname getRSE
+#' getDeterminant: get the determinant
+#' @name getDeterminant
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The determinant of the FIM.
 #' @export
 
-setMethod("getRSE",
-          signature = "Optimization",
-          definition = function ( object, model )
-          {
-            optimizationResults = getOptimizationResults( object )
-            evaluationFIMResults = getEvaluationFIMResults( object )
+method( getDeterminant, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  fisherMatrix = getFisherMatrix( evaluationOptimalDesign )
+  return( det( fisherMatrix$fisherMatrix ) )
+}
 
-            optimalDesign = getOptimalDesign( optimizationResults )
-
-            model = getModel( evaluationFIMResults )
-
-            fim = getFim( optimalDesign )
-
-            rseAndParametersValues = getRSE( fim, model )
-            RSE = rseAndParametersValues$RSE
-
-            return( RSE )
-
-          })
-
-#' @rdname getDcriterion
+#' getCorrelationMatrix : get the correlation matrix
+#' @name getCorrelationMatrix
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The correlation matrix
 #' @export
 
-setMethod( "getDcriterion",
-           signature = "Optimization",
-           definition = function(object)
-           {
-             optimizationResults = getOptimizationResults( object )
-             evaluationFIMResults = getEvaluationFIMResults( object )
+method( getCorrelationMatrix, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  fisherMatrix = getFisherMatrix( evaluationOptimalDesign )
+  fisherMatrix = fisherMatrix$fisherMatrix
+  return( cor( fisherMatrix ) )
+}
 
-             optimalDesign = getOptimalDesign( optimizationResults )
-
-             model = getModel( evaluationFIMResults )
-
-             fim = getFim( optimalDesign )
-
-             Dcriterion = getDcriterion( fim )
-
-             return( Dcriterion )
-           })
-
-#' @rdname getShrinkage
+#' getDcriterion : get the Dcriterion
+#' @name getDcriterion
+#' @param pfimproject A object \code{PFIMProject} giving the Evaluation.
+#' @return The Dcriterion of the FIM.
 #' @export
 
-setMethod( "getShrinkage",
-           signature = "Optimization",
-           definition = function(object)
-           {
-             optimizationResults = getOptimizationResults( object )
-             evaluationFIMResults = getEvaluationFIMResults( object )
+method( getDcriterion, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  fim = prop( evaluationOptimalDesign, "fim" )
+  fim = setEvaluationFim( fim, evaluationOptimalDesign )
+  return( Dcriterion( fim ) )
+}
 
-             optimalDesign = getOptimalDesign( optimizationResults )
-
-             model = getModel( evaluationFIMResults )
-
-             fim = getFim( optimalDesign )
-
-             FIMFixedEffects = getFixedEffects( fim )
-
-             shrinkage = getShrinkage( fim )
-
-             if ( !is.null( shrinkage ) )
-             {
-               names( shrinkage) = colnames( FIMFixedEffects )
-             }
-
-             return( shrinkage )
-           })
-
-#' @rdname getDeterminant
+#' Plot sensitivity indices.
+#' @name plotSensitivityIndices
+#' @param optimization An \code{Optimization} object.
+#' @return Graph of sensitivity indices.
 #' @export
 
-setMethod( "getDeterminant",
-           signature = "Optimization",
-           definition = function(object)
-           {
-             optimizationResults = getOptimizationResults( object )
-             evaluationFIMResults = getEvaluationFIMResults( object )
+method( plotSensitivityIndices, Optimization ) = function( pfimproject )
+{
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  plotSensitivityIndicesOptimalDesign = plotSensitivityIndices( evaluationOptimalDesign )
+  return( plotSensitivityIndicesOptimalDesign )
+}
 
-             optimalDesign = getOptimalDesign( optimizationResults )
-
-             model = getModel( evaluationFIMResults )
-
-             fim = getFim( optimalDesign )
-
-             determinant = getDeterminant( fim )
-
-             return( determinant )
-           })
-
-#' @rdname getDataFrameResults
+#' Plot standard errors
+#' @name plotSE
+#' @param optimization An \code{Optimization} object.
+#' @return Graph of standard errors
 #' @export
 
-setMethod(f="getDataFrameResults",
-          signature = "Optimization",
-          definition = function( object )
-          {
-            dataFrameResults = getDataFrameResults( object )
+method( plotSE, Optimization ) = function( pfimproject )
+{
+  # set the FIM and plot SE
+  fim = prop( pfimproject, "fim" )
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  plotSE = plotSEFIM( fim, evaluationOptimalDesign )
+  return( plotSE )
+}
 
-            return( getDataFrameResults )
-
-          })
-
-#' @rdname plotWeights
+#' Plot relative standard errors
+#' @name plotRSE
+#' @param optimization An \code{Optimization} object.
+#' @return Graph of relative standard errors
 #' @export
 
-setMethod(f="plotWeights",
-          signature = "Optimization",
-          definition = function( object )
-          {
-            optimizationResults = getOptimizationResults( object )
+method( plotRSE, Optimization ) = function( pfimproject )
+{
+  # set the FIM and plot RSE
+  fim = prop( pfimproject, "fim" )
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  plotRSE = plotRSEFIM( fim, evaluationOptimalDesign )
+  return( plotRSE )
+}
 
-            plotWeights( optimizationResults )
-
-          })
-
-#' @rdname plotFrequencies
+#' Plot weights for the multiplicative algorithm
+#' @name plotWeights
+#' @param optimization An \code{Optimization} object.
+#' @return Plot of weights
 #' @export
 
-setMethod(f="plotFrequencies",
-          signature = "Optimization",
-          definition = function( object )
-          {
-            optimizationResults = getOptimizationResults( object )
+method( plotWeights, Optimization ) = function( optimization )
+{
+  optimisationAlgorithmOutputs = prop( optimization, "optimisationAlgorithmOutputs" )
+  optimizationAlgorithm = optimisationAlgorithmOutputs$optimizationAlgorithm
+  plotWeightsMultiplicativeAlgorithm( optimization, optimizationAlgorithm )
+}
 
-            plotFrequencies( optimizationResults )
-
-          })
-
-#' @rdname generateTables
+#' Plot frequencies for the FedorovWynn algorithm
+#' @name plotFrequencies
+#' @param optimization An \code{Optimization} object.
+#' @return Graph of the optimal frequencies.
 #' @export
 
-setMethod(f="generateTables",
-          signature("Optimization"),
-          function( object, plotOptions )
-          {
-            # get model and model error
-            evaluationInitialDesign = getEvaluationInitialDesignResults( object )
+method( plotFrequencies, Optimization ) = function( optimization )
+{
+  optimisationAlgorithmOutputs = prop( optimization, "optimisationAlgorithmOutputs" )
+  optimizationAlgorithm = optimisationAlgorithmOutputs$optimizationAlgorithm
+  plotFrequenciesFedorovWynnAlgorithm( optimization, optimizationAlgorithm )
+}
 
-            evaluationFIMResults = getEvaluationFIMResults( object )
-
-            model = getModel( evaluationInitialDesign )
-
-            # get design
-            designs = getDesigns( evaluationInitialDesign )
-            designNames = getNames( designs )
-            designName = designNames[[1]]
-            initialDesign = designs[[designName]]
-
-            designs = getDesigns( evaluationFIMResults )
-            designNames = getNames( designs )
-            designName = designNames[[1]]
-            optimalDesign = designs[[designName]]
-
-            # get fim
-            fim = getFim( optimalDesign )
-
-            # tables for model equations
-            modelEquations = getEquations( model )
-            modelOutcomes = getOutcomes( evaluationInitialDesign )
-
-            tablesModelEquations = list( outcomes = modelOutcomes, equations = modelEquations )
-
-            # tables for model error
-            tablesModelParameters = reportTablesModelParameters( model )
-
-            # tables for model parameters
-            tablesModelError = reportTablesModelError( model )
-
-            # tables for administration
-            tablesAdministration = reportTablesAdministration( initialDesign  )
-
-            # tables for sampling constraints
-            tablesSamplingConstraints = reportTablesSamplingConstraints( initialDesign  )
-
-            # tables for design
-            tablesDesign = reportTablesDesign( optimalDesign  )
-
-            # tables for FIM
-            tablesFIM = reportTablesFIM( fim, evaluationFIMResults )
-
-            # tables for plot design, SI, SE and RSE
-
-            tablesPlot = reportTablesPlot( evaluationFIMResults, plotOptions )
-
-            # tables for report
-            reportTables = list( tablesModelEquations = tablesModelEquations,
-                                 tablesModelError = tablesModelError,
-                                 tablesModelParameters = tablesModelParameters,
-                                 tablesDesign = tablesDesign,
-                                 tablesAdministration = tablesAdministration,
-                                 tablesSamplingConstraints = tablesSamplingConstraints,
-                                 tablesFIM = tablesFIM,
-                                 tablesPlot = tablesPlot )
-
-            return( reportTables )
-
-          })
-
-#' @rdname Report
+#' Generate optimization report
+#' @name Report
+#' @param optimization An \code{Optimization} object.
+#' @param outputPath Output path for the report.
+#' @param outputFile Output file name.
+#' @param plotOptions Plot options.
+#' @return Generated report.
 #' @export
 
-setMethod(f="Report",
-          signature("Optimization"),
-          function( object, outputPath, outputFile, plotOptions )
-          {
-            # set parameters of the optimizer
-            optimizationAlgo = getOptimizer( object )
+method( Report, Optimization ) = function( pfimproject, outputPath, outputFile, plotOptions  )
+{
+  # projectName
+  projectName = prop( pfimproject, "name" )
 
-            optimizationResults = generateReportOptimization( optimizationAlgo, object,  outputPath, outputFile, plotOptions )
-          })
+  # slots optimization
+  optimisationDesign = prop( pfimproject, "optimisationDesign" )
+  evaluationOptimalDesign = optimisationDesign$evaluationOptimalDesign
+  evaluationInitialDesign = optimisationDesign$evaluationInitialDesign
 
-##########################################################################################################
-# END Class Optimization
-##########################################################################################################
+  # outputs
+  evaluationOutputs = prop( pfimproject , "outputs" )
+
+  # model
+  model = defineModelType( evaluationInitialDesign  )
+  modelEquations = prop( model, "modelEquations" )
+
+  # model error table
+  modelError = prop( evaluationInitialDesign, "modelError" )
+  modelError = map( modelError, getModelErrorData )
+  modelErrorData = map_df( modelError, ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  colnames( modelErrorData ) = c( "Output", "Type", "$\\sigma_{slope}$", "$\\sigma_{inter}$" )
+
+  modelErrorTable = kbl( modelErrorData, align = c( "c","c","c","c" ) ) %>%
+    kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # model parameters table
+  modelParameters = prop( evaluationInitialDesign, "modelParameters" )
+  modelParameters = map( modelParameters, getModelParametersData )
+  modelParametersData = map_df( modelParameters, ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  colnames( modelParametersData ) = c("Parameter","$\\mu$","$\\omega$","Distribution", paste0("$\\mu$"," fixed"), paste0("$\\omega$"," fixed"))
+
+  modelParametersTable = kbl( modelParametersData, align = c( "l","l","l","c","c","c" ) ) %>%
+    kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # arms
+  designs = prop( evaluationInitialDesign, "designs" )
+  designsNames = map_chr( designs, "name" )
+  arms = map( designs, ~ prop( .x, "arms" ))
+  armsData = flatten( map( pluck(arms,1), getArmData ) )
+
+  # administration table
+  administration = flatten( map( pluck(arms, 1), armAdministration ) )
+  administrationData = map_df( administration, ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  colnames( administrationData ) = c( "Design name","Arms name" , "Number of subject ", "Outcome", "Dose","Time dose", "$\\tau$", "$T_{inf}$" )
+
+  administrationTable = kbl( administrationData, align = c( "l","l","l","c","c","c","c" ) ) %>%
+    kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # initial design
+  initialDesignData = map_df( armsData, ~ as.data.frame( .x, stringsAsFactors = FALSE ) )
+  colnames( initialDesignData ) = c( "Arms name" , "Number of subjects", "Outcome", "Dose","Sampling times" )
+
+  initialDesignTable = kbl( initialDesignData, align = c( "l","c","c","c") ) %>%
+    kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # Fisher matrix and SE
+  fim = prop( evaluationInitialDesign, "fim" )
+  fim = setEvaluationFim( fim, evaluationInitialDesign )
+  fimInitialDesignTable = tablesForReport( fim, evaluationInitialDesign )
+
+  # design constraints
+  optimisationAlgorithmOutputs = prop( pfimproject, "optimisationAlgorithmOutputs" )
+  optimizationAlgorithm = optimisationAlgorithmOutputs$optimizationAlgorithm
+  constraintsTableForReport = constraintsTableForReport( optimizationAlgorithm, arms )
+
+  # optimal design table
+  designs = prop( evaluationOptimalDesign, "designs" )
+  designsNames = map_chr( designs, "name" )
+  arms = map( designs, ~ prop( .x, "arms" ) )
+  armsData = flatten(map( pluck( arms,1), getArmData ) )
+  optimalDesignData = map_df(armsData, ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  colnames( optimalDesignData ) = c( "Arms name" , "Number of subjects", "Outcome", "Dose","Sampling times" )
+
+  optimalDesignTable = kbl( optimalDesignData, align = c( "l","c","c","c","c","c") ) %>%
+    kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+
+  # Fisher matrix and SE
+  fim = prop( evaluationOptimalDesign, "fim" )
+  fim = setEvaluationFim( fim, evaluationOptimalDesign )
+  fimOptimalTable = tablesForReport( fim, evaluationOptimalDesign )
+
+  # plotsEvaluation & plotSensitivityIndices
+  plotsEvaluation = plotEvaluation( evaluationOptimalDesign, plotOptions )
+  plotSensitivityIndices = plotSensitivityIndices( evaluationOptimalDesign, plotOptions )
+  plotSE = plotSE( evaluationOptimalDesign )
+  plotRSE = plotRSE( evaluationOptimalDesign )
+
+  # tablesForReport
+  tablesForReport = list( evaluationOutputs = evaluationOutputs,
+                          modelEquations = modelEquations,
+                          modelErrorTable = modelErrorTable,
+                          modelParametersTable = modelParametersTable,
+                          administrationTable = administrationTable,
+                          initialDesignTable = initialDesignTable,
+                          constraintsTableForReport = constraintsTableForReport,
+                          fimInitialDesignTable = fimInitialDesignTable,
+                          optimalDesignTable = optimalDesignTable,
+                          fimOptimalTable = fimOptimalTable,
+                          plotsEvaluation = plotsEvaluation,
+                          plotSensitivityIndices = plotSensitivityIndices,
+                          plotSE = plotSE,
+                          plotRSE = plotRSE,
+                          fim = fim,
+                          pfimproject = pfimproject,
+                          projectName = projectName )
+
+  generateReportOptimization( fim, optimizationAlgorithm, tablesForReport )
+}
+
+
+
 
 
 

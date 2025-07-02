@@ -1,530 +1,280 @@
-#' Class "ModelODEBolus"
-#'
-#' @description The class \code{ModelODEBolus} defines information concerning the construction of an ode model bolus.
-#' The class \code{ModelODEBolus} inherits from the class \code{ModelBolus}.
-#'
-#' @name ModelODEBolus-class
-#' @aliases ModelODEBolus
-#' @docType class
-#' @include ModelBolus.R
+#' @description The class \code{ModelODEBolus} is used to defined a model ode admin bolus.
+#' @title ModelODEBolus
+#' @inheritParams ModelODE
+#' @param modelODE An object \code{modelODE}.
+#' @param doseEvent A dataframge given the doseEvent for the ode solver.
+#' @param solverInputs A list giving the solver inputs.
+#' @include ModelODE.R
 #' @export
 
-#' @rdname getVariables
+ModelODEBolus = new_class( "ModelODEBolus", package = "PFIM", parent = ModelODE,
+
+                           properties = list(
+                             modelODE = new_property(class_function, default = NULL),
+                             doseEvent = new_property(class_list, default = list()),
+                             solverInputs = new_property(class_list, default = list())
+                           ))
+
+#' defineModelWrapper: define the model wrapper for the ode solver
+#' @name defineModelWrapper
+#' @param model An object of class \code{ModelODEBolus} that defines the model.
+#' @param evaluation An object of class Evaluation that defines the evaluation
+#' @return The model with updated slots.
+
+method( defineModelWrapper, ModelODEBolus ) = function( model, evaluation ) {
+
+  # names of the equations and the variables
+  equations = prop( evaluation, "modelEquations" )
+  variableNames = str_remove( names( equations ), "Deriv_" )
+  variableNamesDerivatives = paste( names( equations ), collapse = ", " )
+
+  # outcomes with administration
+  outcomesWithAdministration = evaluation %>%
+    pluck( "designs" ) %>%
+    map( ~ pluck( .x, "arms" ) ) %>%
+    unlist() %>%
+    map( ~ pluck( .x, "administrations" ) ) %>%
+    unlist()%>%
+    map( ~ pluck( .x, "outcome" ) ) %>%
+    unlist()
+
+  # arguments for the function
+  parameters = prop( evaluation, "modelParameters" )
+  parameterNames = map_chr( parameters, "name" )
+
+  functionArguments = c( parameterNames, variableNames, "t" )
+  functionArguments = unique( functionArguments )
+  functionArgumentsSymbol = map( functionArguments, ~ as.symbol(.x) )
+
+  # create body function
+  equationsBody = map_chr( names( equations ), ~ sprintf( "%s = %s", .x, equations[[.x]] ) )
+
+  functionBody = paste( equationsBody, collapse = "\n" )
+  functionBody = sprintf( paste( "%s\nreturn(list(c(", variableNamesDerivatives, ")))", collapse = ", " ), functionBody )
+  functionDefinition = sprintf( "function(%s) { %s }", paste( functionArguments, collapse = ", " ), functionBody )
+
+  # define the model
+  outputs = prop( evaluation, "outputs")
+  prop( model, "outputFormula") = outputs
+  prop( model, "outputNames") = names( outputs )
+  prop( model, "outcomesWithAdministration") = outcomesWithAdministration
+  prop( model, "wrapper" ) = eval( parse( text = functionDefinition ) )
+  prop( model, "functionArguments" ) = functionArguments
+  prop( model, "functionArgumentsSymbol" ) = functionArgumentsSymbol
+
+  return( model )
+}
+
+#' evaluateInitialConditions: evaluate the initial conditions.
+#' @name evaluateInitialConditions
+#' @param arm A object of class \code{Arm} giving the arm.
+#' @param model A object of class \code{Model} giving the model.
+#' @param doseEvent A data frame giving the dose event for the ode solver.
 #' @export
 
+method( evaluateInitialConditions, ModelODEBolus ) = function( model, arm, doseEvent ) {
 
-ModelODEBolus = setClass(
-  Class = "ModelODEBolus",
-  contains = "ModelBolus")
+  # assign dose values
+  outcomesWithAdministration =  prop( model, "outcomesWithAdministration" )
+  doseNames = map( outcomesWithAdministration, ~ paste0( "dose_", .x ) )
+  doseValues = as.list( doseEvent[doseEvent$time == 0, "value"] )
 
-#' @rdname getVariables
-#' @export
-#'
-setMethod("getVariables",
-          signature("ModelODEBolus"),
-          function( object )
-          {
-            equations = getEquations( object )
+  if ( length( doseValues ) == 1 )
+  {
+    doses = set_names( doseValues[1], doseNames[1] )
+  }
+  else
+  {
+    doses = set_names( doseValues, doseNames )
+  }
 
-            variablesNamesDerivatives = names( equations )
+  list2env( doses, envir = environment() )
 
-            variablesNames = gsub( "Deriv_", "", variablesNamesDerivatives )
+  # assign mu values of the parameters
+  initialConditions = prop( arm, "initialConditions")
+  parameters = prop( model, "modelParameters")
 
-            return( list( variablesNames = variablesNames, variablesNamesDerivatives = variablesNamesDerivatives ) )
+  mu = set_names(
+    map( parameters, ~ {
+      pluck(.x, "distribution", "mu")
+    }),
+    map( parameters, ~ prop( .x, "name") )
+  )
 
-          })
+  list2env( mu, envir = environment())
 
-#' @rdname defineModelEquationsFromStringToFunction
-#' @export
+  # evaluate the initial conditions
+  initialConditions = map( initialConditions, ~ {
 
-setMethod("defineModelEquationsFromStringToFunction",
-          signature("ModelODEBolus"),
-          function( object, parametersNames, outcomesWithAdministration, outcomesWithNoAdministration )
-          {
-            # =========================================================
-            # variables and outcomes of the model
-            # =========================================================
+    if ( is.numeric(.x) ) {
+      return(.x)
+    } else {
+      eval( parse( text = .x ) )
+    }
+  })%>%unlist()
 
-            variables = getVariables( object )
-            variablesNames = variables$variablesNames
-            variablesNamesDerivatives = variables$variablesNamesDerivatives
-            variablesNamesDerivatives = paste( variablesNamesDerivatives, collapse = ", ")
+  return( initialConditions )
+}
 
-            # =========================================================
-            # arguments for the function
-            # =========================================================
-
-            doseNames = paste( "dose_", outcomesWithAdministration, sep = "" )
-            functionArguments = c( doseNames, parametersNames, variablesNames, "t" )
-            functionArgumentsSymbol = map( functionArguments, ~as.symbol(.x) )
-
-            # =============================
-            # create body function
-            # =============================
-
-            equationsBody = list()
-
-            equations = getEquations( object )
-
-            for ( name in names( equations ) )
-            {
-              equation = equations[[name]]
-              equationsBody = c( equationsBody, sprintf( "%s = %s", name, equation ) )
-            }
-
-            functionBody = paste( equationsBody, collapse = "\n" )
-            functionBody = sprintf( paste( "%s\nreturn(list(c(", variablesNamesDerivatives, ")))", collapse = ", "), functionBody )
-            functionDefinition = sprintf( "function(%s) { %s }", paste( functionArguments, collapse = ", "), functionBody )
-            modelFunction = eval( parse( text = functionDefinition ) )
-
-            return( list( modelFunction = modelFunction,
-                          functionArguments = functionArguments,
-                          functionArgumentsSymbol = functionArgumentsSymbol ) )
-          })
-
-# ======================================================================================================
-
-#' @rdname setDataForModelEvaluation
+#' defineModelAdministration: define the administration
+#' @name defineModelAdministration
+#' @param model An object of class \code{ModelODEBolus} that defines the model.
+#' @param arm An object of class \code{Arm} that defines the arm.
+#' @return The model with updated slots.
 #' @export
 
-setMethod("setDataForModelEvaluation",
-          signature("ModelODEBolus"),
-          function( object, arm )
-          {
-            # get data for arm evaluation
-            dataForArmEvaluation = getDataForArmEvaluation( arm )
+method( defineModelAdministration, ModelODEBolus ) = function( model, arm ) {
 
-            inputsModel = list()
-            initialConditions = list()
-            timeDose = list()
+  # administrations and samplings
+  administrations = prop( arm, "administrations" )
+  samplingTimes = prop( arm, "samplingTimes" )
+  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% unlist()
+  samplings = unique( c( 0.0, samplings ) )
 
-            # outcomes and sampling time
-            outcomesWithAdministration = dataForArmEvaluation$outcomesWithAdministration
-            samplingTimesModel = dataForArmEvaluation$samplingTimesModel
-            outcomesForEvaluation = dataForArmEvaluation$outcomesForEvaluation
-            names( dataForArmEvaluation$samplingTimesOutcomes ) = dataForArmEvaluation$modelOutcomes
+  # model wrapper function
+  wrapper = prop( model, "wrapper")
 
-            # function to evaluate
-            equationFunction = dataForArmEvaluation$equationFunction
-            modelFunction = equationFunction$modelFunction
-            functionArguments = equationFunction$functionArguments
-            functionArgumentsSymbols = equationFunction$functionArgumentsSymbol
+  # model parameters
+  parameters = prop( model, "modelParameters" )
 
-            # administration and sampling times
-            administrations = getAdministrations( arm )
-            samplingTimes = getSamplingTimes(  arm  )
-            variables = getVariables( object )
-            variablesNames = variables$variablesNames
+  # args for model evaluation
+  functionArguments = prop( model, "functionArguments" )
+  functionArgumentsSymbols = prop( model, "functionArgumentsSymbol" )
 
-            # variables with administration
-            variablesWithAdministration = unlist( lapply( administrations, function(x) getOutcome(x) ) )
+  # model outputs
+  outputFormula = prop( model, "outputFormula" )
+  outputFormula = map( outputFormula, ~ parse( text=.x ) )
 
-            # variables without administration
-            variablesWithNoAdministration = setdiff( variablesNames, variablesWithAdministration )
+  # dose event
+  doseEvent = map( administrations, ~ {
 
-            # administration parameters
-            for ( variable in variablesWithAdministration )
-            {
-              # time dose, dose and tau
-              administration = getAdministration( arm, variable )
-              timeDose[[variable]] = getTimeDose( administration )
-              dose = getDose( administration )
-              tau = getTau( administration )
+    outcome = prop( .x, "outcome" )
+    timeDose = prop( .x, "timeDose" )
+    tau = prop( .x, "tau" )
+    dose = prop( .x, "dose" )
 
-              # for repeated doses
-              if ( tau !=0 )
-              {
-                maxSamplingTimeOutcome = max( getSamplings( getSamplingTime( arm, variable ) ) )
-                n = maxSamplingTimeOutcome%/%tau
-                inputsModel$dose[[variable]] = rep( dose, n+1 )
-                timeDose[[variable]] = sort( unique( seq( 0, maxSamplingTimeOutcome, tau ) ) )
-              }
-              else
-              {
-                # for multi doses
-                inputsModel$dose[[variable]] = dose
-                timeDose[[variable]] = sort( unique( c( timeDose[[variable]] ) ) )
-              }
-            }
+    if ( tau !=0 )
+    {
+      timeDose = seq( 0, max( samplings ), tau )
+      dose = rep( dose, length( timeDose ) )
+    }
 
-            # assign parameter values and initial conditions
-            modelParameters = getParameters( object )
+    data.frame(  var = rep( outcome, length( timeDose ) ) ,
+                 time = timeDose,
+                 value = dose,
+                 method = ifelse( timeDose > 0, "add", "replace" ) )
 
-            for( modelParameter in modelParameters )
-            {
-              modelParameterName = getName( modelParameter )
-              modelParameterValue = getMu( modelParameter )
-              assign( modelParameterName, modelParameterValue )
-            }
+  }) %>% reduce(rbind) %>% .[order(.$time), ]
 
-            # evaluation of the initial conditions
-            initialConditions = getInitialConditions( arm )
+  # evaluate the initial conditions
+  initialConditions = evaluateInitialConditions( model, arm, doseEvent )
 
-            variablesNames = variables$variablesNames
+  # Assign the values to the parameters in the current environment
+  mu = set_names(
+    map(parameters, ~ .x@distribution@mu),
+    map(parameters, ~ .x@name)
+  )
 
-            for ( variableName in variablesNames )
-            {
-              assign( "dose", inputsModel$dose[[variableName]][1] )
+  list2env( mu, envir = environment() )
 
-              initialConditions[[variableName]] = eval( parse( text = initialConditions[[variableName]] ) )
-            }
+  # update doseEvent with the initial conditions
+  for ( iter in 1:dim( doseEvent )[1] )
+  {
+    initialConditionsTmp = prop( arm, "initialConditions")
+    outcomeName = doseEvent$var[iter]
+    doseName = paste0( "dose_", outcomeName )
+    doseValue = doseEvent$value[iter]
+    assign( doseName, doseValue )
+    doseEvent$value[iter] = eval( parse ( text = initialConditionsTmp[[outcomeName]]))
+  }
 
-            initialConditions = unlist( initialConditions )
+  # function evaluation model
+  modelODEBolus = function( samplingTimes, initialConditions, parameters )
+  {
+    with( as.list( c(  samplingTimes, initialConditions, parameters ) ),{
 
-            # Dose event for ode for evaluation
-            doseEvent = list()
+      # evaluate wrapper
+      evaluationModel = do.call( wrapper, setNames( functionArgumentsSymbols, functionArguments ) )
 
-            initialConditionsVariable = getInitialConditions( arm )
+      # evaluate model outputs
+      evaluationOutputs  = map( outputFormula, ~ eval( .x ) )
 
-            for ( variable in variablesWithAdministration )
-            {
-              assign( "dose",  inputsModel$dose[[variable]] )
+      return( c( evaluationModel , evaluationOutputs ) )
+    })}
 
-              value = eval( parse( text = initialConditionsVariable[[variable]] ) )
+  prop( model, "initialConditions" ) = initialConditions
+  prop( model, "samplings" ) = samplings
+  prop( model, "modelODE" ) = modelODEBolus
+  prop( model, "doseEvent" ) = doseEvent
 
-              doseEvent[[variable]] = data.frame( var = variable,
-                                                  time = timeDose[[variable]],
-                                                  value = value ,
-                                                  method = c("replace") )
-            }
+  return( model )
+}
 
-            # for doses at t>0
-            doseEvent = do.call( rbind, doseEvent )
-            doseEvent = doseEvent[ order( doseEvent$time ), ]
-            doseEvent$method[ doseEvent$time > 0 ] = "add"
-
-            # ensure that event time in times to avoid warning
-            uniqueTimes = cleanEventTimes( samplingTimesModel, doseEvent$time )
-            samplingTimesModel  = sort( unique( c( samplingTimesModel, uniqueTimes ) ) )
-
-            # function evaluation model ODE
-            modelEvaluation = list()
-
-            modelODEBolus = function( samplingTimesModel, initialConditions, inputsModel )
-            {
-              with( c( samplingTimesModel, initialConditions, inputsModel ),{
-
-                output = do.call( modelFunction, setNames( functionArgumentsSymbols, functionArguments  ) )
-
-                outcomesForEvaluation = map( outcomesForEvaluation, ~ eval( .x ) )
-
-                return( c( output, outcomesForEvaluation ) )
-              })
-            }
-
-            odeSolverParameters = getOdeSolverParameters( object )
-
-            dataForModelEvaluation = c( dataForArmEvaluation,
-
-                                        list( initialConditions = initialConditions,
-                                              samplingTimesModel = samplingTimesModel,
-                                              modelODEBolus = modelODEBolus,
-                                              inputsModel = inputsModel,
-                                              doseEvent = doseEvent,
-                                              odeSolverParameters = odeSolverParameters ) )
-
-            return( dataForModelEvaluation )
-
-          })
-
-#' @rdname EvaluateModel
+#' evaluateModel
+#' @name evaluateModel
+#' @param arm A object of class \code{Arm} giving the arm.
+#' @param model A object of class \code{Model} giving the model.
+#' @return A data frame giving the output of the model evaluation.
 #' @export
 
-setMethod(f = "EvaluateModel",
-          signature = "ModelODEBolus",
-          definition = function( object, dataForModelEvaluation, arm  )
-          {
-            initialConditions = dataForModelEvaluation$initialConditions
+method( evaluateModel, ModelODEBolus ) = function( model, arm ) {
 
-            samplingTimesModel = dataForModelEvaluation$samplingTimesModel
-            samplingTimesOutcomes = dataForModelEvaluation$samplingTimesOutcomes
+  initialConditions = prop( model, "initialConditions" )
+  samplings = prop( model, "samplings" )
+  modelODE = prop( model, "modelODE" )
+  solverInputs = prop( model, "solverInputs" )
+  odeSolverParameters = prop( model, "odeSolverParameters" )
+  atol = odeSolverParameters$atol
+  rtol = odeSolverParameters$rtol
+  samplingTimes = prop( arm, "samplingTimes" )
+  doseEvent = prop( model, "doseEvent" )
+  outputNames = prop( model, "outputNames")
+  parameters = prop( model, "modelParameters")
 
-            modelODEBolus = dataForModelEvaluation$modelODEBolus
+  evaluationModelTmp = ode( initialConditions, samplings, modelODE, parameters, events = list( data = doseEvent ), atol = atol, rtol = rtol )
+  evaluationModelTmp = evaluationModelTmp %>% data.frame()
 
-            inputsModel = dataForModelEvaluation$inputsModel
+  # filter sampling time
+  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% set_names( outputNames )
 
-            atol = dataForModelEvaluation$odeSolverParameters$atol
-            rtol = dataForModelEvaluation$odeSolverParameters$rtol
+  evaluationModel = map(outputNames, ~ {
+    time = evaluationModelTmp$time %in% samplings[[.x]]
+    evaluationModelTmp[time, c("time", .x)]
+  }) %>% setNames( outputNames )
 
-            doseEvent = dataForModelEvaluation$doseEvent
+  return( evaluationModel )
+}
 
-            modelEvaluation = ode( initialConditions,
-                                   samplingTimesModel,
-                                   modelODEBolus,
-                                   inputsModel,
-                                   events = list( data = doseEvent ),
-                                   hmax = 0.0,
-                                   method = "lsoda",
-                                   atol = atol, rtol = rtol )
-
-            # bolus: remove dose event > 0
-            timeDoseEventToRemove = doseEvent$time[doseEvent$time>0]
-
-            if ( length( timeDoseEventToRemove ) !=0 )
-            {
-              modelEvaluation = as.data.frame( modelEvaluation )
-              modelEvaluation = modelEvaluation[ modelEvaluation$time != timeDoseEventToRemove, ]
-            }
-
-            # evaluation for each outcomes
-            evaluationOutcomes = list()
-
-            for ( outcome in names( samplingTimesOutcomes ) )
-            {
-              indexSamplingTimesOutcome = match( samplingTimesOutcomes[[outcome]], samplingTimesModel )
-              evaluationOutcomes[[ outcome ]] = modelEvaluation[indexSamplingTimesOutcome, c( "time", outcome ) ]
-            }
-
-            return( evaluationOutcomes )
-          })
-
-# ======================================================================================================
-
-#' @rdname EvaluateModelGradient
+#' definePKModel: define PK model ode bolus
+#' @name definePKModel
+#' @param pkModel An object of class \code{ModelODEBolus} that defines the PK model.
+#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
 
-setMethod(f = "EvaluateModelGradient",
-          signature = "ModelODEBolus",
-          definition = function( object, dataForModelEvaluation, arm )
-          {
-            samplingTimesOutcomes = dataForModelEvaluation$samplingTimesOutcomes
-            samplingTimesModel = dataForModelEvaluation$samplingTimesModel
-            modelError = dataForModelEvaluation$modelError
+method( definePKModel, list( ModelODEBolus, PFIMProject ) ) = function( pkModel, pfimproject ) {
 
-            shiftedParameters = dataForModelEvaluation$parametersGradient$shifted
-            Xcols = dataForModelEvaluation$parametersGradient$Xcols
-            Xcols = do.call( "cbind", Xcols )
-            XcolsInv = as.matrix( solve( Xcols ) )
-            frac = dataForModelEvaluation$parametersGradient$frac
+  designs = prop( pfimproject, "designs" )
+  variablesNames = designs %>% map(~ map( prop(.x,"arms"), ~ prop(.x,"initialConditions"))) %>% unlist() %>% names() %>% unique()
+  variablesNamesToChange =  c("C1", "C2")
 
-            modelParameters = getParameters( object )
-            parametersNames = map( modelParameters, ~ getName( .x ) ) %>% unlist()
+  pkModelEquations = prop( pkModel, "modelEquations") %>%
+    imap(~reduce2(variablesNamesToChange, variablesNames, replaceVariablesLibraryOfModels, .init = .x)) %>%
+    set_names( paste0("Deriv_",variablesNames ) )
 
-            dataForArmEvaluation = getDataForArmEvaluation( arm )
-            modelOutcomes = dataForArmEvaluation$modelOutcomes
+  return( pkModelEquations )
+}
 
-            evaluationModel = map( 1:ncol( shiftedParameters ), function( iterShiftedParameters )
-            {
-              modelParameters = map2( modelParameters, 1:length( modelParameters ), ~ setMu(.x, shiftedParameters[.y, iterShiftedParameters] ) )
-              object = setParameters( object, modelParameters )
-              dataForModelEvaluation = setDataForModelEvaluation( object, arm )
 
-              EvaluateModel( object, dataForModelEvaluation, arm )
-            })
 
-            outcomesGradient = pmap( list( modelOutcome = modelOutcomes,
-                                           samplingTimesOutcomes = list( samplingTimesOutcomes ),
-                                           parametersNames = list( parametersNames ) ),
 
-                                     function( modelOutcome, parametersNames, samplingTimesOutcomes, samplingTimesModel )
-                                     {
-                                       evaluationGradient = evaluationModel %>%
-                                         map(~ .x[[modelOutcome]][, modelOutcome]) %>%
-                                         reduce( cbind )
 
-                                       outcomesGradient = t( XcolsInv %*% t( evaluationGradient ) / frac )
 
-                                       indexColumn = length( parametersNames )
 
-                                       outcomesGradient = as.data.frame( outcomesGradient[, 2:(1 + indexColumn)] )
 
-                                       outcomesGradient = cbind( samplingTimesOutcomes[[modelOutcome]], outcomesGradient )
 
-                                       colnames( outcomesGradient ) = c("time", parametersNames)
 
-                                       return( outcomesGradient )
-                                     }
-            )
 
-            outcomesGradient = set_names( outcomesGradient, modelOutcomes )
 
-            outcomesAllGradient = list()
 
-            for( modelOutcome in modelOutcomes )
-            {
-              index = which( sapply( modelError, function (x) getOutcome(x) == modelOutcome ) )
-
-              if ( length( index ) != 0 )
-              {
-                outcomesAllGradient[[modelOutcome]] = as.data.frame( outcomesGradient[[modelOutcome]][, parametersNames ] )
-                names(  outcomesAllGradient[[modelOutcome]] ) = parametersNames
-              }
-            }
-
-            outcomesAllGradient = do.call( rbind, outcomesAllGradient )
-            rownames( outcomesAllGradient ) = NULL
-
-            return( list( outcomesGradient = outcomesGradient,
-                          outcomesAllGradient = outcomesAllGradient ) )
-          })
-
-# ======================================================================================================
-# definePKPDModel
-# ======================================================================================================
-
-#' @rdname definePKPDModel
-#' @export
-
-setMethod("definePKPDModel",
-          signature("ModelODEBolus","ModelODE"),
-          function( PKModel, PDModel, outcomes )
-          {
-            model = ModelODEBolus()
-            if ( length( outcomes ) != 0 )
-            {
-              # ====================================================
-              # original and new outcomes
-              # ====================================================
-
-              newOutcomes = outcomes
-              originalOutcomesPKModel = getOutcomes( PKModel )
-              originalOutcomesPDModel = getOutcomes( PDModel )
-              originalOutcomesPKModel = unlist( originalOutcomesPKModel )
-              originalOutcomesPDModel = unlist( originalOutcomesPDModel )
-              originalOutcomes = as.list( c( originalOutcomesPKModel, originalOutcomesPDModel ) )
-
-              # ====================================================
-              # variable names
-              # ====================================================
-
-              variablesNames = unlist( originalOutcomes )
-              variablesNewNames = unlist( newOutcomes )
-
-              # ====================================================
-              # model equation
-              # ====================================================
-
-              PKModelEquations = getEquations( PKModel )
-              PDModelEquations = getEquations( PDModel )
-              equations = c( PKModelEquations, PDModelEquations )
-              equations = lapply( equations, function(x) parse( text = x ) )
-              names( equations ) = paste0( "Deriv_", variablesNewNames )
-              numberOfEquations = length( equations )
-
-              # ====================================================
-              # response names old and new
-              # ====================================================
-
-              responsesNames = names( originalOutcomes )
-              responsesNewNames = names( newOutcomes )
-
-              # ====================================================
-              # dose names
-              # ====================================================
-
-              doseNewNames = as.list(paste0( "dose_", responsesNewNames ))
-              names( doseNewNames ) = rep( "dose",length(responsesNewNames))
-              doseNewNames = lapply( doseNewNames, function(x) parse( text = x ) )
-              doseNewNames = lapply( doseNewNames, function(x) x[[1]] )
-
-              # ====================================================
-              # variables substitution
-              # ====================================================
-
-              variablesNewNames = lapply( variablesNewNames, function(x) parse( text = x ) )
-              variablesNewNames = lapply( variablesNewNames, function(x) x[[1]] )
-
-              # =======================================================
-              # RespPK change for PD Model with PK ode Michaelis-Menten
-              # =======================================================
-
-              variablesNewNames = append( variablesNewNames, variablesNewNames[[1]] )
-              names( variablesNewNames ) = c( variablesNames, "RespPK" )
-              for ( iterEquation in 1:numberOfEquations )
-              {
-                equations[[iterEquation]] = as.expression(do.call( 'substitute', list( equations[[iterEquation]][[1]], variablesNewNames ) ) )
-                equations[[iterEquation]] = as.expression(do.call( 'substitute', list( equations[[iterEquation]][[1]], doseNewNames ) ) )
-              }
-
-              # =======================================================
-              # convert equations from expression to string
-              # =======================================================
-
-              equations = lapply( equations, function(x) x[[1]] )
-              equations = lapply( equations, function(x) paste( deparse( x ), collapse = " " ) )
-              equations = lapply( equations, function(x) str_replace_all( x, " ", "" ) )
-
-              # =======================================================
-              # set outcomes and equations
-              # =======================================================
-
-              model = setEquations( model, equations )
-              model = setOutcomes( model, newOutcomes )
-            }else{
-              # =======================================================
-              # outcomes
-              # =======================================================
-
-              newOutcomes = outcomes
-              originalOutcomesPKModel = getOutcomes( PKModel )
-              originalOutcomesPDModel = getOutcomes( PDModel )
-              originalOutcomesPKModel = unlist( originalOutcomesPKModel )
-              originalOutcomesPDModel = unlist( originalOutcomesPDModel )
-              originalOutcomes = as.list( c( originalOutcomesPKModel, originalOutcomesPDModel ) )
-
-              # =======================================================
-              # response names old and new
-              # =======================================================
-
-              responsesNames = names( originalOutcomes )
-
-              # =======================================================
-              # variable names
-              # =======================================================
-
-              variablesNames = unlist( originalOutcomes )
-              variablesNames = lapply( variablesNames, function(x) parse( text = x ) )
-
-              # =======================================================
-              # model equations
-              # =======================================================
-
-              PKModelEquations = getEquations( PKModel )
-              PDModelEquations = getEquations( PDModel )
-              equations = c( PKModelEquations, PDModelEquations )
-              equations = lapply( equations, function(x) parse( text = x ) )
-              numberOfEquations = length( equations )
-
-              # =======================================================
-              # dose names
-              # =======================================================
-
-              doseNewNames = as.list( paste0( "dose_", responsesNames ) )
-              names( doseNewNames ) = rep( "dose",length( responsesNames ) )
-              doseNewNames = lapply( doseNewNames, function(x) parse( text = x ) )
-              doseNewNames = lapply( doseNewNames, function(x) x[[1]] )
-
-              # =======================================================
-              # RespPK change for PD Model with PK ode Michaelis-Menten
-              # =======================================================
-
-              variableSubstitutedMichaelisMenten = list()
-              variableSubstitutedMichaelisMenten[[1]] = variablesNames[[1]][[1]]
-              names( variableSubstitutedMichaelisMenten ) = "RespPK"
-
-              for ( iterEquation in 1:numberOfEquations )
-              {
-                equations[[iterEquation]] = as.expression(do.call( 'substitute', list( equations[[iterEquation]][[1]],
-                                                                                       variableSubstitutedMichaelisMenten ) ) )
-                equations[[iterEquation]] = as.expression(do.call( 'substitute', list( equations[[iterEquation]][[1]],
-                                                                                       doseNewNames ) ) )
-              }
-
-              # =======================================================
-              # convert equations from expression to string
-              # =======================================================
-
-              equations = lapply( equations, function(x) x[[1]] )
-              equations = lapply( equations, function(x) paste( deparse( x ), collapse = " " ) )
-              equations = lapply( equations, function(x) str_replace_all( x, " ", "" ) )
-              model = setEquations( model, equations )
-              model = setOutcomes( model, originalOutcomes )
-            }
-            return( model )
-          })
-
-##########################################################################################################
-# END Class ModelODEBolus
-##########################################################################################################
 
 

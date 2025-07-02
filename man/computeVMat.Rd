@@ -2,7 +2,7 @@
 % Please edit documentation in R/PopulationFim.R
 \name{computeVMat}
 \alias{computeVMat}
-\title{function computeVMat}
+\title{computeVMat}
 \usage{
 computeVMat(varParam1, varParam2, invCholV)
 }
@@ -17,5 +17,5 @@ computeVMat(varParam1, varParam2, invCholV)
 VMat
 }
 \description{
-function computeVMat
+computeVMat
 }

@@ -1,420 +1,97 @@
-###################################################################################################################
-#' Class "ModelError" representing a Model error.
-#'
-#' @description ...
-#' @name ModelError-class
-#' @aliases ModelError
-#' @docType class
-#' @include GenericMethods.R
+#' ModelError
+#' @description The class \code{ModelError} is used to defined a model error.
+#' @title ModelError
+#' @param output A string giving the model error output.
+#' @param equation A expression giving the model error equation.
+#' @param derivatives A list giving the derivatives of the model error equation.
+#' @param sigmaInter A double giving the sigma inter.
+#' @param sigmaSlope A double giving the sigma slope
+#' @param sigmaInterFixed A boolean giving if the  sigma inter is fixed or not. - not in the v7.0
+#' @param sigmaSlopeFixed A boolean giving if the  sigma slope is fixed or not. - not in the v7.0
+#' @param cError A integer giving the power parameter.
 #' @export
 
-ModelError = setClass(Class = "ModelError",
-                      representation = representation
-                      (
-                        outcome="character",
-                        equation = "expression",
-                        derivatives = "list",
-                        sigmaInter = "numeric",
-                        sigmaSlope = "numeric",
-                        cError = "numeric"
-                      ))
+ModelError = new_class("ModelError", package = "PFIM",
+                       properties = list(
+                         output = new_property(class_character, default = "output"),
+                         equation = new_property(class_expression, default = expression()),
+                         derivatives = new_property(class_list, default = list()),
+                         sigmaInter = new_property(class_double, default = 0.1),
+                         sigmaSlope = new_property(class_double, default = 0.0),
+                         sigmaInterFixed = new_property(class_logical, default = FALSE),
+                         sigmaSlopeFixed = new_property(class_logical, default = FALSE),
+                         cError = new_property(class_double, default = 1.0)
+                       ),
+                       constructor = function(output = "output",
+                                              equation = expression(),
+                                              derivatives = list(),
+                                              sigmaInter = 0.1,
+                                              sigmaSlope = 0.0,
+                                              sigmaInterFixed = FALSE,
+                                              sigmaSlopeFixed = FALSE,
+                                              cError = 1.0) {
+                         new_object(
+                           output = output,
+                           equation = equation,
+                           derivatives = derivatives,
+                           sigmaInter = sigmaInter,
+                           sigmaSlope = sigmaSlope,
+                           sigmaInterFixed = sigmaInterFixed,
+                           sigmaSlopeFixed = sigmaSlopeFixed,
+                           cError = cError,
+                           .parent = environment()
+                         )
+                       })
 
-#' initialize
-#' @param .Object .Object
-#' @param outcome outcome
-#' @param equation equation
-#' @param derivatives derivatives
-#' @param sigmaInter sigmaInter
-#' @param sigmaSlope sigmaSlope
-#' @param cError cError
-#' @return ModelError
-#' @export
-#'
-setMethod( f="initialize",
-           signature="ModelError",
-           definition= function (.Object, outcome, equation, derivatives, sigmaInter, sigmaSlope, cError  )
-           {
-             if(!missing(outcome))
-             {
-               .Object@outcome = outcome
-             }
-             if(!missing(equation))
-             {
-               .Object@equation = equation
-             }
-             if(!missing(derivatives))
-             {
-               .Object@derivatives = derivatives
-             }
-             if(!missing(sigmaInter))
-             {
-               .Object@sigmaInter = sigmaInter
-             }
-             if(!missing(sigmaSlope))
-             {
-               .Object@sigmaSlope = sigmaSlope
-             }
-             if( !missing( cError ) )
-             {
-               .Object@cError = cError
-             }
-             validObject(.Object)
-             return (.Object )
-           })
+evaluateErrorModelDerivatives = new_generic( "evaluateErrorModelDerivatives", c( "modelError" ) )
+getModelErrorData = new_generic( "getModelErrorData", c( "modelError" ) )
 
-# ======================================================================================================
-# getOutcome
-# ======================================================================================================
-
-#' @rdname getOutcome
+#' evaluateErrorModelDerivatives; evaluate the derivatives of the model error.
+#' @name evaluateErrorModelDerivatives
+#' @param modelError An object \code{ModelError} that defines the model error.
+#' @param evaluationModel A dataframe giving the outputs for the model evaluation.
+#' @return The matrices sigmaDerivatives and errorVariance.
 #' @export
 
-setMethod("getOutcome",
-          "ModelError",
-          function( object )
-          {
-            return( object@outcome )
-          })
+method( evaluateErrorModelDerivatives, ModelError ) = function( modelError, evaluationModel ) {
 
-#' Get the equation of a model error.
-#'
-#' @name getEquation
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @return An expression giving the equation of a model error.
+  sigmaInter = prop( modelError, "sigmaInter" )
+  sigmaSlope = prop( modelError, "sigmaSlope" )
+
+  equation = expression( ( sigmaInter + sigmaSlope * evaluationModel ) ** 2 )
+  identityMatrix = diag( length( evaluationModel ) )
+
+  modelErroParameterConditions = list(
+    list( name = "sigmaInter", value = prop( modelError, "sigmaInter" ), fixed = prop( modelError, "sigmaInterFixed" ) ),
+    list( name = "sigmaSlope", value = prop( modelError, "sigmaSlope" ), fixed = prop( modelError, "sigmaSlopeFixed" ) ) )
+
+  sigmaDerivatives = modelErroParameterConditions %>%
+    keep( ~ .x$value != 0 && ! .x$fixed ) %>%
+    map(~ {
+      sigmaDerivatives = eval( D( equation, .x$name ) ) * identityMatrix
+      setNames( list(sigmaDerivatives ), .x$name )
+    }) %>% flatten()
+
+  errorVariance = ( sigmaInter + sigmaSlope * evaluationModel )**2 * identityMatrix
+
+  return( list( sigmaDerivatives = sigmaDerivatives, errorVariance = errorVariance ) )
+}
+
+#' getModelErrorData: get the parameters sigma slope and sigma inter (used for the report).
+#' @name getModelErrorData
+#' @param modelError An object \code{ModelError} that defines the model error.
+#' @return A list of dataframe with outcome, type of model error and sigma slope and inter.
 #' @export
 
-setGeneric("getEquation",
-           function(object)
-           {
-             standardGeneric("getEquation")
-           })
-
-#' @rdname getEquation
-#' @export
-
-setMethod("getEquation",
-          "ModelError",
-          function( object )
-          {
-            return( object@equation )
-          })
-
-#' Set the equation of a model error.
-#'
-#' @name setEquation
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @param equation An expression giving the equation of a model error.
-#' @return The model error with the updated equation.
-#' @export
-
-setGeneric("setEquation",
-           function( object, equation )
-           {
-             standardGeneric("setEquation")
-           })
-
-#' @rdname setEquation
-#' @export
-
-setMethod("setEquation",
-          "ModelError",
-          function( object, equation )
-          {
-            object@equation = equation
-
-            return( object )
-          })
-
-#' Get the derivatives of the model error equation.
-#'
-#' @name getDerivatives
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @return The derivatives of the model error equation.
-#' @export
-
-setGeneric("getDerivatives",
-           function(object)
-           {
-             standardGeneric("getDerivatives")
-           })
-
-#' @rdname getDerivatives
-#' @export
-
-setMethod("getDerivatives",
-          "ModelError",
-          function( object )
-          {
-            return( object@derivatives )
-          })
-
-#' Set the derivatives of the model error equation.
-#'
-#' @name setDerivatives
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @param derivatives The derivatives of the model error equation.
-#' @return The model error with the updated model error equation.
-#' @export
-
-setGeneric("setDerivatives",
-           function( object, derivatives )
-           {
-             standardGeneric("setDerivatives")
-           })
-
-#' @rdname setDerivatives
-#' @export
-
-setMethod("setDerivatives",
-          "ModelError",
-          function( object, derivatives )
-          {
-            object@derivatives = derivatives
-
-            return( object )
-          })
-
-#' Get the parameter sigma inter.
-#'
-#' @name getSigmaInter
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @return A numeric giving the parameter sigma inter.
-#' @export
-
-setGeneric("getSigmaInter",
-           function( object )
-           {
-             standardGeneric("getSigmaInter")
-           })
-
-#' @rdname getSigmaInter
-#' @export
-
-setMethod("getSigmaInter",
-          "ModelError",
-          function( object )
-          {
-            return( object@sigmaInter )
-          })
-
-#' Set the parameter sigma inter.
-#'
-#' @name setSigmaInter
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @param sigmaInter A numeric giving the parameter sigma inter.
-#' @return The model error with the updated sigma inter.
-#' @export
-
-setGeneric("setSigmaInter",
-           function( object, sigmaInter )
-           {
-             standardGeneric("setSigmaInter")
-           })
-
-#' @rdname setSigmaInter
-#' @export
-
-setMethod("setSigmaInter",
-          "ModelError",
-          function( object, sigmaInter)
-          {
-            object@sigmaInter = sigmaInter
-
-            return( object )
-          })
-
-#' Get the parameter sigma slope.
-#'
-#' @name getSigmaSlope
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @return A numeric giving the parameter sigma slope.
-#' @export
-
-setGeneric("getSigmaSlope",
-           function( object )
-           {
-             standardGeneric("getSigmaSlope")
-           })
-
-#' @rdname getSigmaSlope
-#' @export
-
-setMethod("getSigmaSlope",
-          "ModelError",
-          function( object )
-          {
-            return( object@sigmaSlope )
-          })
-
-#' Set the parameter sigma slope.
-#'
-#' @name setSigmaSlope
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @param sigmaSlope A numeric giving the parameter sigma slope.
-#' @return The model error with the updated sigma slope.
-#' @export
-
-setGeneric("setSigmaSlope",
-           function( object, sigmaSlope )
-           {
-             standardGeneric("setSigmaSlope")
-           })
-
-#' @rdname setSigmaSlope
-#' @export
-
-setMethod("setSigmaSlope",
-          "ModelError",
-          function( object, sigmaSlope)
-          {
-            object@sigmaSlope = sigmaSlope
-
-            return( object )
-          })
-
-#' Get the parameter c.
-#'
-#' @name getcError
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @return A numeric giving the parameter c.
-#' @export
-
-setGeneric("getcError",
-           function( object )
-           {
-             standardGeneric("getcError")
-           })
-
-#' @rdname getcError
-#' @export
-
-setMethod("getcError",
-          "ModelError",
-          function( object )
-          {
-            return( object@cError )
-          })
-
-#' Set the parameter c.
-#'
-#' @name setcError
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @param cError A numeric giving the parameter c.
-#' @return The model error with the parameter c.
-#' @export
-
-setGeneric("setcError",
-           function( object, cError )
-           {
-             standardGeneric("setcError")
-           })
-
-#' @rdname setcError
-#' @export
-
-setMethod("setcError",
-          "ModelError",
-          function( object, cError)
-          {
-            object@cError = cError
-
-            return( object )
-          })
-
-# ======================================================================================================
-# getParameters
-# ======================================================================================================
-
-#' @rdname getParameters
-#' @export
-
-setMethod("getParameters",
-          "ModelError",
-          function(object) {
-
-            sigmaInter = getSigmaInter(object)
-            sigmaSlope = getSigmaSlope(object)
-            cError = getcError(object)
-
-            parameters = list( sigmaInter = sigmaInter,
-                               sigmaSlope = sigmaSlope,
-                               cError = cError )
-            return(parameters)
-          })
-
-#' Evaluate the error model derivatives.
-#'
-#' @name EvaluateErrorModelDerivatives
-#' @param object An object from the class \linkS4class{ModelError}.
-#' @param evaluationOutcome A list giving the results of the model evaluation.
-#' @return A list giving the error variance and the Sigma derivatives.
-#' @export
-
-setGeneric("EvaluateErrorModelDerivatives",
-           function( object, evaluationOutcome )
-           {
-             standardGeneric("EvaluateErrorModelDerivatives")
-           })
-
-#' @rdname EvaluateErrorModelDerivatives
-#' @export
-
-setMethod(f="EvaluateErrorModelDerivatives",
-          signature = "ModelError",
-          definition = function( object, evaluationOutcome )
-          {
-            # ====================================================
-            # model error parameter values
-            # ====================================================
-
-            sigmaInter = getSigmaInter( object )
-            sigmaSlope = getSigmaSlope( object )
-            cError = getcError( object )
-
-            identityMatrix = diag( length( evaluationOutcome ) )
-
-            # ====================================================
-            # equation and derivatives
-            # ====================================================
-
-            errorVariance = list()
-            sigmaDerivatives = list()
-
-            modelErrorParameters = c( "sigmaInter", "sigmaSlope" )
-            modelErrorEquation = expression( ( sigmaInter + sigmaSlope * evaluationOutcome ) ** 2 )
-
-            for ( modelErrorParameter in modelErrorParameters )
-            {
-              if ( get( modelErrorParameter ) != 0 )
-              {
-                sigmaDerivatives[[modelErrorParameter]] = eval( D( modelErrorEquation, modelErrorParameter ) ) * identityMatrix
-              }
-            }
-
-            # ====================================================
-            # error variance
-            # ====================================================
-
-            errorVariance = ( sigmaInter + sigmaSlope * evaluationOutcome )**2 * identityMatrix
-
-            return( list( errorVariance = errorVariance, sigmaDerivatives = sigmaDerivatives ) )
-          })
-
-###########################################################################################
-# End class ModelError
-###########################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+method( getModelErrorData, ModelError ) = function( modelError ) {
+  modelErrorData = list(modelError) %>%
+    map(function( model ) {
+      list(
+        outcome = prop( model, "output" ),
+        type = str_remove(class(model)[1], "PFIM::"),
+        sigmaSlope = as.character(prop(model, "sigmaSlope")),
+        sigmaInter = as.character(prop(model, "sigmaInter"))
+      )
+    }) %>% map(~ as.data.frame(.x, stringsAsFactors = FALSE)) %>% list_rbind()
+  return( modelErrorData )
+}

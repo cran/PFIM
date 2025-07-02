@@ -1,548 +1,393 @@
-
-#' Class "ModelAnalyticInfusionSteadyState"
-#'
-#' @description The class \code{Model} defines information concerning the construction of an analytical model in infusion in steady state.
-#' The class \code{ModelAnalyticInfusionSteadyState} inherits from the class \code{ModelAnalyticInfusion}.
-#'
-#' @name ModelAnalyticInfusionSteadyState-class
-#' @aliases ModelAnalyticInfusionSteadyState
-#' @docType class
-#' @include ModelAnalyticInfusion.R
+#' ModelAnalyticInfusionSteadyState
+#' @description The class \code{ModelAnalyticInfusionSteadyState} is used to defined an analytic model in infusion steady state.
+#' @title ModelAnalyticInfusionSteadyState
+#' @inheritParams ModelInfusion
+#' @param wrapperModelAnalyticInfusion Wrapper for the ode solver.
+#' @param functionArgumentsModelAnalyticInfusion A list giving the functionArguments of the wrapper for the analytic model in infusion.
+#' @param functionArgumentsSymbolModelAnalyticInfusion  A list giving the functionArgumentsSymbol of the wrapper for the analytic model in infusion.
+#' @param solverInputs A list giving the solver inputs.
+#' @include ModelInfusion.R
 #' @export
 
-ModelAnalyticInfusionSteadyState = setClass(
-  Class = "ModelAnalyticInfusionSteadyState",
-  contains = "ModelAnalyticInfusion")
+ModelAnalyticInfusionSteadyState = new_class( "ModelAnalyticInfusionSteadyState", package = "PFIM", parent = ModelInfusion,
 
-#' initialize
-#' @param .Object .Object
-#' @param name name
-#' @param description description
-#' @param equations equations
-#' @param outcomes outcomes
-#' @param parameters parameters
-#' @param modelError modelError
-#' @return ModelAnalyticInfusionSteadyState
-#' @export
-#'
-setMethod( f="initialize",
-           signature="ModelAnalyticInfusionSteadyState",
-           definition= function (.Object, name, description, equations, outcomes, parameters, modelError)
-           {
-             if(!missing(name))
-             {
-               .Object@name = name
-             }
-             if(!missing(description))
-             {
-               .Object@description = description
-             }
-             if(!missing(equations))
-             {
-               .Object@equations = equations
-             }
-             if(!missing(outcomes))
-             {
-               .Object@outcomes = outcomes
-             }
-             if(!missing(parameters))
-             {
-               .Object@parameters = parameters
-             }
-             if(!missing(modelError))
-             {
-               .Object@modelError = modelError
-             }
-             validObject(.Object)
-             return (.Object )
-           }
-)
+                                              properties = list( wrapperModelAnalyticInfusion = new_property(class_list, default = list()),
+                                                                 functionArgumentsModelAnalyticInfusion = new_property(class_list, default = list()),
+                                                                 functionArgumentsSymbolModelAnalyticInfusion = new_property(class_list, default = list()),
+                                                                 solverInputs = new_property(class_list, default = list()) ) )
 
-# ======================================================================================================
+#' defineModelWrapper: define the model wrapper for the ode solver
+#' @name defineModelWrapper
+#' @param model An object of class \code{ModelAnalyticInfusionSteadyState} that defines the model.
+#' @param evaluation An object of class Evaluation that defines the evaluation
+#' @return The model with wrapperModelAnalyticInfusion, functionArgumentsModelAnalyticInfusion, functionArgumentsSymbolModelAnalyticInfusion, outputNames, outcomesWithAdministration
 
-#' @rdname defineModelEquationsFromStringToFunction
-#' @export
+method( defineModelWrapper, ModelAnalyticInfusionSteadyState ) = function( model, evaluation ) {
 
-setMethod("defineModelEquationsFromStringToFunction",
-          signature("ModelAnalyticInfusionSteadyState"),
-          function( object, parametersNames, outcomesWithAdministration, outcomesWithNoAdministration )
-          {
-            # get all the outcomes model & for evaluation
-            outcomesForEvaluation = getOutcomesForEvaluation( object )
-            outcomesForEvaluationWithAdministration = outcomesForEvaluation[1:length(outcomesWithAdministration)]
-            outcomesForEvaluationWithNoAdministration = outcomesForEvaluation[(1+length(outcomesWithAdministration)):length(outcomesForEvaluation)]
+  # outcomes with administration
+  outcomesWithAdministration = evaluation %>%
+    pluck( "designs" ) %>%
+    map( ~ pluck( .x, "arms" ) ) %>%
+    unlist() %>%
+    map( ~ pluck( .x, "administrations" ) ) %>%
+    unlist()%>%
+    map( ~ pluck( .x, "outcome" ) ) %>%
+    unlist() %>% unique()
 
-            # get the equations
-            equationsDuringInfusionModel = getEquationsDuringInfusion( object )
-            equationsAfterInfusionModel = getEquationsAfterInfusion( object )
+  # arguments for the function
+  parameters = prop( evaluation, "modelParameters" )
+  parameterNames = map_chr( parameters, "name" )
+  doseNames = paste( "dose_", outcomesWithAdministration, sep = "" )
+  timeNames = paste( "t_", outcomesWithAdministration, sep = "" )
+  TinfNames = paste( "Tinf_", outcomesWithAdministration, sep = "" )
+  tauName = "tau"
 
-            # arguments for the function
-            doseNames = paste( "dose_", outcomesWithAdministration, sep = "" )
-            TinfNames = paste( "Tinf_", outcomesWithAdministration, sep = "" )
+  # names of the equations with admin and no admin
+  equations = prop( evaluation, "modelEquations" )
+  equationsDuringInfusion = equations$duringInfusion
+  equationsAfterInfusion = equations$afterInfusion
 
-            argsOutcomesWithAdministration = c( doseNames, TinfNames, parametersNames, "tau", "t" )
+  # outputs
+  outputs = names( equationsDuringInfusion )
+  outputNames = unlist( outputs )
 
-            # =========================================================
-            # equations for outcomesWithAdministration
-            # =========================================================
+  equationsDuringInfusionWithAdmin = equationsDuringInfusion[ names( equationsDuringInfusion ) %in% outcomesWithAdministration ]
+  equationsAfterInfusionWithAdmin  = equationsAfterInfusion[ names( equationsAfterInfusion ) %in% outcomesWithAdministration ]
+  equationsDuringInfusionWithNoAdmin = equationsDuringInfusion[ !( names( equationsDuringInfusion ) %in% outcomesWithAdministration ) ]
+  equationsAfterInfusionWithNoAdmin  = equationsAfterInfusion[ !( names( equationsAfterInfusion ) %in% outcomesWithAdministration ) ]
 
-            # equations during infusion for outcomesWithAdministration
-            equationsDuringInfusion = equationsDuringInfusionModel[outcomesWithAdministration]
-            equationsDuringInfusion = lapply( equationsDuringInfusion, function(x) gsub("[ \n]", "", x) )
+  # outputForEvaluation
+  outputsForEvaluation = prop( evaluation, "outputs" )
+  # pk model
+  if ( length(outputsForEvaluation ) == 1 )
+  {
+    outputAdmin = unlist(outputsForEvaluation[1])
+    outputNoAdmin = c()
+    # pkpd model
+  }else if ( length(outputsForEvaluation ) == 2 )
+  {
+    outputAdmin = unlist(outputsForEvaluation[1])
+    outputNoAdmin = unlist(outputsForEvaluation[2])
+  }
 
-            equationsDuringInfusionBody = list()
+  # args for function DuringInfusion
+  functionArguments = unique( c( doseNames, TinfNames, outcomesWithAdministration, parameterNames, timeNames, tauName ) )
+  functionArgumentsSymbol = map( functionArguments, ~ as.symbol(.x) )
 
-            for ( name in names( equationsDuringInfusion ) )
-            {
-              equationDuringInfusion = equationsDuringInfusion[[name]]
-              equationsDuringInfusionBody = c( equationsDuringInfusionBody, sprintf( "%s = %s", name, equationDuringInfusion ) )
-            }
+  # create function DuringInfusion
+  equationsBodyDuringInfusionWithAdmin = map_chr( names( equationsDuringInfusionWithAdmin ), ~ sprintf( "%s = %s", .x, equationsDuringInfusionWithAdmin[[.x]] ) )
+  equationsBodyDuringInfusionWithAdmin = map2_chr( equationsBodyDuringInfusionWithAdmin, timeNames, ~ str_replace_all( .x, "\\bt\\b", .y ) )
+  functionBodyDuringInfusionWithAdmin = paste( equationsBodyDuringInfusionWithAdmin, collapse = "\n" )
+  functionBodyDuringInfusionWithAdmin = sprintf( paste( "%s\nreturn( list( c (", outputAdmin , ") ) )", collapse = ", " ), functionBodyDuringInfusionWithAdmin )
+  functionDefinitionDuringInfusionWithAdmin = sprintf( "function(%s) { %s }", paste( functionArguments, collapse = ", " ), functionBodyDuringInfusionWithAdmin )
+  functionDefinitionDuringInfusionWithAdmin = eval( parse( text = functionDefinitionDuringInfusionWithAdmin ) )
 
-            functionBody = paste( equationsDuringInfusionBody, collapse = "\n" )
-            functionBody = sprintf("%s\nreturn(list(%s))", functionBody, paste( outcomesForEvaluationWithAdministration, collapse = ", " ) )
-            functionDefinition = sprintf( "function(%s) { %s }", paste( argsOutcomesWithAdministration, collapse = ", "), functionBody )
-            modelFunctionDuringInfusion = eval( parse( text = functionDefinition ) )
-            argsSymbolOutcomesWithAdministration = lapply( argsOutcomesWithAdministration, as.symbol )
+  equationsBodyDuringInfusionWithNoAdmin = map_chr( names( equationsDuringInfusionWithNoAdmin ), ~ sprintf( "%s = %s", .x, equationsDuringInfusionWithNoAdmin[[.x]] ) )
+  equationsBodyDuringInfusionWithNoAdmin = map2_chr( equationsBodyDuringInfusionWithNoAdmin, timeNames, ~ str_replace_all( .x, "\\bt\\b", .y ) )
+  functionBodyDuringInfusionWithNoAdmin = paste( equationsBodyDuringInfusionWithNoAdmin, collapse = "\n" )
+  functionBodyDuringInfusionWithNoAdmin = sprintf( paste( "%s\nreturn( list( c (", outputNoAdmin , ") ) )", collapse = ", " ), functionBodyDuringInfusionWithNoAdmin )
+  functionDefinitionDuringInfusionWithNoAdmin = sprintf( "function(%s) { %s }", paste( functionArguments, collapse = ", " ), functionBodyDuringInfusionWithNoAdmin )
+  functionDefinitionDuringInfusionWithNoAdmin = eval( parse( text = functionDefinitionDuringInfusionWithNoAdmin ) )
 
-            modelFunctionDuringInfusionOutcomesWithAdministration = list( modelFunctionDuringInfusionOutcomesWithAdministration =
-                                                                            modelFunctionDuringInfusion,
-                                                                          argsOutcomesWithAdministration = argsOutcomesWithAdministration,
-                                                                          argsSymbolOutcomesWithAdministration = argsSymbolOutcomesWithAdministration )
+  # create function afterInfusion
+  equationsBodyAfterInfusionWithAdmin = map_chr( names( equationsAfterInfusionWithAdmin ), ~ sprintf( "%s = %s", .x, equationsAfterInfusionWithAdmin[[.x]] ) )
+  equationsBodyAfterInfusionWithAdmin = map2_chr( equationsBodyAfterInfusionWithAdmin, timeNames, ~ str_replace_all( .x, "\\bt\\b", .y ) )
+  functionBodyAfterInfusionWithAdmin = paste( equationsBodyAfterInfusionWithAdmin, collapse = "\n" )
+  functionBodyAfterInfusionWithAdmin = sprintf( paste( "%s\nreturn( list( c (", outputAdmin , ") ) )", collapse = ", " ), functionBodyAfterInfusionWithAdmin )
+  functionDefinitionAfterInfusionWithAdmin = sprintf( "function(%s) { %s }", paste( functionArguments, collapse = ", " ), functionBodyAfterInfusionWithAdmin )
+  functionDefinitionAfterInfusionWithAdmin = eval( parse( text = functionDefinitionAfterInfusionWithAdmin ) )
 
-            # equations after infusion for outcomesWithAdministration
+  equationsBodyAfterInfusionWithNoAdmin = map_chr( names( equationsAfterInfusionWithNoAdmin ), ~ sprintf( "%s = %s", .x, equationsAfterInfusionWithNoAdmin[[.x]] ) )
+  equationsBodyAfterInfusionWithNoAdmin = map2_chr( equationsBodyAfterInfusionWithNoAdmin, timeNames, ~ str_replace_all( .x, "\\bt\\b", .y ) )
+  functionBodyAfterInfusionWithNoAdmin = paste( equationsBodyAfterInfusionWithNoAdmin, collapse = "\n" )
+  functionBodyAfterInfusionWithNoAdmin = sprintf( paste( "%s\nreturn( list( c (", outputNoAdmin , ") ) )", collapse = ", " ), functionBodyAfterInfusionWithNoAdmin )
+  functionDefinitionAfterInfusionWithNoAdmin = sprintf( "function(%s) { %s }", paste( functionArguments, collapse = ", " ), functionBodyAfterInfusionWithNoAdmin )
+  functionDefinitionAfterInfusionWithNoAdmin = eval( parse( text = functionDefinitionAfterInfusionWithNoAdmin ) )
 
-            equationsAfterInfusionBody = list()
+  prop( model, "wrapperModelAnalyticInfusion" ) = list( functionDefinitionDuringInfusionWithAdmin = functionDefinitionDuringInfusionWithAdmin,
+                                                        functionDefinitionDuringInfusionWithNoAdmin = functionDefinitionDuringInfusionWithNoAdmin,
+                                                        functionDefinitionAfterInfusionWithAdmin = functionDefinitionAfterInfusionWithAdmin,
+                                                        functionDefinitionAfterInfusionWithNoAdmin = functionDefinitionAfterInfusionWithNoAdmin )
 
-            equationsAfterInfusion = equationsAfterInfusionModel[outcomesWithAdministration]
+  prop( model, "functionArgumentsModelAnalyticInfusion" ) = list( functionArguments = functionArguments )
+  prop( model, "functionArgumentsSymbolModelAnalyticInfusion" ) = list( functionArgumentsSymbol = functionArgumentsSymbol )
 
-            for ( name in names( equationsAfterInfusion ) )
-            {
-              equationAfterInfusion = equationsAfterInfusion[[name]]
-              equationsAfterInfusionBody = c( equationsAfterInfusionBody, sprintf( "%s = %s", name, equationAfterInfusion ) )
-            }
+  # define the model
+  prop( model, "outputNames") = unlist( outputs )
+  prop( model, "outcomesWithAdministration") = outcomesWithAdministration
+  return( model )
+}
 
-            functionBody = paste( equationsAfterInfusionBody, collapse = "\n" )
-            functionBody = sprintf("%s\nreturn(list(%s))", functionBody, paste( outcomesForEvaluationWithAdministration, collapse = ", " ) )
-            functionDefinition = sprintf( "function(%s) { %s }", paste( argsOutcomesWithAdministration, collapse = ", "), functionBody )
-            modelFunctionAfterInfusion = eval( parse( text = functionDefinition ) )
-            argsSymbolOutcomesWithAdministration = lapply( argsOutcomesWithAdministration, as.symbol )
-
-            modelFunctionAfterInfusionOutcomesWithAdministration = list( modelFunctionAfterInfusionOutcomesWithAdministration =
-                                                                           modelFunctionAfterInfusion,
-                                                                         argsOutcomesWithAdministration = argsOutcomesWithAdministration,
-                                                                         argsSymbolOutcomesWithAdministration = argsSymbolOutcomesWithAdministration )
-
-            # =========================================================
-            # equations after infusion for outcomesWithNoAdministration
-            # after eqs = during eqs
-            # =========================================================
-
-            equationsAfterInfusionBody = list()
-
-            argsOutcomesWithNoAdministration = c( outcomesWithAdministration, parametersNames, "tau", "t" )
-
-            equationsAfterInfusion = equationsAfterInfusionModel[outcomesWithNoAdministration]
-
-            for ( name in names( equationsAfterInfusion ) )
-            {
-              equationAfterInfusion = equationsAfterInfusion[[name]]
-              equationsAfterInfusionBody = c( equationsAfterInfusionBody, sprintf( "%s = %s", name, equationAfterInfusion ) )
-            }
-
-            functionBody = paste( equationsAfterInfusionBody, collapse = "\n" )
-            functionBody = sprintf("%s\nreturn(list(%s))", functionBody, paste( outcomesForEvaluationWithNoAdministration, collapse = ", " ) )
-            functionDefinition = sprintf( "function(%s) { %s }", paste( argsOutcomesWithNoAdministration, collapse = ", "), functionBody )
-            modelFunctionAfterInfusion = eval( parse( text = functionDefinition ) )
-            argsSymbolOutcomesWithNoAdministration = lapply( argsOutcomesWithNoAdministration, as.symbol )
-
-            modelFunctionAfterInfusionOutcomesWithNoAdministration = list( modelFunctionAfterInfusionOutcomesWithNoAdministration =
-                                                                             modelFunctionAfterInfusion,
-                                                                           argsOutcomesWithNoAdministration = argsOutcomesWithNoAdministration,
-                                                                           argsSymbolOutcomesWithNoAdministration =
-                                                                             argsSymbolOutcomesWithNoAdministration )
-
-            return( c( modelFunctionDuringInfusionOutcomesWithAdministration,
-                       modelFunctionAfterInfusionOutcomesWithAdministration,
-                       modelFunctionAfterInfusionOutcomesWithNoAdministration ) )
-          })
-
-# ======================================================================================================
-
-#' @rdname setDataForModelEvaluation
+#' defineModelAdministration: define the administration
+#' @name defineModelAdministration
+#' @param model An object of class \code{ModelAnalyticInfusionSteadyState} that defines the model.
+#' @param arm An object of class \code{Arm} that defines the arm.
+#' @return The model with samplings, solverInputs
 #' @export
 
-setMethod("setDataForModelEvaluation",
-          signature("ModelAnalyticInfusionSteadyState"),
-          function( object, arm )
-          {
-            dataForArmEvaluation = getDataForArmEvaluation( arm )
+method( defineModelAdministration, ModelAnalyticInfusionSteadyState ) = function( model, arm ) {
 
-            inputsModel = list()
-            data = list()
-            indexTime = list()
+  # administrations and outcome
+  administrations = prop( arm, "administrations" )
+  outcomesWithAdministration =  prop( model, "outcomesWithAdministration" )
 
-            outcomes = dataForArmEvaluation$modelOutcomes
-            outcomesWithAdministration = dataForArmEvaluation$outcomesWithAdministration
-            samplingTimesModel = dataForArmEvaluation$samplingTimesModel
-            samplingTimesOutcome = dataForArmEvaluation$samplingTimesOutcome
+  # sampling times
+  samplingTimes = prop( arm, "samplingTimes" )
 
-            # indicator in the dataframe for infusion
-            duringAndAfter = rep("After",length( samplingTimesModel ) )
-            duringAndAfter[1] = "No calcul"
+  # define the samplings for all response
+  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% unlist() %>% sort() %>% unique()
+  maxSampling = max( samplings )
 
-            #  data for evaluation
-            for ( outcome in outcomesWithAdministration )
-            {
-              administration = getAdministration( arm, outcome )
+  # vector during & after infusion
+  duringAndAfter = rep( "afterInfusion", length( samplings) )
 
-              tau = getTau( administration )
+  # model outputs
+  outputNames = prop( model, "outputNames" )
 
-              inputsModel$dose[[outcome]] = getDose( administration )
-              inputsModel$Tinf[[outcome]] = getTinf( administration )
-              inputsModel$timeDose[[outcome]] = getTimeDose( administration )
+  # define solverInputs
+  solverInputs = map( administrations, function(  administration ) {
 
-              if ( tau !=0 )
-              {
-                maxSamplingTimeOutcome = max( samplingTimesOutcome[[outcome]] )
-                inputsModel$timeDose[[outcome]] = seq( 0, maxSamplingTimeOutcome, tau )
-                inputsModel$Tinf[[outcome]] = rep( inputsModel$Tinf[[outcome]], length( inputsModel$timeDose[[outcome]] ) )
-                inputsModel$dose[[outcome]] = rep( inputsModel$dose[[outcome]], length( inputsModel$timeDose[[outcome]] ) )
-              }
+    timeDose = prop( administration, "timeDose" )
+    tau = prop( administration, "tau" )
+    dose = prop( administration, "dose" )
+    Tinf = prop( administration, "Tinf" )
+    Tinfs = map2( timeDose, timeDose + Tinf, c )
 
-              inputsModel$timeMatrix[[outcome]] = matrix( ( c( inputsModel$timeDose[[outcome]],
-                                                               inputsModel$timeDose[[outcome]] + inputsModel$Tinf[[outcome]] ) ),
-                                                          length( inputsModel$timeDose[[outcome]] ), 2 )
+    if ( tau != 0 ) {
+      timeDose = seq( 0, maxSampling, tau )
+      dose = rep( dose, length( timeDose ) )
+      Tinf = rep( Tinf, length( timeDose ) )
+      Tinfs = map2( timeDose, timeDose + Tinf, c )
+    }
 
-              # indices for doses and Tinf
-              indicesDoses = c()
-              indicesDoses[1] = 1
-              timeDoseInfusionEnd = c()
-              timeDoseInfusion = samplingTimesModel
+    samplingsDuringInfusion = map ( Tinfs, function( Tinfs )
+    {
+      samplings %>% keep( ~ . >= min( Tinfs ) & . <  max( Tinfs ) )
+    }) %>% unlist()%>% unique()
 
-              vec = c( inputsModel$timeDose[[outcome]], max( sort( unique( c( samplingTimesModel,
-                                                                              inputsModel$Tinf[[outcome]] ) ) ) ) )
+    duringAndAfter[ samplings %in% samplingsDuringInfusion ] = "duringInfusion"
 
-              # indices for doses
-              for (k in 1:length(vec))
-              {
-                indicesDoses[samplingTimesModel >= vec[k] & samplingTimesModel <=vec[k+1]] = k
-              }
+    samplingTimeDoses = timeDose %>% map( ~ ifelse( samplings - .x > 0, samplings - .x, 0 ) )
 
-              # during and after
-              iterk=1
-              for ( t in samplingTimesModel )
-              {
-                assign("t", t)
+    indicesDoses = map_int( samplings, function( sampling ) {
+      indice = which( sampling >= timeDose )[ length( which( sampling >= timeDose ) ) ]
+    })
 
-                indexTime[[outcome]] = which( apply( inputsModel$timeMatrix[[outcome]], 1, findInterval, x = t ) == 1)
+    data = data.frame( duringAndAfter, indicesDoses, samplings, samplingTimeDoses   )
+    colnames( data ) = c( "duringAndAfter", "indicesDoses", "samplings", paste0( rep( "samplingTimeDoses", length( dose ) ), 1:length( dose ) ) )
 
-                if ( length( indexTime[[outcome]]  ) != 0  )
-                {
-                  duringAndAfter[iterk] = "duringInfusion"
-                }else{
-                  duringAndAfter[iterk] = "afterInfusion"
-                }
-                iterk=iterk+1
-              }
+    list( data = data, dose = dose, Tinf = Tinf, tau = tau )
 
-              # number of does
-              numberOfDoses =  length( inputsModel$dose[[outcome]] )
+  }) %>% setNames( outcomesWithAdministration )
 
-              # sampling times for dose infusion
-              samplingTimeDose = matrix( 0.0, length( samplingTimesModel ), numberOfDoses )
+  prop( model, "samplings" ) = samplings
+  prop( model, "solverInputs" ) = solverInputs
+  return( model )
+}
 
-              for ( i in 1:numberOfDoses )
-              {
-                samplingTimeDose[,i] = pmax( samplingTimesModel - inputsModel$timeDose[[outcome]][i], 0 )
-              }
-
-              samplingTimeDose = as.matrix( samplingTimeDose )
-
-
-              data[[outcome]] = data.frame( samplingTimesModel = samplingTimesModel,
-                                            duringAndAfter = duringAndAfter,
-                                            indicesDoses = indicesDoses,
-                                            outcome = outcome,
-                                            samplingTimeDose = I(samplingTimeDose) )
-            }
-
-            data = do.call( "rbind", data )
-            data = data[ order( data$samplingTimesModel ), ]
-            rownames( data ) = 1:dim( data )[1]
-
-            dataForModelEvaluation = c( dataForArmEvaluation,
-
-                                        list( inputsModel = inputsModel,
-                                              tau = tau,
-                                              data = data  ) )
-
-            return( dataForModelEvaluation )
-          })
-
-# ======================================================================================================
-
-#' @rdname EvaluateModel
+#' evaluateModel: evaluate the ModelAnalyticInfusion
+#' @name evaluateModel
+#' @param model An object of class \code{ModelAnalyticInfusionSteadyState} that defines the model.
+#' @param arm An object of class \code{Arm} that defines the arm.
+#' @return A list of dataframes that contains the results for the evaluation of the model.
 #' @export
 
-setMethod(f="EvaluateModel",
-          signature =  "ModelAnalyticInfusionSteadyState",
-          definition=function( object, dataForModelEvaluation, arm )
-          {
-            data = dataForModelEvaluation$data
-            samplingTimesModel = dataForModelEvaluation$samplingTimesModel
-            equationFunction = dataForModelEvaluation$equationFunction
-            inputsModel = dataForModelEvaluation$inputsModel
-            samplingTimesOutcome = dataForModelEvaluation$samplingTimesOutcome
+method( evaluateModel, ModelAnalyticInfusionSteadyState ) = function( model, arm ) {
 
-            outcomes = dataForModelEvaluation$modelOutcomes
-            outcomesWithAdministration = dataForModelEvaluation$outcomesWithAdministration
-            outcomesWithNoAdministration = dataForModelEvaluation$outcomesWithNoAdministration
-            numberOfOutcomesWithAdministration = length( outcomesWithAdministration )
-            numberOfOutcomesWithNoAdministration = length( outcomesWithNoAdministration )
+  # administrations and outcome
+  administrations = prop( arm, "administrations" )
+  outcomesWithAdministration = map_chr( administrations, ~ prop( .x, "outcome" ) )
 
-            # equations for outcomesWithAdministration
-            modelFunctionDuringInfusionOutcomesWithAdministration = equationFunction$modelFunctionDuringInfusionOutcomesWithAdministration
-            modelFunctionAfterInfusionOutcomesWithAdministration = equationFunction$modelFunctionAfterInfusionOutcomesWithAdministration
-            parameterNamesOutcomesWithAdministration = equationFunction$argsOutcomesWithAdministration
-            parameterSymbolsOutcomesWithAdministration = equationFunction$argsSymbolOutcomesWithAdministration
+  # outputs
+  outputNames = prop( model, "outputNames" ) %>% unlist()
 
-            # equations for outcomesWithNoAdministration
-            modelFunctionAfterInfusionOutcomesWithNoAdministration = equationFunction$modelFunctionAfterInfusionOutcomesWithNoAdministration
-            parameterNamesOutcomesWithNoAdministration = equationFunction$argsOutcomesWithNoAdministration
-            parameterSymbolsOutcomesWithNoAdministration = equationFunction$argsSymbolOutcomesWithNoAdministration
+  # solver inputs for time dose and indice dose
+  solverInputs = prop( model, "solverInputs")
 
-            # values for modelParameters
-            modelParameters = getParameters( object )
+  # sampling time for model
+  samplings = prop( model, "samplings" )
 
-            for( modelParameter in modelParameters )
-            {
-              modelParameterName = getName( modelParameter )
-              modelParameterValue = getMu( modelParameter )
-              assign( modelParameterName, modelParameterValue )
-            }
+  # model parameters
+  parameters = prop( model, "modelParameters")
 
-            # tau value
-            assign( "tau", dataForModelEvaluation$tau )
+  # model wrapper model analytic infusion during & after
+  wrapperModelAnalyticInfusion = prop( model, "wrapperModelAnalyticInfusion")
+  functionDefinitionDuringInfusionWithAdmin = wrapperModelAnalyticInfusion$functionDefinitionDuringInfusionWithAdmin
+  functionDefinitionDuringInfusionWithNoAdmin = wrapperModelAnalyticInfusion$functionDefinitionDuringInfusionWithNoAdmin
+  functionDefinitionAfterInfusionWithAdmin = wrapperModelAnalyticInfusion$functionDefinitionAfterInfusionWithAdmin
+  functionDefinitionAfterInfusionWithNoAdmin = wrapperModelAnalyticInfusion$functionDefinitionAfterInfusionWithNoAdmin
 
-            # model evaluation
-            modelEvaluation = as.data.frame( matrix( 0.0,length( samplingTimesModel ),length( outcomesWithAdministration ) ) )
-            colnames ( modelEvaluation ) = outcomesWithAdministration
+  functionArgumentsModelAnalyticInfusion = prop( model, "functionArgumentsModelAnalyticInfusion" )
+  functionArguments = functionArgumentsModelAnalyticInfusion$functionArguments
 
-            for( iterTime in 1:dim( data )[1] )
-            {
-              duringAndAfter = data$duringAndAfter[iterTime]
-              indicesDoses = data$indicesDoses[iterTime]
-              samplings = data[iterTime,5:dim( data )[2]]
-              outcome  = data$outcome[iterTime]
+  functionArgumentsSymbolModelAnalyticInfusion = prop( model, "functionArgumentsSymbolModelAnalyticInfusion" )
+  functionArgumentsSymbol = functionArgumentsSymbolModelAnalyticInfusion$functionArgumentsSymbol
 
-              # evaluation infusion during
-              if( duringAndAfter == "duringInfusion")
-              {
-                # first dose
-                if ( indicesDoses == 1)
-                {
-                  assign("t",samplings[indicesDoses] )
-                  assign( paste0("dose_",outcome ), inputsModel$dose[[outcome]][indicesDoses] )
-                  assign( paste0("Tinf_",outcome ), inputsModel$Tinf[[outcome]][indicesDoses] )
+  # Assign the values to variables in the current environment
+  mu = set_names( map(parameters, ~ .x@distribution@mu), map(parameters, ~ prop(.x,"name")))
+  list2env( mu, envir = environment() )
 
-                  modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] = unlist( do.call( modelFunctionDuringInfusionOutcomesWithAdministration,
-                                                                                                    setNames( parameterSymbolsOutcomesWithAdministration,
-                                                                                                              parameterNamesOutcomesWithAdministration ) ) )
-                }
+  # evaluation ModelAnalyticInfusion
+  evaluationModelTmp = map( seq_along( samplings ), function( iterTime ) {
 
-                # after the first dose
-                if ( indicesDoses > 1)
-                {
-                  samplings =  samplings[1:indicesDoses]
-                  samplingDuring= tail( samplings, 1 )
-                  samplingAfter = samplings[1:(indicesDoses-1)]
+    evaluationOutcome = map( outcomesWithAdministration, function( outcomeWithAdministration ) {
 
-                  doseDuring = inputsModel$dose[[outcome]][indicesDoses]
-                  dosesAfter = inputsModel$dose[[outcome]][1:(indicesDoses-1)]
+      data = solverInputs[[outcomeWithAdministration]]$data
+      tau = solverInputs[[outcomeWithAdministration]]$tau
 
-                  tinfDuring = inputsModel$Tinf[[outcome]][indicesDoses]
-                  tinfAfter = inputsModel$Tinf[[outcome]][1:(indicesDoses-1)]
+      duringAndAfter = data$duringAndAfter[iterTime]
+      indicesDoses = data$indicesDoses[iterTime]
+      samplings = data[ iterTime, colnames( data ) %>% keep(~ str_detect( .x, "samplingTimeDoses" ) ) ] %>% unname() %>% unlist()
 
-                  assign("t",samplingDuring )
-                  assign( paste0("dose_",outcome ), doseDuring )
-                  assign( paste0("Tinf_",outcome ), tinfDuring )
+      # evaluation infusion during
+      if( duringAndAfter == "duringInfusion")
+      {
+        # first dose
+        if ( indicesDoses == 1 )
+        {
+          assign( paste0("t_", outcomeWithAdministration ), samplings[indicesDoses] )
+          assign( paste0("dose_", outcomeWithAdministration ), solverInputs[[outcomeWithAdministration]]$dose[indicesDoses] )
+          assign( paste0("Tinf_", outcomeWithAdministration ), solverInputs[[outcomeWithAdministration]]$Tinf[indicesDoses] )
 
-                  modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] = unlist( do.call( modelFunctionDuringInfusionOutcomesWithAdministration,
-                                                                                                    setNames( parameterSymbolsOutcomesWithAdministration,
-                                                                                                              parameterNamesOutcomesWithAdministration ) ) )
+          evaluationOutcomeWithAdmin  = do.call( functionDefinitionDuringInfusionWithAdmin, setNames( functionArgumentsSymbol, functionArguments ) ) %>% unlist()
+        }
 
-                  for ( i in 1:(indicesDoses-1) )
-                  {
-                    assign("t",samplingAfter[i] )
-                    assign( paste0("dose_",outcome ), dosesAfter[i] )
-                    assign( paste0("Tinf_",outcome ), tinfAfter[i] )
+        # after the first dose
+        if ( indicesDoses > 1 )
+        {
+          samplings = samplings[1:indicesDoses]
+          samplingDuring = tail( samplings, 1 )
+          samplingAfter = samplings[1:(indicesDoses-1)]
 
-                    output = unlist( do.call( modelFunctionAfterInfusionOutcomesWithAdministration,
-                                              setNames( parameterSymbolsOutcomesWithAdministration, parameterNamesOutcomesWithAdministration ) ) )
+          doseDuring = solverInputs[[outcomeWithAdministration]]$dose[indicesDoses]
+          dosesAfter = solverInputs[[outcomeWithAdministration]]$dose[1:(indicesDoses-1)]
 
-                    modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] = modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] +
-                      output[1:numberOfOutcomesWithAdministration]
+          tinfDuring = solverInputs[[outcomeWithAdministration]]$Tinf[indicesDoses]
+          tinfAfter = solverInputs[[outcomeWithAdministration]]$Tinf[1:(indicesDoses-1)]
 
+          assign( paste0( "t_", outcomeWithAdministration ), samplingDuring )
+          assign( paste0( "dose_", outcomeWithAdministration ), doseDuring )
+          assign( paste0( "Tinf_", outcomeWithAdministration ), tinfDuring )
 
-                  }
-                }
-              }
+          evaluationOutcomeWithAdmin = do.call( functionDefinitionDuringInfusionWithAdmin, setNames( functionArgumentsSymbol, functionArguments ) ) %>% unlist()
+          evaluationOutcomeWithAdmin = evaluationOutcomeWithAdmin + sum( map_dbl( 1:( indicesDoses - 1 ), ~ {
 
-              else if( duringAndAfter == "afterInfusion")
-              {
-                # first dose
-                if ( indicesDoses == 1)
-                {
-                  assign("t",samplings[indicesDoses] )
-                  assign( paste0("dose_",outcome ), inputsModel$dose[[outcome]][indicesDoses] )
-                  assign( paste0("Tinf_",outcome ), inputsModel$Tinf[[outcome]][indicesDoses] )
+            assign( paste0( "t_", outcomeWithAdministration ), samplingAfter[.x] )
+            assign( paste0( "dose_", outcomeWithAdministration ), dosesAfter[.x] )
+            assign( paste0( "Tinf_", outcomeWithAdministration ), tinfAfter[.x] )
 
-                  modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] = unlist( do.call( modelFunctionAfterInfusionOutcomesWithAdministration,
-                                                                                                    setNames( parameterSymbolsOutcomesWithAdministration,
-                                                                                                              parameterNamesOutcomesWithAdministration ) ) )
-                }
+            output = do.call( functionDefinitionAfterInfusionWithAdmin, setNames( functionArgumentsSymbol, functionArguments ) ) %>% unlist()
 
-                # after the first dose
-                if ( indicesDoses > 1)
-                {
-                  samplings =  samplings[1:indicesDoses]
-                  samplingDuring= tail( samplings, 1 )
-                  samplingAfter = samplings[1:(indicesDoses-1)]
+            return( output )
 
-                  doseDuring = inputsModel$dose[[outcome]][indicesDoses]
-                  dosesAfter = inputsModel$dose[[outcome]][1:(indicesDoses-1)]
+          } ) )
+        }
+      }
+      # evaluation infusion after
+      else if( duringAndAfter == "afterInfusion")
+      {
+        # first dose
+        if ( indicesDoses == 1 )
+        {
+          assign( paste0("t_", outcomeWithAdministration ), samplings[indicesDoses] )
+          assign( paste0("dose_", outcomeWithAdministration ), solverInputs[[outcomeWithAdministration]]$dose[indicesDoses] )
+          assign( paste0("Tinf_", outcomeWithAdministration ), solverInputs[[outcomeWithAdministration]]$Tinf[indicesDoses] )
 
-                  tinfDuring = inputsModel$Tinf[[outcome]][indicesDoses]
-                  tinfAfter = inputsModel$Tinf[[outcome]][1:(indicesDoses-1)]
+          evaluationOutcomeWithAdmin = do.call( functionDefinitionAfterInfusionWithAdmin, setNames( functionArgumentsSymbol, functionArguments ) ) %>% unlist()
+        }
+        # after the first dose
+        if ( indicesDoses > 1 )
+        {
+          samplings =  samplings[1:indicesDoses]
+          samplingDuring = tail( samplings, 1 )
+          samplingAfter = samplings[1:(indicesDoses-1)]
 
-                  assign("t",samplingDuring )
-                  assign( paste0("dose_",outcome ), doseDuring )
-                  assign( paste0("Tinf_",outcome ), tinfDuring )
+          doseDuring = solverInputs[[outcomeWithAdministration]]$dose[indicesDoses]
+          dosesAfter = solverInputs[[outcomeWithAdministration]]$dose[1:(indicesDoses-1)]
 
-                  modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] = unlist( do.call( modelFunctionAfterInfusionOutcomesWithAdministration,
-                                                                                                    setNames( parameterSymbolsOutcomesWithAdministration,
-                                                                                                              parameterNamesOutcomesWithAdministration ) ) )
+          tinfDuring = solverInputs[[outcomeWithAdministration]]$Tinf[indicesDoses]
+          tinfAfter = solverInputs[[outcomeWithAdministration]]$Tinf[1:(indicesDoses-1)]
 
-                  for ( i in 1:(indicesDoses-1) )
-                  {
-                    assign("t",samplingAfter[i] )
-                    assign( paste0("dose_",outcome ), dosesAfter[i] )
-                    assign( paste0("Tinf_",outcome ), tinfAfter[i] )
+          assign( paste0( "t_", outcomeWithAdministration ), samplingDuring )
+          assign( paste0( "dose_",outcomeWithAdministration ), doseDuring )
+          assign( paste0( "Tinf_",outcomeWithAdministration ), tinfDuring )
 
-                    output = unlist( do.call( modelFunctionAfterInfusionOutcomesWithAdministration,
-                                              setNames( parameterSymbolsOutcomesWithAdministration, parameterNamesOutcomesWithAdministration ) ) )
+          evaluationOutcomeWithAdmin = do.call( functionDefinitionAfterInfusionWithAdmin, setNames( functionArgumentsSymbol, functionArguments ) ) %>% unlist()
+          evaluationOutcomeWithAdmin = evaluationOutcomeWithAdmin + sum( map_dbl( 1:( indicesDoses - 1 ), ~ {
 
-                    modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] = modelEvaluation[iterTime,1:numberOfOutcomesWithAdministration] +
-                      output[1:numberOfOutcomesWithAdministration]
+            assign( paste0( "t_", outcomeWithAdministration ), samplingAfter[.x] )
+            assign( paste0( "dose_", outcomeWithAdministration ), dosesAfter[.x] )
+            assign( paste0( "Tinf_", outcomeWithAdministration ), tinfAfter[.x] )
 
-                  }
-                }
-              }
-              # for responses without administration (ie response PD)
-              if ( numberOfOutcomesWithNoAdministration > 0 )
-              {
-                assign( outcome, modelEvaluation[iterTime,outcome] )
+            output = do.call( functionDefinitionAfterInfusionWithAdmin, setNames( functionArgumentsSymbol, functionArguments ) ) %>% unlist()
 
-                modelEvaluation[iterTime,(1+numberOfOutcomesWithAdministration):(2*numberOfOutcomesWithAdministration)] = unlist( do.call(
-                  modelFunctionAfterInfusionOutcomesWithNoAdministration, setNames( parameterSymbolsOutcomesWithNoAdministration,
-                                                                                    parameterNamesOutcomesWithNoAdministration ) ) )
+            return( output )
+          } ) )
+        }
+      }
 
-                colnames( modelEvaluation ) = outcomes
-              }
-            } # end iter time
+      # assign values to response PK
+      assign( outcomeWithAdministration , evaluationOutcomeWithAdmin )
 
+      # evaluation function response PD
+      evaluationOutcomeWithNoAdmin = do.call( functionDefinitionAfterInfusionWithNoAdmin, setNames( functionArgumentsSymbol, functionArguments ) ) %>% unlist()
 
-            evaluationOutcomes = list()
+      # test if response PD or not
+      if ( is.null( evaluationOutcomeWithNoAdmin ) )
+      {
+        data.frame(  evaluationOutcomeWithAdmin )
+      }else{
+        data.frame(  evaluationOutcomeWithAdmin, evaluationOutcomeWithNoAdmin )
+      }
+    })
+    return( evaluationOutcome )
+  })  %>% flatten() %>% reduce( rbind ) %>% cbind( samplings, . ) %>% setNames( c( "time", outputNames ) )
 
-            for ( outcome in outcomes )
-            {
-              indexSamplingTimesOutcome = match( samplingTimesOutcome[[outcome]], samplingTimesModel )
+  # filter sampling time
+  samplingTimes = prop( arm, "samplingTimes" )
+  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% set_names( outputNames )
 
-              evaluationOutcomes[[ outcome ]] =  cbind( samplingTimesModel[indexSamplingTimesOutcome],
-                                                        modelEvaluation[indexSamplingTimesOutcome, outcome ] )
+  evaluationModel = list()
+  for ( outputName in outputNames )
+  {
+    time = evaluationModelTmp$time %in% samplings[[outputName]]
+    evaluationModel[[outputName]] = evaluationModelTmp[ time , c( "time", outputName ) ]
+  }
+  return( evaluationModel )
+}
 
-              colnames( evaluationOutcomes[[ outcome ]] ) = c( "time", outcome )
-            }
-            return( evaluationOutcomes )
-          })
-
-# ======================================================================================================
-
-#' @rdname EvaluateModelGradient
+#' definePKModel
+#' @name definePKModel
+#' @param pkModel An object of class \code{ModelAnalyticInfusionSteadyState} that defines the PK model in infusion.
+#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
 
-setMethod(f = "EvaluateModelGradient",
-          signature = "ModelAnalyticInfusionSteadyState",
-          definition = function( object, dataForModelEvaluation, arm )
-          {
-            samplingTimesOutcomes = dataForModelEvaluation$samplingTimesOutcomes
-            samplingTimesModel = dataForModelEvaluation$samplingTimesModel
-            modelError = dataForModelEvaluation$modelError
+method( definePKModel, list( ModelAnalyticInfusionSteadyState, PFIMProject ) ) = function( pkModel, pfimproject ) {
+  pkModelEquations = prop( pkModel, "modelEquations")
+  return( pkModelEquations )
+}
 
-            inputsModel = dataForModelEvaluation$inputsModel
-            atol = dataForModelEvaluation$odeSolverParameters$atol
-            rtol = dataForModelEvaluation$odeSolverParameters$rtol
+#' definePKPDModel
+#' @name definePKPDModel
+#' @param pkModel An object of class \code{ModelAnalyticInfusionSteadyState} that defines the PK model in infusion steady state.
+#' @param pkModel An object of class \code{ModelAnalytic} that defines the PD model.
+#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
+#' @export
 
-            shiftedParameters = dataForModelEvaluation$parametersGradient$shifted
-            Xcols = dataForModelEvaluation$parametersGradient$Xcols
-            Xcols = do.call( "cbind", Xcols )
-            XcolsInv = as.matrix( solve( Xcols ) )
-            frac = dataForModelEvaluation$parametersGradient$frac
+method( definePKPDModel, list( ModelAnalyticInfusionSteadyState, ModelAnalytic, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
 
-            modelParameters = getParameters( object )
-            parametersNames = map( modelParameters, ~ getName( .x ) ) %>% unlist()
+  pkModelEquations = prop( pkModel, "modelEquations")
+  pdModelEquations = prop( pdModel, "modelEquations")
 
-            dataForArmEvaluation = getDataForArmEvaluation( arm )
-            modelOutcomes = dataForArmEvaluation$modelOutcomes
+  equations = list( duringInfusion = c( pkModelEquations$duringInfusion, pdModelEquations ),
+                    afterInfusion  = c( pkModelEquations$afterInfusion, pdModelEquations ) )
+  return( equations )
+}
 
-            evaluationModel = map( 1:ncol( shiftedParameters ), function( iterShiftedParameters )
-            {
-              modelParameters = map2( modelParameters, 1:length( modelParameters ), ~ setMu(.x, shiftedParameters[.y, iterShiftedParameters] ) )
-              object = setParameters( object, modelParameters )
-              dataForModelEvaluation = setDataForModelEvaluation( object, arm )
-              EvaluateModel( object, dataForModelEvaluation, arm )
-            })
 
-            outcomesGradient = pmap( list( modelOutcome = modelOutcomes,
-                                           samplingTimesOutcomes = list( samplingTimesOutcomes ),
-                                           parametersNames = list( parametersNames ) ),
-                                     function( modelOutcome, parametersNames, samplingTimesOutcomes, samplingTimesModel )
-                                     {
-                                       evaluationGradient = evaluationModel %>%
-                                         map(~ .x[[modelOutcome]][, modelOutcome]) %>%
-                                         reduce( cbind )
 
-                                       outcomesGradient = t( XcolsInv %*% t( evaluationGradient ) / frac )
-                                       indexColumn = length( parametersNames )
-                                       outcomesGradient =  as.data.frame( outcomesGradient[, 2:(1 + indexColumn)] )
-                                       outcomesGradient = cbind( samplingTimesOutcomes[[modelOutcome]], outcomesGradient )
-                                       colnames( outcomesGradient ) = c("time", parametersNames)
 
-                                       return( outcomesGradient )
-                                     }
-            )
 
-            outcomesGradient = set_names( outcomesGradient, modelOutcomes )
 
-            outcomesAllGradient = list()
 
-            for( modelOutcome in modelOutcomes )
-            {
-              index = which( sapply( modelError, function (x) getOutcome(x) == modelOutcome ) )
 
-              if ( length( index ) != 0 )
-              {
-                outcomesAllGradient[[modelOutcome]] = outcomesGradient[[modelOutcome]][, 2:(1+length( modelParameters ) ) ]
-              }
-            }
-
-            outcomesAllGradient = do.call( rbind, outcomesAllGradient )
-            rownames( outcomesAllGradient ) = NULL
-
-            return( list( outcomesGradient = outcomesGradient,
-                          outcomesAllGradient = outcomesAllGradient ) )
-          })
-
-##########################################################################################################
-# END Class "ModelAnalyticInfusionSteadyState"
-##########################################################################################################

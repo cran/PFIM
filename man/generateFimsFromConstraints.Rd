@@ -2,21 +2,13 @@
 % Please edit documentation in R/Optimization.R
 \name{generateFimsFromConstraints}
 \alias{generateFimsFromConstraints}
-\alias{generateFimsFromConstraints,Optimization-method}
-\title{Generate the fim from the constraints}
-\usage{
-generateFimsFromConstraints(object, fims)
-
-\S4method{generateFimsFromConstraints}{Optimization}(object)
-}
+\title{Generate FIMs from constraints}
 \arguments{
-\item{object}{An object from the class \linkS4class{Optimization}.}
-
-\item{fims}{A list of object from the class \linkS4class{Fim}.}
+\item{optimization}{An \code{Optimization} object.}
 }
 \value{
-A list giving the arms with their fims.
+A list containing FIMs from constraints.
 }
 \description{
-Generate the fim from the constraints
+Generate FIMs from constraints
 }

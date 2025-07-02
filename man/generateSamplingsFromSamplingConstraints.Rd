@@ -2,19 +2,13 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{generateSamplingsFromSamplingConstraints}
 \alias{generateSamplingsFromSamplingConstraints}
-\alias{generateSamplingsFromSamplingConstraints,SamplingTimeConstraints-method}
-\title{Generate samplings from sampling constraints}
-\usage{
-generateSamplingsFromSamplingConstraints(object)
-
-\S4method{generateSamplingsFromSamplingConstraints}{SamplingTimeConstraints}(object)
-}
+\title{generateSamplingsFromSamplingConstraints}
 \arguments{
-\item{object}{An object from the class \linkS4class{SamplingTimeConstraints}.}
+\item{samplingTimeConstraints}{An object \code{SamplingTimeConstraints}}
 }
 \value{
-A list of sampling times generated from the sampling constraints.
+A list intervalsConstraints.
 }
 \description{
-Generate samplings from sampling constraints
+generateSamplingsFromSamplingConstraints
 }
