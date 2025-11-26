@@ -637,9 +637,7 @@ method( generateReportOptimization, list( PopulationFim, SimplexAlgorithm ) ) = 
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
   nameInputFile = paste0( path, "OptimizationSimplexAlgorithmPopulationFIM.rmd" )
 
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
-    #plotOptions = "plotOptions", #projectName = "projectName",
-    tablesForReport = "tablesForReport" ) )
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
 
 }
 

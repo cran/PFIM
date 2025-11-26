@@ -97,7 +97,7 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Jérémy Seurat \email{jeremy.seurat@inserm.fr} (\href{https://orcid.org/0000-0002-8127-7751}{ORCID}) [contributor]
+  \item Jérémy Seurat \email{jeremy.seurat@inserm.fr} [contributor]
 }
 
 }

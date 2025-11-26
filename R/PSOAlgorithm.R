@@ -384,10 +384,27 @@ method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimiz
 
 method( constraintsTableForReport, PSOAlgorithm ) = function( optimizationAlgorithm, arms  )
 {
-  armsConstraints = map( pluck( arms, 1 ) , ~ getArmConstraints( .x, optimizationAlgorithm ) )
-  armsConstraints = map_dfr( armsConstraints, ~ map_df(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
-  colnames( armsConstraints ) = c( "Arms name" , "Number of subjects", "Outcome", "Initial samplings", "Samplings windows", "Number of times by windows","Min sampling" )
-  armsConstraintsTable = kbl( armsConstraints, align = c( "l","c","c","c","c","c","c") ) %>% kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
+  armsConstraints = map(pluck(arms, 1), ~ getArmConstraints(.x, optimizationAlgorithm))
+  armsConstraints = map_dfr(armsConstraints, ~ map_df(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
+
+  # Renommer les colonnes
+  colnames(armsConstraints) = c("Arms name", "Number of subjects", "Outcome",
+                                "Initial samplings", "Samplings windows",
+                                "Number of times by windows", "Min sampling")
+
+  # Nettoyer la colonne "Min sampling"
+  armsConstraints$`Min sampling` = gsub("[()]", "", armsConstraints$`Min sampling`)          # supprime les parenthèses
+  armsConstraints$`Min sampling` = as.numeric(armsConstraints$`Min sampling`)                 # convertit en numérique
+  armsConstraints$`Min sampling` = round(armsConstraints$`Min sampling`, 1)                   # arrondit à 0.1
+
+  # Création du tableau
+  armsConstraintsTable = kbl(armsConstraints,
+                             align = c("l", "c", "c", "c", "c", "c", "c")) %>%
+    kable_styling(bootstrap_options = c("hover"),
+                  full_width = FALSE,
+                  position = "center",
+                  font_size = 13)
+
   return( armsConstraintsTable )
 }
 

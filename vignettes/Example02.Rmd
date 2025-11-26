@@ -48,23 +48,24 @@ library(PFIM)
 
 # Overview
 
-In this example, we simulate an 1-compartment model with linear elimination for IV infusion over 1 hour (inspired by [@Sukeishi2021]). One hundred and fifty (150) subjects receive a 400mg loading dose on the first day, followed by 4 daily doses of 200mg. Blood samples are taken at the end of the $1^{st}$ infusion (H1), H20, H44, H66 and H120. By evaluating this design, we will then select 4 sampling times on intervals (0,48) and (72,120) for an optimal design using PSO (Particle Swarm Optimization) algorithm. The same optimization problem will also be run with PGBO (Population Based Genetic Optimization) and Simplex algorithm.
+In this example, we simulate an 1-compartment model with linear elimination for IV infusion over 1 hour (inspired by [@Sukeishi2021]). One hundred and fifty (150) subjects receive a 400mg loading dose on the first day, followed by 4 daily doses of 200mg. Blood samples are taken at the end of the $1^{st}$ infusion (H1), H20, H44, H66 and H120. By evaluating this design, we will then select 4 sampling times on intervals (0,48) and (72,120) for an optimal design using PSO (Particle Swarm Optimization) algorithm. The same optimization problem will also be run with PGBO (Population Based Genetic Optimization) and Simplex algorithm. Reports of the design evaluation and optimization are available at <https://github.com/packagePFIM/PFIM>
 
-Reports of the design evaluation and optimization are available at https://github.com/packagePFIM
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+# Save the evaluation and optimization results in the default folder
+outputPath = getwd()
+```
 
 # Design evaluation 
 
 ### Define the PK model `Linear1InfusionSingleDose_ClV` from the library of models
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
 modelFromLibrary = list("PKModel" = "Linear1InfusionSingleDose_ClV") 
 ```
 
 ### Define mu and omega for each parameter
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
- 
 modelParameters = list(
   ModelParameter( name = "V",    distribution = LogNormal( mu = 50, omega = sqrt( .26 ) ) ),
   ModelParameter( name = "Cl",   distribution = LogNormal( mu = 5, omega = sqrt( .34 ) ) ) )
@@ -74,7 +75,6 @@ modelParameters = list(
 ### Define the error model to the response PK `RespPK` 
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
 errorModelRespPK = Combined1( output = "RespPK", sigmaInter = 0.5, sigmaSlope = sqrt( 0.15 ) )
 modelError = list( errorModelRespPK )
 ```
@@ -83,7 +83,6 @@ modelError = list( errorModelRespPK )
 ### Define the administration parameters of the response PK
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
 administrationRespPK = Administration( outcome = "RespPK",
                                        Tinf = rep( 1, 5 ),
                                        timeDose = seq( 0, 96, 24 ),
@@ -93,14 +92,12 @@ administrationRespPK = Administration( outcome = "RespPK",
 ### Define the sampling times for the response PK `RespPK`
 
 ```{r, echo = TRUE, comment=''} 
-samplingTimesRespPK = SamplingTimes( outcome = "RespPK", 
-                                     samplings = c( 1,12,24,44,72,120 ) )
+samplingTimesRespPK = SamplingTimes( outcome = "RespPK", samplings = c( 1,12,24,44,72,120 ) )
 ``` 
 
 ### Define an arm called `arm1` of size 150 with administration `administrationRespPK` and samplings `samplingTimesRespPK`
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
 arm1 = Arm( name = "arm1",
             size = 150,
             administrations = list( administrationRespPK ) ,
@@ -110,15 +107,12 @@ arm1 = Arm( name = "arm1",
 ### Add the arm `arm1` to the design `design1`
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
 design1 = Design( name = "design1", arms = list( arm1 ) )
-
 ```
 
 ### Evaluate the population, individual and Bayesian FIMs
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
 evaluationPop = Evaluation( name = "",
                             modelFromLibrary = modelFromLibrary,
                             modelParameters = modelParameters,
@@ -151,7 +145,6 @@ evaluationBay = Evaluation( name = "",
                             odeSolverParameters = list( atol = 1e-8, rtol = 1e-8 ) )
 
 evaluationFIMBay = run( evaluationBay )
-
 ```
 
 ### Display the results of the design evaluations 
@@ -188,9 +181,6 @@ plotSensitivityIndice_RespPK_Cl =  plotSensitivityIndices[["design1"]][["arm1"]]
 ### Create and save the report for the design evaluation
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
-
-outputPath = getwd()
 
 plotOptions = list( unitTime=c("hour"), unitOutcomes = c("mcg/mL") )
 
@@ -252,7 +242,7 @@ optimization = Optimization( name = "",
                              
                              optimizerParameters = list(
                                maxIteration = 100,
-                               populationSize = 10,
+                               populationSize = 50,
                                personalLearningCoefficient = 2.05,
                                globalLearningCoefficient = 2.05,
                                seed = 42,
@@ -270,7 +260,8 @@ optimization = Optimization( name = "",
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
 optimizationPSO = run( optimization )
-saveRDS( optimizationPSO, "optimizationPSO.RDS" )
+
+saveRDS( optimizationPSO, paste0( outputPath, "optimizationPSO.RDS" ) )
 ```
 
 ### Display the results of the design optimization
@@ -290,10 +281,9 @@ getDcriterion( optimizationPSO )
 ### Create and save the report for the design optimization
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
-
-outputPath = "C:/..."
-
 outputFile = "Example02_OptimizationPSOPopFIM.html"
+
+plotOptions = list( unitTime = c( "hour" ), unitOutcomes = c( "mcg/mL" ) )
 
 Report( optimizationPSO, outputPath, outputFile, plotOptions )
 ```
@@ -302,38 +292,42 @@ Report( optimizationPSO, outputPath, outputFile, plotOptions )
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
-optimizationPGBO = Optimization( name = "",
-                                 modelFromLibrary = modelFromLibrary,
-                                 modelParameters = modelParameters,
-                                 modelError = modelError,
+optimization = Optimization( name = "",
+                             modelFromLibrary = modelFromLibrary,
+                             modelParameters = modelParameters,
+                             modelError = modelError,
+                                
+                             optimizer = "PGBOAlgorithm",
+                                
+                            optimizerParameters = list( N = 30,
+                                                        muteEffect = 0.65,
+                                                        maxIteration = 1000,
+                                                        purgeIteration = 200,
+                                                        seed = 42,
+                                                        showProcess = TRUE  ),
                                  
-                                 optimizer = "PGBOAlgorithm",
+                            designs = list( design2 ),
                                  
-                                 optimizerParameters = list(
-                                   N = 30,
-                                   muteEffect = 0.65,
-                                   maxIteration = 1000,
-                                   purgeIteration = 200,
-                                   seed = 42,
-                                   showProcess = TRUE  ),
+                            fimType = "population",
                                  
-                                 designs = list( design2 ),
-                                 
-                                 fimType = "population",
-                                 
-                                 outputs = list( "RespPK") )
+                            outputs = list( "RespPK") )
 
 ```
 
 ### Run the PGBO algorithm for the optimization with a population FIM
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
+optimizationPGBO = run( optimization )
 
-optimizationPGBO = run( optimizationPGBO )
-saveRDS( optimizationPGBO, "optimizationPGBO.RDS" )
+saveRDS( optimizationPGBO, paste0( outputPath, "optimizationPGBO.RDS" ) )
+```
+
+### Display the results of the design optimization
+
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+show( optimizationPGBO )
 
 fisherMatrix = getFisherMatrix( optimizationPGBO )
-getCorrelationMatrix( optimizationPGBO )
 getSE( optimizationPGBO )
 getRSE( optimizationPGBO )
 getShrinkage( optimizationPGBO )
@@ -341,20 +335,9 @@ getDeterminant( optimizationPGBO )
 getDcriterion( optimizationPGBO )
 ```
 
-### Display the results of the design optimization
-
-```{r, echo = TRUE, eval = FALSE, comment=''} 
-
-show( optimizationPGBO )
-```
-
 ### Create and save the report for the design optimization
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
-
-outputPath = "C:/..."
-
 outputFile = "Example02_OptimizationPGBOPopFIM.html"
 
 Report( optimizationPGBO, outputPath, outputFile, plotOptions )
@@ -382,9 +365,14 @@ optimizationSimplex = Optimization( name = "",
                                    
                                    outputs = list( "RespPK") )
 
-optimizationSimplex = run( optimizationSimplex )
-saveRDS( optimizationSimplex, "optimizationSimplex.RDS" )
+```
+### Run the Simplex algorithm for the optimization with a population FIM
 
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+
+optimizationSimplex = run( optimizationSimplex )
+
+saveRDS( optimizationSimplex, paste0( outputPath, "optimizationSimplex.RDS" ) )
 ```
 
 ### Display the results of the design optimization
@@ -406,9 +394,6 @@ getDcriterion( optimizationSimplex )
 ### Create and save the report for the design optimization
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
-
-outputPath = "C:/..."
 
 outputFile = "Example02_OptimizationSimplexPopFIM.html"
 

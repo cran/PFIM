@@ -48,7 +48,13 @@ library(PFIM)
 
 # Overview
 
-Data for this example result from a PKPD population study on a non-steroidal molecule [@FloresMurrieta1998]. Single doses of 1, 3.2, 10, 31.6, 56.2, or 100mg/kg per os were given respectively to 6 groups, each of which contained at least 6 rats (weighing 200g on average), following a parallel design. Blood sampling and drug response (DI score) evaluation were conducted at 0, 15, 30, and 45 min and at 1, 1.25, 1.5, 2, 3 and 4 hours after administration. Based on the evaluation results, we choose to optimize a design for 30 rats receiving a single dose of either 100mg/kg or 320 mg/kg, selecting only 3 from previously defined time points for blood sampling and response evaluation by using Fedorov-Wynn method and Multiplicative Algorithm. Reports of the design evaluation and optimization are available at <https://github.com/packagePFIM>
+Data for this example result from a PKPD population study on a non-steroidal molecule [@FloresMurrieta1998]. Single doses of 1, 3.2, 10, 31.6, 56.2, or 100mg/kg per os were given respectively to 6 groups, each of which contained at least 6 rats (weighing 200g on average), following a parallel design. Blood sampling and drug response (DI score) evaluation were conducted at 0, 15, 30, and 45 min and at 1, 1.25, 1.5, 2, 3 and 4 hours after administration. Based on the evaluation results, we choose to optimize a design for 30 rats receiving a single dose of either 100mg/kg or 320 mg/kg, selecting only 3 from previously defined time points for blood sampling and response evaluation by using Fedorov-Wynn method and Multiplicative Algorithm. Reports of the design evaluation and optimization are available at <https://github.com/packagePFIM/PFIM>
+
+
+```{r, echo = TRUE, eval = FALSE, comment=''} 
+# Save the evaluation and optimization results in the default folder
+outputPath = getwd()
+```
 
 # Design evaluation 
 
@@ -204,6 +210,7 @@ evaluationPop = run( evaluationPop )
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
 show( evaluationPop )
+
 fisherMatrix = getFisherMatrix( evaluationPop )
 getCorrelationMatrix( evaluationPop )
 getSE( evaluationPop )
@@ -233,8 +240,6 @@ plotSensitivityIndice_RespPK_Cl = plotSensitivityIndices[["design1"]][["20mg Arm
 ### Report for the design evaluation
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
-outputPath = getwd()
 outputFile = "Example01_EvaluationPopFIM.html"
 plotOptions = list( unitTime=c("hour"), unitOutcomes = c("mcg/mL","DI%") )
 Report( evaluationPop, outputPath, outputFile, plotOptions )
@@ -271,7 +276,6 @@ evaluationBay = run( evaluationBay )
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
-
 show( evaluationInd )
 show( evaluationBay )
 
@@ -296,10 +300,6 @@ getDcriterion( evaluationBay )
 ### Reports of the results of the design evaluation
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
-
-outputPath = getwd()
-
 plotOptions = list( unitTime=c("hour"), unitOutcomes= c("mcg/mL","DI%") )
 
 outputFile = "Example01_EvaluationIndFIM.html"
@@ -417,7 +417,7 @@ optimizationFWPopFIM = Optimization(  name = "PKPD_ODE_multi_doses_populationFIM
 
 optimizationFWPopFIM = run( optimizationFWPopFIM )
 
-saveRDS( optimizationFWPopFIM, "optimizationFWPopFIM.RDS" )
+saveRDS( optimizationFWPopFIM, paste0( outputPath, "optimizationFWPopFIM.RDS" ) )
 ```
 
 ### Display and plot the results of the design optimization
@@ -477,8 +477,8 @@ optimizationMultPopFIM = Optimization( name = "PKPD_ODE_multi_doses_populationFI
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
 optimizationMultPopFIM = run( optimizationMultPopFIM )
-saveRDS( optimizationMultPopFIM, "optimizationMultPopFIM.RDS" )
 
+saveRDS( optimizationMultPopFIM, paste0( outputPath, "optimizationMultPopFIM.RDS" ) )
 ```
 
 ### Display and plot the results of the design optimization
@@ -497,14 +497,11 @@ getDcriterion( optimizationMultPopFIM )
 # plot the weight
 plotWeights = plotWeights( optimizationMultPopFIM )
 plotWeights
-
 ```
 
 ### Create and save the report for the design optimization
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
-
-outputPath = getwd()
 plotOptions = list( unitTime = c( "hour" ), unitOutcomes= c( "mcg/mL" , "DI%" ) )
 outputFile = "Example01_OptimizationMultPopFIM.html"
 Report( optimizationMultPopFIM, outputPath, outputFile, plotOptions )
