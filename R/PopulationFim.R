@@ -167,7 +167,7 @@ method( setOptimalArms, list( PopulationFim, MultiplicativeAlgorithm ) ) = funct
 
   # sort by decreasing order
   sizes = map_dbl( armList, "size" )
-  orderIndices = rev( order( sizes ) )
+  orderIndices = order( sizes )
   optimalArms = armList[orderIndices]
 
   return( optimalArms )
@@ -584,7 +584,7 @@ method( generateReportEvaluation, PopulationFim ) = function( fim, tablesForRepo
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "EvaluationPopulationFIM.rmd" )
+  nameInputFile = paste0( path, "EvaluationPopulationFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
 }
@@ -601,7 +601,7 @@ method( generateReportOptimization, list( PopulationFim, MultiplicativeAlgorithm
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmPopulationFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmPopulationFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
 }
@@ -618,7 +618,7 @@ method( generateReportOptimization, list( PopulationFim, FedorovWynnAlgorithm ) 
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmPopulationFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmPopulationFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
 }
@@ -635,7 +635,7 @@ method( generateReportOptimization, list( PopulationFim, SimplexAlgorithm ) ) = 
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmPopulationFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmPopulationFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
 
@@ -653,7 +653,7 @@ method( generateReportOptimization, list( PopulationFim, PSOAlgorithm ) ) = func
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPSOAlgorithmPopulationFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationPSOAlgorithmPopulationFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
 }
@@ -670,7 +670,7 @@ method( generateReportOptimization, list( PopulationFim, PGBOAlgorithm ) ) = fun
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmPopulationFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmPopulationFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
 }

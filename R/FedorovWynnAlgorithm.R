@@ -1225,11 +1225,11 @@ method( plotFrequenciesFedorovWynnAlgorithm, list( Optimization, FedorovWynnAlgo
       axis.title.y = element_text(color = "black", margin = margin(r = 10)),
       axis.text.x = element_text(color = "black", margin = margin(t = 5)),
       axis.text.y = element_text(color = "black", margin = margin(r = 5)),
-      panel.grid.major.x = element_line(color = "gray90", size = 0.5),
-      panel.grid.minor.x = element_line(color = "gray95", size = 0.3),
+      panel.grid.major.x = element_line(color = "gray90", linewidth = 0.5),
+      panel.grid.minor.x = element_line(color = "gray95", linewidth = 0.3),
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
-      panel.border = element_rect(color = "gray80", fill = NA, size = 0.5),
+      panel.border = element_rect(color = "gray80", fill = NA, linewidth = 0.5),
       plot.margin = margin(10, 10, 10, 10) )
   return( frequenciesPlot )
 }

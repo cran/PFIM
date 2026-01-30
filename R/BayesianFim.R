@@ -484,7 +484,7 @@ method( generateReportEvaluation, BayesianFim ) = function( fim, tablesForReport
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "EvaluationBayesianFim.rmd" )
+  nameInputFile = paste0( path, "EvaluationBayesianFim.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath,
                      params = list( #plotOptions = "plotOptions",
@@ -504,7 +504,7 @@ method( generateReportOptimization, list(BayesianFim, MultiplicativeAlgorithm ) 
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmBayesianFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmBayesianFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -523,7 +523,7 @@ method( generateReportOptimization, list( BayesianFim, FedorovWynnAlgorithm ) ) 
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmBayesianFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmBayesianFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -534,7 +534,7 @@ method( generateReportOptimization, list( BayesianFim, SimplexAlgorithm ) ) = fu
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmBayesianFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmBayesianFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -545,7 +545,7 @@ method( generateReportOptimization, list( BayesianFim, PSOAlgorithm ) ) = functi
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPSOAlgorithmBayesianFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationPSOAlgorithmBayesianFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -556,7 +556,7 @@ method( generateReportOptimization, list( BayesianFim, PGBOAlgorithm ) ) = funct
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmBayesianFIM.rmd" )
+  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmBayesianFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",

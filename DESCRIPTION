@@ -1,8 +1,8 @@
 Package: PFIM
 Type: Package
 Title: Population Fisher Information Matrix
-Version: 7.0.1
-Date: 2025-11-26
+Version: 7.0.2
+Date: 2026-01-30
 Authors@R: c(
     person(given = "Romain",
            family = "Leroux",
@@ -53,10 +53,10 @@ Collate: 'Administration.R' 'AdministrationConstraints.R' 'Fim.R'
         'SamplingTimes.R' 'zzz.R'
 RoxygenNote: 7.3.3
 Suggests: rmarkdown, testthat (>= 3.0.0)
-Packaged: 2025-11-26 14:33:37 UTC; MrLer
+Packaged: 2026-01-30 13:00:26 UTC; MrLer
 Author: Romain Leroux [aut, cre] (ORCID:
     <https://orcid.org/0009-0009-5779-5303>),
   France Mentré [aut] (ORCID: <https://orcid.org/0000-0002-7045-1275>),
   Jérémy Seurat [ctb]
 Repository: CRAN
-Date/Publication: 2025-11-26 15:00:09 UTC
+Date/Publication: 2026-01-30 13:30:02 UTC

@@ -223,7 +223,12 @@ method( optimizeDesign, list( Optimization, MultiplicativeAlgorithm ) ) = functi
   optimalWeights = weights[ weightsIndex ]
 
   # set the multiplicativeAlgorithmOutputs
-  prop( optimizationAlgorithm, "multiplicativeAlgorithmOutputs" ) = list( armFims = armFims, multiplicativeAlgorithmOutput = multiplicativeAlgorithmOutput, numberOfArms = numberOfArms, weightThreshold = weightThreshold, weightsIndex = weightsIndex, optimalWeights = optimalWeights )
+  prop( optimizationAlgorithm, "multiplicativeAlgorithmOutputs" ) = list( armFims = armFims,
+                                                                          multiplicativeAlgorithmOutput = multiplicativeAlgorithmOutput,
+                                                                          numberOfArms = numberOfArms,
+                                                                          weightThreshold = weightThreshold,
+                                                                          weightsIndex = weightsIndex,
+                                                                          optimalWeights = optimalWeights )
 
   # set the optimal arms to the optimal design
   fim =  prop( optimizationObject, "fim" )
@@ -257,8 +262,11 @@ method( optimizeDesign, list( Optimization, MultiplicativeAlgorithm ) ) = functi
   evaluationInitialDesign = run( evaluationInitialDesign )
 
   # set the results in evaluation
-  prop( optimizationObject, "optimisationDesign" ) = list( evaluationInitialDesign = evaluationInitialDesign, evaluationOptimalDesign = evaluationOptimalDesign )
-  prop( optimizationObject, "optimisationAlgorithmOutputs" ) = list( "optimizationAlgorithm" = optimizationAlgorithm, "optimalArms" = optimalArms, optimalWeights = optimalWeights )
+  prop( optimizationObject, "optimisationDesign" ) = list( evaluationInitialDesign = evaluationInitialDesign,
+                                                           evaluationOptimalDesign = evaluationOptimalDesign )
+
+  prop( optimizationObject, "optimisationAlgorithmOutputs" ) = list( "optimizationAlgorithm" = optimizationAlgorithm,
+                                                                     "optimalArms" = optimalArms, optimalWeights = optimalWeights )
 
   return( optimizationObject )
 }
@@ -273,12 +281,13 @@ method( optimizeDesign, list( Optimization, MultiplicativeAlgorithm ) ) = functi
 method( plotWeightsMultiplicativeAlgorithm, list( Optimization, MultiplicativeAlgorithm ) ) = function( optimization, optimizationAlgorithm )
 {
   optimisationAlgorithmOutputs = prop( optimization, "optimisationAlgorithmOutputs" )
-  optimalArms = optimisationAlgorithmOutputs$optimalArms
-  optimalArmsName = map( optimalArms, ~ prop(.x,"name" ) ) %>% unlist()
-  optimalWeights = optimisationAlgorithmOutputs$optimalWeights
-  optimalArms = data.frame( optimalArmsName, optimalWeights )
+  optimizationAlgorithm = optimisationAlgorithmOutputs$optimizationAlgorithm
+  multiplicativeAlgorithmOutputs = prop( optimizationAlgorithm, "multiplicativeAlgorithmOutputs")
+  weightsIndex = multiplicativeAlgorithmOutputs$weightsIndex
+  optimalWeights = multiplicativeAlgorithmOutputs$optimalWeights
+  optimalArms = data.frame( weightsIndex, optimalWeights )
 
-  weightPlot = ggplot(optimalArms, aes(x = reorder(optimalArmsName, optimalWeights), y = optimalWeights)) +
+  weightPlot = ggplot(optimalArms, aes(x = reorder(weightsIndex, optimalWeights), y = optimalWeights)) +
     geom_bar(stat = "identity", fill = "gray50") +
     scale_y_continuous(limits = c(0, 1),breaks = seq(0, 1, by = 0.1),minor_breaks = seq(0, 1, by = 0.05),expand = c(0, 0)  ) +
     scale_x_discrete(expand = c(0, 0)) +
@@ -291,11 +300,11 @@ method( plotWeightsMultiplicativeAlgorithm, list( Optimization, MultiplicativeAl
       axis.title.y = element_text(color = "black", margin = margin(r = 10)),
       axis.text.x = element_text(color = "black", margin = margin(t = 5)),
       axis.text.y = element_text(color = "black", margin = margin(r = 5)),
-      panel.grid.major.x = element_line(color = "gray90", size = 0.5),
-      panel.grid.minor.x = element_line(color = "gray95", size = 0.3),
+      panel.grid.major.x = element_line(color = "gray90", linewidth = 0.5),
+      panel.grid.minor.x = element_line(color = "gray95", linewidth = 0.3),
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
-      panel.border = element_rect(color = "gray80", fill = NA, size = 0.5),
+      panel.border = element_rect(color = "gray80", fill = NA, linewidth = 0.5),
       plot.margin = margin(10, 10, 10, 10) )
   return( weightPlot )
 }

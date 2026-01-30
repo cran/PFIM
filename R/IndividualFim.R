@@ -467,7 +467,7 @@ method( generateReportEvaluation, IndividualFim ) = function( fim, tablesForRepo
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "EvaluationIndividualFIM.rmd" )
+  nameInputFile = paste0( path, "EvaluationIndividualFIM.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath,
                      params = list(
@@ -488,7 +488,7 @@ method( generateReportOptimization, list(IndividualFim, MultiplicativeAlgorithm 
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmIndividualFim.rmd" )
+  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmIndividualFim.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -508,7 +508,7 @@ method( generateReportOptimization, list( IndividualFim, FedorovWynnAlgorithm ) 
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmIndividualFim.rmd" )
+  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmIndividualFim.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -527,7 +527,7 @@ method( generateReportOptimization, list( IndividualFim, SimplexAlgorithm ) ) = 
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmIndividualFim.rmd" )
+  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmIndividualFim.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -546,7 +546,7 @@ method( generateReportOptimization, list( IndividualFim, PSOAlgorithm ) ) = func
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPSOAlgorithmIndividualFim.rmd" )
+  nameInputFile = paste0( path, "OptimizationPSOAlgorithmIndividualFim.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
@@ -566,7 +566,7 @@ method( generateReportOptimization, list( IndividualFim, PGBOAlgorithm ) ) = fun
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmIndividualFim.rmd" )
+  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmIndividualFim.Rmd" )
 
   rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list(
     #plotOptions = "plotOptions", #projectName = "projectName",
