@@ -2,7 +2,7 @@
 % Please edit documentation in R/PFIMProject.R
 \name{PFIMProject}
 \alias{PFIMProject}
-\title{PFIMProject}
+\title{PFIMProject Class}
 \usage{
 PFIMProject(
   name = character(0),
@@ -20,30 +20,70 @@ PFIMProject(
 )
 }
 \arguments{
-\item{name}{A string giving the name of the design evaluation.}
+\item{name}{A string representing the name of the project or evaluation study.}
 
-\item{modelEquations}{A list giving the model equations.}
+\item{modelEquations}{A list containing the mathematical equations of the model.}
 
-\item{modelFromLibrary}{A list giving the model equations from the library of model.}
+\item{modelFromLibrary}{A list specifying the pre-defined model selected from the PFIM library.}
 
-\item{modelParameters}{A list giving the model parameters.}
+\item{modelParameters}{A list defining the fixed effects and random effects (variances) of the model.}
 
-\item{modelError}{A list giving the model error.}
+\item{modelError}{A list specifying the residual error model (e.g., constant, proportional, or combined).}
 
-\item{optimizer}{A string giving the name of the optimization algorithm being used.}
+\item{optimizer}{A string identifying the optimization algorithm to be used.
+Must be one of: \code{"MultiplicativeAlgorithm"}, \code{"FedorovWynnAlgorithm"},
+\code{"SimplexAlgorithm"}, \code{"PSOAlgorithm"}, or \code{"PGBOAlgorithm"}.}
 
-\item{optimizerParameters}{A list giving the parameters of the optimization algorithm.}
+\item{optimizerParameters}{A list of settings for the chosen optimizer (e.g., iterations, tolerance).}
 
-\item{outputs}{A list giving the model outputs.}
+\item{outputs}{A list defining the observation variables or responses of the model.}
 
-\item{designs}{A list giving the designs to be evaluated.}
+\item{designs}{A list of `Design` objects representing the experimental protocols to be evaluated.}
 
-\item{fimType}{A string giving the type of Fim being evaluated.}
+\item{fimType}{A string specifying the FIM calculation method.
+Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.}
 
-\item{fim}{A object \code{Fim} giving the Fim.}
+\item{fim}{An object of class \code{Fim} representing the computed Fisher Information Matrix.}
 
-\item{odeSolverParameters}{A list giving the atol and rtol parameters for the ode solver.}
+\item{odeSolverParameters}{A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.}
 }
 \description{
-The class \code{PFIMProject} implements the PFIM project.
+The `PFIMProject` class is the central orchestrator for a Population Fisher
+Information Matrix (PFIM) analysis. It encapsulates all necessary components
+for design evaluation or optimization, including structural models, statistical
+parameters, experimental designs, and optimization settings.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{name}}{\code{character}}
+
+\item{\code{modelEquations}}{\code{list}}
+
+\item{\code{modelFromLibrary}}{\code{list}}
+
+\item{\code{modelParameters}}{\code{list}}
+
+\item{\code{modelError}}{\code{list}}
+
+\item{\code{optimizer}}{\code{character}}
+
+\item{\code{optimizerParameters}}{\code{list}}
+
+\item{\code{outputs}}{\code{list}}
+
+\item{\code{designs}}{\code{list}}
+
+\item{\code{fimType}}{\code{character}}
+
+\item{\code{fim}}{\code{Fim}}
+
+\item{\code{odeSolverParameters}}{\code{list}}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

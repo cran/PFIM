@@ -2,15 +2,28 @@
 % Please edit documentation in R/MultiplicativeAlgorithm.R
 \name{plotWeightsMultiplicativeAlgorithm}
 \alias{plotWeightsMultiplicativeAlgorithm}
-\title{plotWeightsMultiplicativeAlgorithm: plot the optimal weight.}
+\title{Visualize Optimal Weight Distribution from Multiplicative Algorithm}
 \arguments{
-\item{optimization}{A object \code{Optimization}.}
+\item{optimization}{An object of class \code{\link{Optimization}} containing
+the optimized weights.}
 
-\item{optimizationAlgorithm}{A object \code{MultiplicativeAlgorithm}.}
+\item{optimizationAlgorithm}{An object of class \code{\link{MultiplicativeAlgorithm}}}
+
+\item{thresholdWeights}{An numeric threshold for the weights
+used for the optimization.}
 }
 \value{
-The graph plotWeight.
+A \code{ggplot2} graphical object representing the weights per arm.
 }
 \description{
-plotWeightsMultiplicativeAlgorithm: plot the optimal weight.
+Generates a bar plot representing the optimal weights allocated to each study
+arm after the execution of the multiplicative algorithm. This visualization
+quickly highlights which arms have been retained or prioritized by the
+optimization process.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

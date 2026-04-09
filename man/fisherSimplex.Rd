@@ -16,3 +16,9 @@ A list giving the results of the optimization.
 \description{
 Compute the fisher.simplex
 }
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
+}

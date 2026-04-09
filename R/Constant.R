@@ -1,15 +1,37 @@
+#' @title Constant  Class
+#' @name Constant
+#'
 #' @description
-#' The class \code{Constant} represents and stores information for the error model Constant.
-#' @title Constant
-#' @param output A string giving the model error output.
-#' @param equation A expression giving the model error equation.
-#' @param derivatives A list giving the derivatives of the model error equation.
-#' @param sigmaInter A double giving the sigma inter.
-#' @param sigmaSlope A double giving the sigma slope
-#' @param sigmaInterFixed A boolean giving if the  sigma inter is fixed or not.
-#' @param sigmaSlopeFixed A boolean giving if the  sigma slope is fixed or not.
-#' @param cError A integer giving the power parameter.
+#' The \code{Constant} class defines an additive residual error model, where
+#' the standard deviation (SD) of the error remains constant.
+#'
+#' @slot output \code{character}. The name of the model output.
+#' @slot sigmaInter \code{numeric}. The additive residual error value.
+#' @slot sigmaInterFixed \code{logical}. If \code{TRUE}, \code{sigmaInter} is not estimated.
+#'
+#' @param output A string specifying the name of the model output.
+#' @param equation An expression representing the model error equation.
+#' @param derivatives A list of derivatives for the model error equation.
+#' @param sigmaInter A numeric value for the constant residual error component.
+#' @param sigmaSlope A numeric value for the slope (defaulted to 0.0 for this model).
+#' @param sigmaInterFixed Logical; indicates if \code{sigmaInter} is fixed (default FALSE).
+#' @param sigmaSlopeFixed Logical; indicates if \code{sigmaSlope} is fixed (default FALSE).
+#' @param cError A numeric power parameter (default 1.0).
+#'
+#' @return An object of class \code{Constant}.
+#'
 #' @include ModelError.R
+#'
+#'  @examples
+#'
+#' # Define a constant (additive) error model for a PK outcome "RespPK"
+#' errorModelConstantRespPK = Constant(
+#'   output     = "RespPK",
+#'   sigmaInter = 1.0
+#' )
+#' print( errorModelConstantRespPK)
+#'
+#' @template copyright
 #' @export
 
 Constant = new_class("Constant", package = "PFIM", parent = ModelError,
@@ -41,9 +63,3 @@ Constant = new_class("Constant", package = "PFIM", parent = ModelError,
                                   sigmaSlopeFixed = sigmaSlopeFixed,
                                   cError = cError)
                      })
-
-
-
-
-
-

@@ -1,11 +1,15 @@
+# ==============================================================================
+# ==============================================================================
+#' @title ModelAnalyticInfusion Class
+#' @name ModelAnalyticInfusion
 #' @description The class \code{ModelAnalyticInfusion} is used to defined an analytic model in infusion.
-#' @title ModelAnalyticInfusion
 #' @inheritParams ModelInfusion
 #' @param wrapperModelAnalyticInfusion Wrapper for the ode solver.
 #' @param functionArgumentsModelAnalyticInfusion A list giving the functionArguments of the wrapper for the analytic model in infusion.
 #' @param functionArgumentsSymbolModelAnalyticInfusion  A list giving the functionArgumentsSymbol of the wrapper for the analytic model in infusion.
 #' @param solverInputs A list giving the solver inputs.
 #' @include ModelInfusion.R
+#' @template copyright
 #' @export
 
 ModelAnalyticInfusion = new_class(
@@ -20,11 +24,11 @@ ModelAnalyticInfusion = new_class(
     solverInputs = new_property(class_list, default = list())
   ))
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @rdname defineModelWrapper
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelAnalyticInfusion} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with wrapperModelAnalyticInfusion, functionArgumentsModelAnalyticInfusion, functionArgumentsSymbolModelAnalyticInfusion, outputNames, outcomesWithAdministration
+#' @export
+# ==============================================================================
 
 method( defineModelWrapper, ModelAnalyticInfusion ) = function( model, evaluation ) {
 
@@ -121,12 +125,11 @@ method( defineModelWrapper, ModelAnalyticInfusion ) = function( model, evaluatio
   return( model )
 }
 
-#' defineModelAdministration: define the administration
+# ==============================================================================
+#' @rdname defineModelAdministration
 #' @name defineModelAdministration
-#' @param model An object of class \code{ModelAnalyticInfusion} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return The model with samplings, solverInputs
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelAnalyticInfusion ) = function( model, arm ) {
 
@@ -188,12 +191,11 @@ method( defineModelAdministration, ModelAnalyticInfusion ) = function( model, ar
   return( model )
 }
 
-#' evaluateModel: evaluate the ModelAnalyticInfusion
+# ==============================================================================
+#' @rdname evaluateModel
 #' @name evaluateModel
-#' @param model An object of class \code{ModelAnalyticInfusion} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return A list of dataframes that contains the results for the evaluation of the model.
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelAnalyticInfusion ) = function( model, arm ) {
 
@@ -352,10 +354,11 @@ method( evaluateModel, ModelAnalyticInfusion ) = function( model, arm ) {
   return( evaluationModel )
 }
 
-#' convertPKModelAnalyticToPKModelODE: conversion from analytic infusion to ode
+# ==============================================================================
+#' @rdname convertPKModelAnalyticToPKModelODE
 #' @name convertPKModelAnalyticToPKModelODE
-#' @param pkModel An object of class \code{ModelAnalyticInfusion} that defines the model.
 #' @export
+# ==============================================================================
 
 method( convertPKModelAnalyticToPKModelODE, ModelAnalyticInfusion ) = function( pkModel  ) {
 
@@ -380,23 +383,22 @@ method( convertPKModelAnalyticToPKModelODE, ModelAnalyticInfusion ) = function( 
   })
 }
 
-#' definePKModel ModelAnalyticInfusion
+# ==============================================================================
+#' @rdname definePKModel
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelAnalyticInfusion} that defines the PK model in infusion.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKModel, list( ModelAnalyticInfusion, PFIMProject ) ) = function( pkModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
   return( pkModelEquations )
 }
 
-#' definePKPDModel ModelAnalyticInfusion, ModelAnalytic
+# ==============================================================================
+#' @rdname definePKPDModel
 #' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelAnalyticInfusion} that defines the PK model in infusion.
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKPDModel, list( ModelAnalyticInfusion, ModelAnalytic, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
 
@@ -407,13 +409,6 @@ method( definePKPDModel, list( ModelAnalyticInfusion, ModelAnalytic, PFIMProject
                     afterInfusion  = c( pkModelEquations$afterInfusion, pdModelEquations ) )
   return( equations )
 }
-
-#' definePKPDModel ModelAnalyticInfusion, ModelODE
-#' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelAnalyticInfusion} that defines the PK model in infusion.
-#' @param pkModel An object of class \code{ModelODE} that defines the ode PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
-#' @export
 
 method( definePKPDModel, list( ModelAnalyticInfusion, ModelODE, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
 
@@ -437,9 +432,3 @@ method( definePKPDModel, list( ModelAnalyticInfusion, ModelODE, PFIMProject ) ) 
 
   return( equations )
 }
-
-
-
-
-
-

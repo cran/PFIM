@@ -2,13 +2,26 @@
 % Please edit documentation in R/Arm.R
 \name{getSamplingData}
 \alias{getSamplingData}
-\title{getSamplingData: extract sampling times and max sampling time used for plot.}
+\title{Extract sampling times and maximum sampling time}
+\usage{
+getSamplingData(arm, ...)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm}.}
+
+\item{...}{Additional arguments.}
 }
 \value{
-A list giving the \code{samplingTimes} object, the vector samplings and the double samplingMax.
+A list with \code{samplingTimes}, \code{samplings} (named list of
+  numeric vectors), and \code{samplingMax} (numeric scalar).
 }
 \description{
-getSamplingData: extract sampling times and max sampling time used for plot.
+Returns structured sampling information from an arm, used internally
+by plotting methods.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

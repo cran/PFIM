@@ -3,23 +3,27 @@
 %   R/PopulationFim.R
 \name{generateReportEvaluation}
 \alias{generateReportEvaluation}
-\title{generateReportEvaluation: generate the report for the model evaluation.}
+\title{Generate a Comprehensive HTML Evaluation Report}
 \arguments{
-\item{fim}{An object \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{\link{PopulationFim}} containing the
+finalized FIM data.}
 
-\item{tablesForReport}{The output list giving by the method tablesForReport.}
+\item{tablesForReport}{A \code{list} of data frames (as returned by
+\code{\link{tablesForReport}}) containing the formatted statistical summaries.}
 }
 \value{
-The html report for the design evaluation.
-
-The html report for the model evaluation.
-
-The html report for the model evaluation.
+An HTML file (or a path to the generated file) containing the
+complete model evaluation report.
 }
 \description{
-generateReportEvaluation: generate the report for the model evaluation.
-
-generateReportEvaluation: generate the report for the model evaluation.
-
-generateReportEvaluation: generate the report for the model evaluation.
+The \code{generateReportEvaluation} method compiles all computed Fisher Information
+Matrix (FIM) results into a standalone HTML document. This report serves as
+the final deliverable for a design evaluation, summarizing parameter precision,
+design efficiency, and numerical stability.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

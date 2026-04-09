@@ -2,21 +2,33 @@
 % Please edit documentation in R/Arm.R
 \name{processArmEvaluationResults}
 \alias{processArmEvaluationResults}
-\title{processArmEvaluationResults: process for the evaluation of an arm.}
+\title{Process arm evaluation for response plots}
+\usage{
+processArmEvaluationResults(arm, model, fim, designName, plotOptions, ...)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm}.}
 
-\item{model}{A object of class \code{Model} giving the model.}
+\item{model}{An object of class \code{Model}.}
 
-\item{fim}{A object of class \code{Fim} giving the fim.}
+\item{fim}{An object of class \code{Fim}.}
 
 \item{designName}{A string giving the name of the design.}
 
-\item{plotOptions}{A list giving the plot options.}
+\item{plotOptions}{A list with \code{unitTime} and \code{unitOutcomes}.}
+
+\item{...}{Additional arguments}
 }
 \value{
-A list of ggplot object giving the plot of the responses ans the gradient responses of the the model.
+A named list of \code{ggplot} objects per design and arm.
 }
 \description{
-processArmEvaluationResults: process for the evaluation of an arm.
+Evaluates the model on a dense time grid and generates response plots
+for a given arm, overlaying the design sampling points.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

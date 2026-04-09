@@ -2,13 +2,40 @@
 % Please edit documentation in R/PFIMProject.R
 \name{defineModelEquationsFromLibraryOfModel}
 \alias{defineModelEquationsFromLibraryOfModel}
-\title{defineModelEquationsFromLibraryOfModel: define the model equations giving the models in the library of models.}
+\title{defineModelEquationsFromLibraryOfModel}
+\usage{
+defineModelEquationsFromLibraryOfModel(pfimproject, ...)
+}
 \arguments{
-\item{pfimproject}{An object \code{PFIMProject} giving the evaluation to be run.}
+\item{pfimproject}{An object of class \code{\link{PFIMProject}} containing
+the library selection criteria.}
+
+\item{...}{Additional arguments.}
 }
 \value{
-A list giving the model equations.
+A \code{list} of character strings or expressions representing the
+structural model equations.
 }
 \description{
-defineModelEquationsFromLibraryOfModel: define the model equations giving the models in the library of models.
+The  method extracts the structural
+mathematical equations from the pre-defined PFIM library. This allows users
+to leverage standard pharmacokinetic (PK) and pharmacodynamic (PD) models
+without manually defining differential or algebraic equations.
+}
+\details{
+This function references the \code{modelFromLibrary} property of the
+\code{PFIMProject}. It maps library identifiers to a specific set of
+symbolic or numeric equations used by the evaluation engine.
+Typical library models include:
+\itemize{
+  \item \bold{One-compartment:} Bolus, Infusion, or First-order absorption.
+  \item \bold{Multi-compartment:} Distribution models with various elimination routes.
+  \item \bold{Standard PD:} Emax, Sigmoid Emax, or Indirect response models.
+}
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

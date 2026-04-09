@@ -2,17 +2,32 @@
 % Please edit documentation in R/Normal.R
 \name{Normal}
 \alias{Normal}
-\title{Normal}
+\title{Normal Class}
 \usage{
 Normal(name = character(0), mu = 0, omega = 0)
 }
 \arguments{
-\item{name}{A string giving the name of the distribution.}
+\item{name}{A string specifying the distribution type.}
 
-\item{mu}{A double giving the mean mu.}
+\item{mu}{A double representing the fixed effect value.}
 
-\item{omega}{A double giving omega.}
+\item{omega}{A double representing the random effect intensity.}
 }
 \description{
 The class \code{Normal} implements the Normal distribution.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+# Set the Normal distribution for a parameter
+normalDistribution = Normal(
+  mu    = 0.74,
+  omega = 0.316
+)
+# Display distribution summary
+print(normalDistribution)
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

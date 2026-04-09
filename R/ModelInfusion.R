@@ -1,15 +1,21 @@
+#' @title ModelInfusion Class
+#' @name ModelInfusion
 #' @description The class \code{ModelInfusion} is used to defined a model in infusion.
-#' @title ModelInfusion
 #' @inheritParams Model
 #' @include Model.R
+#' @include ModelAnalytic.R
+#' @template copyright
 #' @export
 
 ModelInfusion = new_class( "ModelInfusion", package = "PFIM", parent = Model )
 
-#' convertPKModelAnalyticToPKModelODE: conversion from analytic to ode
+# ==============================================================================
+#' @title conversion from analytic to ode
 #' @name convertPKModelAnalyticToPKModelODE
 #' @param pkModel An object of class \code{ModelInfusion} that defines the model.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( convertPKModelAnalyticToPKModelODE, ModelInfusion ) = function( pkModel  ) {
 
@@ -36,6 +42,3 @@ method( convertPKModelAnalyticToPKModelODE, ModelInfusion ) = function( pkModel 
 
   return( equations )
 }
-
-
-

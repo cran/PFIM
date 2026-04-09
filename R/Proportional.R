@@ -1,14 +1,32 @@
-#' @description The class \code{Proportional} is used to defined a model error.
-#' @title Proportional
-#' @param output A string giving the model error output.
-#' @param equation A expression giving the model error equation.
-#' @param derivatives A list giving the derivatives of the model error equation.
-#' @param sigmaInter A double giving the sigma inter.
-#' @param sigmaSlope A double giving the sigma slope
-#' @param sigmaInterFixed A Boolean giving if the  sigma inter is fixed or not. - not in the v7.0
-#' @param sigmaSlopeFixed A Boolean giving if the  sigma slope is fixed or not. - not in the v7.0
-#' @param cError A integer giving the power parameter.
+#' @title Proportional Class
+#' @name Proportional
+#' @description
+#' The \code{Proportional} class defines a proportional residual error model,
+#' where the standard deviation of the error is proportional to the
+#' predicted value.
+#' @slot output \code{character}. The name of the model output (e.g., "RespPK").
+#' @slot sigmaSlope \code{numeric}. The proportional error component (slope).
+#' @slot sigmaSlopeFixed \code{logical}. If \code{TRUE}, the slope is fixed.
+#' @param output A string specifying the name of the model output (e.g., "RespPK").
+#' @param equation An \code{expression} defining the error model relationship.
+#' @param derivatives A \code{list} containing the analytic derivatives of the error equation.
+#' @param sigmaInter A \code{numeric} specifying the additive error component (intercept).
+#' @param sigmaSlope A \code{numeric} specifying the proportional error component (slope).
+#' @param sigmaInterFixed A \code{logical} indicating if the intercept parameter is fixed.
+#' @param sigmaSlopeFixed A \code{logical} indicating if the slope parameter is fixed.
+#' @param cError A \code{numeric} representing the power parameter (typically 1.0).
+#' @return An object of class \code{Proportional}.
 #' @include ModelError.R
+#' @examples
+#' # Define a proportional error model for a PK output "RespPK"
+#' errorModelRespPK = Proportional(
+#'   output     = "RespPK",
+#'   sigmaSlope = 0.10
+#' )
+#'
+#' # Display the proportional error model summary
+#' print(errorModelRespPK)
+#' @template copyright
 #' @export
 
 Proportional = new_class("Proportional", package = "PFIM", parent = ModelError,

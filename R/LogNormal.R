@@ -1,12 +1,18 @@
+#' @title LogNormal Class
+#' @name LogNormal
 #' @description The class \code{LogNormal} implements the LogNormal distribution.
-#' @title LogNormal
 #' @inheritParams Distribution
 #' @include Distribution.R
+#' @examples
+#' # Set a Log-Normal distribution for a population parameter
+#' distribution = LogNormal(mu = 0.74, omega = 0.316)
+#' print(distribution)
+#' @template copyright
 #' @export
 
 LogNormal = new_class( "LogNormal", package = "PFIM", parent = Distribution )
 
-#' adjustGradient: adjust the gradient for the log normal distribution.
+#' @title Adjust the gradient for the log normal distribution.
 #' @name adjustGradient
 #' @param distribution An object \code{Distribution} giving the distribution.
 #' @param gradient The gradient of the model responses.

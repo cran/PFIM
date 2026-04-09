@@ -2,15 +2,21 @@
 % Please edit documentation in R/BayesianFim.R
 \name{plotShrinkage}
 \alias{plotShrinkage}
-\title{plotShrinkage: plot the shrinkage values.}
+\title{Bar plot of the Bayesian shrinkage}
 \arguments{
-\item{fim}{An object \code{BayesianFim} giving the Fim.}
+\item{fim}{An object of class \code{BayesianFim} giving the Fim.}
 
-\item{evaluation}{An object \code{Evaluation} giving the evaluation of the model.}
+\item{evaluation}{An object of class \code{PFIMProject} giving the evaluation.}
 }
 \value{
-The bar plot of the shrinkage.
+A \code{ggplot2} object representing the shrinkage bar plot.
 }
 \description{
-plotShrinkage: plot the shrinkage values.
+Bar plot of the Bayesian shrinkage
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

@@ -2,13 +2,33 @@
 % Please edit documentation in R/Optimization.R
 \name{plotWeights}
 \alias{plotWeights}
-\title{Plot weights for the multiplicative algorithm}
+\title{Visualize the distribution of optimal design weights}
+\usage{
+plotWeights(optimization, ...)
+}
 \arguments{
-\item{optimization}{An \code{Optimization} object.}
+\item{optimization}{An object of class \code{Optimization} that has been optimized.}
+
+\item{...}{Additional arguments.}
 }
 \value{
-Plot of weights
+A \code{ggplot2} bar plot of the optimized weights.
 }
 \description{
-Plot weights for the multiplicative algorithm
+Generates a bar plot showing the weights assigned to each candidate arm
+after the optimization process. This represents the proportion of the
+total population that should be allocated to each specific design.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+\dontrun{
+# plot the weights from the optimizationMultiplicativePopulationFIMObject
+weights = plotWeights( optimizationMultiplicativePopulationFIMObject )
+print(weights)
+}
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

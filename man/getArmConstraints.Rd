@@ -2,31 +2,29 @@
 % Please edit documentation in R/Arm.R
 \name{getArmConstraints}
 \alias{getArmConstraints}
-\title{getArmConstraints: get the administration and sampling time constraints for the MultiplicativeAlgorithm.}
+\title{Get arm constraints for optimization algorithms}
+\usage{
+getArmConstraints(arm, optimizationAlgorithm, ...)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{\link{Arm}}.}
 
-\item{optimizationAlgorithm}{A object of class \code{Optimization} giving the optimization algorithm.}
+\item{optimizationAlgorithm}{An object of class \code{MultiplicativeAlgorithm},
+\code{FedorovWynnAlgorithm}, \code{SimplexAlgorithm}, \code{PSOAlgorithm}, or \code{PGBOAlgorithm}.}
+
+\item{...}{Additional arguments}
 }
 \value{
-A list giving the administration and sampling time constraints for the MultiplicativeAlgorithm.
-
-A list giving the administration and sampling time constraints for the FedorovWynnAlgorithm.
-
-A list giving the administration and sampling time constraints for the SimplexAlgorithm.
-
-A list giving the administration and sampling time constraints for the PSOAlgorithm.
-
-A list giving the administration and sampling time constraints for the PGBOAlgorithm.
+A list of constraint entries, one per sampling outcome.
 }
 \description{
-getArmConstraints: get the administration and sampling time constraints for the MultiplicativeAlgorithm.
-
-getArmConstraints: get the administration and sampling time constraints for the FedorovWynnAlgorithm.
-
-getArmConstraints: get the administration and sampling time constraints for the SimplexAlgorithm.
-
-getArmConstraints: get the administration and sampling time constraints for the PSOAlgorithm.
-
-getArmConstraints: get the administration and sampling time constraints for the PGBOAlgorithm.
+Extracts administration and sampling time constraints formatted for the
+\code{MultiplicativeAlgorithm}, \code{FedorovWynnAlgorithm},
+\code{SimplexAlgorithm}, \code{PSOAlgorithm}, or \code{PGBOAlgorithm}.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

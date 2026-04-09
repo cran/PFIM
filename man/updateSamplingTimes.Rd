@@ -2,15 +2,27 @@
 % Please edit documentation in R/Arm.R
 \name{updateSamplingTimes}
 \alias{updateSamplingTimes}
-\title{updateSamplingTimes: update sampling times for plotting used for plot}
+\title{Update sampling times for plotting}
+\usage{
+updateSamplingTimes(arm, samplingData, ...)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm}.}
 
-\item{samplingData}{The list giving as output in the method getSamplingData.}
+\item{samplingData}{The list output from \code{getSamplingData}.}
+
+\item{...}{Additional arguments}
 }
 \value{
-The updated sampling times.
+The updated \code{Arm} object.
 }
 \description{
-updateSamplingTimes: update sampling times for plotting used for plot
+Replaces the arm's sampling times with a dense regular grid combined with
+the original sampling points, enabling smooth curve rendering.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

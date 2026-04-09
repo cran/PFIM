@@ -3,25 +3,25 @@
 %   R/PopulationFim.R
 \name{evaluateFim}
 \alias{evaluateFim}
-\title{evaluateFim: evaluation of the Fim}
+\title{Evaluate the Fim.}
 \arguments{
-\item{fim}{An object \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{IndividualFim}.}
 
-\item{model}{An object \code{Model} giving the model.}
+\item{model}{An object of class \code{Model} containing the structural and error parameters.}
 
-\item{arm}{An object \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm} representing the individual's design (doses and samplings).}
 }
 \value{
-The object  \code{Fim} with the fisherMatrix and the shrinkage.
-
-The object \code{IndividualFim} with the fisherMatrix and the shrinkage.
-
-The object \code{IndividualFim} with the fisherMatrix and the shrinkage.
+The \code{IndividualFim} object populated with the calculated \code{fisherMatrix}.
 }
 \description{
-evaluateFim: evaluation of the Fim
-
-evaluateFim: evaluation of the Fim
-
-evaluateFim: evaluation of the Fim
+Computes the Fisher Information Matrix for an individual design. This method
+calculates the structural information (fixed effects) and the variance
+information (residual error components) to assemble the final FIM.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

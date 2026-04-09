@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelODEDoseInEquations.R
 \name{ModelODEDoseInEquations}
 \alias{ModelODEDoseInEquations}
-\title{ModelODEDoseNotInEquations}
+\title{ModelODEDoseInEquations Class}
 \usage{
 ModelODEDoseInEquations(
   name = character(0),
@@ -26,42 +26,53 @@ ModelODEDoseInEquations(
 )
 }
 \arguments{
-\item{name}{Character vector specifying the model name}
+\item{name}{A \code{character} vector specifying the name of the model.}
 
-\item{modelParameters}{List of model parameters}
+\item{modelParameters}{A \code{list} of objects defining the model parameters.}
 
-\item{samplings}{Numeric vector of sampling times}
+\item{samplings}{A \code{numeric} vector specifying the planned sampling times.}
 
-\item{modelEquations}{List containing the model equations}
+\item{modelEquations}{A \code{list} containing the system of equations (analytical or ODEs).}
 
-\item{wrapper}{Function wrapper for the model (default: function () NULL)}
+\item{wrapper}{A \code{function} wrapper used to interface the model (defaults to \code{function() NULL}).}
 
-\item{outputFormula}{List of output formulas}
+\item{outputFormula}{A \code{list} of mathematical formulas for the model outputs.}
 
-\item{outputNames}{Character vector of output names}
+\item{outputNames}{A \code{character} vector defining the names of the output variables.}
 
-\item{variableNames}{Character vector of variable names}
+\item{variableNames}{A \code{character} vector defining the names of the state variables.}
 
-\item{outcomesWithAdministration}{Character vector of outcomes with administration}
+\item{outcomesWithAdministration}{A \code{character} vector specifying outcomes associated with drug administration.}
 
-\item{outcomesWithNoAdministration}{Character vector of outcomes without administration}
+\item{outcomesWithNoAdministration}{A \code{character} vector specifying outcomes without drug administration.}
 
-\item{modelError}{List defining the error model}
+\item{modelError}{A \code{list} defining the residual error model structure.}
 
-\item{odeSolverParameters}{List of ODE solver parameters}
+\item{odeSolverParameters}{A \code{list} of parameters for the ODE solver (e.g., \code{atol}, \code{rtol}).}
 
-\item{parametersForComputingGradient}{List of parameters for gradient computation}
+\item{parametersForComputingGradient}{A \code{list} of parameters required for numerical gradient computation.}
 
-\item{initialConditions}{Numeric vector of initial conditions}
+\item{initialConditions}{A \code{numeric} vector specifying the initial state of the system.}
 
-\item{functionArguments}{Character vector of function arguments}
+\item{functionArguments}{A \code{character} vector of arguments required by the model function.}
 
-\item{functionArgumentsSymbol}{List of function argument symbols}
+\item{functionArgumentsSymbol}{A \code{list} of symbols representing the function arguments.}
 
-\item{modelODEDoseInEquations}{An object \code{modelODEDoseInEquations}.}
+\item{modelODEDoseInEquations}{A \code{function} representing the ODE system,
+incorporating dose-related variables.}
 
-\item{solverInputs}{A list giving the solver inputs.}
+\item{solverInputs}{A \code{list} containing solver-specific inputs, such as
+dose intervals, rates, and administration schedules.}
 }
 \description{
-The class \code{ModelODEDoseNotInEquations} is used to defined a ModelODEDoseNotInEquations
+The \code{ModelODEDoseInEquations} class is designed to define Ordinary Differential
+Equation (ODE) models where the dose and the time elapsed since administration
+are explicitly included within the system of equations (e.g., infusions,
+zero-order inputs, or custom input functions).
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

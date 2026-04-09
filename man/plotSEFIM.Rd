@@ -3,23 +3,27 @@
 %   R/PopulationFim.R
 \name{plotSEFIM}
 \alias{plotSEFIM}
-\title{plotSEFIM: barplot for the SE}
+\title{Plot Standard Errors from the Population FIM}
 \arguments{
-\item{fim}{An object \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{\link{PopulationFim}} containing the
+calculated SE and RSE values.}
 
-\item{evaluation}{An object \code{Evaluation} giving the evaluation of the model.}
+\item{evaluation}{An object of class \code{Evaluation} providing the
+context of the model being plotted.}
 }
 \value{
-The bar plot of the SE.
-
-The bar plot of the SE.
-
-The bar plot of the SE.
+A \code{ggplot2} or base R plot object showing the bar plot of the
+parameter uncertainties.
 }
 \description{
-plotSEFIM: barplot for the SE
-
-plotSEFIM: barplot for the SE
-
-plotSEFIM: barplot for the SE
+The \code{plotSEFIM} method generates a diagnostic bar plot representing the
+Standard Errors (SE) or Relative Standard Errors (RSE\%) for all estimated
+parameters. This visualization is crucial for comparing the precision
+between structural parameters (fixed effects) and variance components.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

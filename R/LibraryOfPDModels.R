@@ -1,11 +1,20 @@
-#' @description The class \code{LibraryOfPDModels} represents and stores information for the LibraryOfPDModels.
-#' @title LibraryOfPDModels
+#' @title LibraryOfPDModels Class
+#' @name LibraryOfPDModels
+#' @description
+#' The \code{LibraryOfPDModels} class is a specialized container for managing
+#' and storing Pharmacodynamic (PD) model definitions.
+#' @details
+#' This class inherits from \code{\link{LibraryOfModels}} and provides a
+#' dedicated structure for pharmacodynamic responses. It is designed to handle
+#' various PD mechanisms, including direct effect models (Emax, Sigmoid Emax),
+#' indirect response models (Turnover), and kinetic-pharmacodynamic (K-PD)
+#' structures.
+#' @slot models A named list of PD model structures (e.g., Emax, Indirect Response).
 #' @include LibraryOfModels.R
+#' @template copyright
 #' @export
 
-LibraryOfPDModels = new_class("LibraryOfPDModels",
-                              package = "PFIM",
-                              parent = LibraryOfModels )
+LibraryOfPDModels = new_class("LibraryOfPDModels", package = "PFIM", parent = LibraryOfModels )
 
 models = list(
   # Immediate Response Models

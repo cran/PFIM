@@ -2,7 +2,7 @@
 % Please edit documentation in R/Evaluation.R
 \name{Evaluation}
 \alias{Evaluation}
-\title{Evaluation}
+\title{Evaluation Class}
 \usage{
 Evaluation(
   evaluationDesign = list(),
@@ -18,26 +18,68 @@ Evaluation(
 )
 }
 \arguments{
-\item{evaluationDesign}{A list giving the evaluation of the design.}
+\item{evaluationDesign}{A list containing the evaluation results of the design.}
 
-\item{name}{A string giving the name of the design evaluation.}
+\item{name}{A string representing the name of the project or evaluation study.}
 
-\item{modelParameters}{A list giving the model parameters.}
+\item{modelParameters}{A list defining the fixed effects and random effects (variances) of the model.}
 
-\item{modelEquations}{A list giving the model equations.}
+\item{modelEquations}{A list containing the mathematical equations of the model.}
 
-\item{modelFromLibrary}{A list giving the model equations from the library of model.}
+\item{modelFromLibrary}{A list specifying the pre-defined model selected from the PFIM library.}
 
-\item{modelError}{A list giving the model error.}
+\item{modelError}{A list specifying the residual error model (e.g., constant, proportional, or combined).}
 
-\item{designs}{A list giving the designs to be evaluated.}
+\item{designs}{A list of `Design` objects representing the experimental protocols to be evaluated.}
 
-\item{outputs}{A list giving the model outputs.}
+\item{outputs}{A list defining the observation variables or responses of the model.}
 
-\item{fimType}{A string giving the type of Fim being evaluated.}
+\item{fimType}{A string specifying the FIM calculation method.
+Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.}
 
-\item{odeSolverParameters}{A list giving the atol and rtol parameters for the ode solver.}
+\item{odeSolverParameters}{A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.}
+}
+\value{
+An object of class \code{Evaluation}.
 }
 \description{
-The class \code{Evaluation} represents and stores information for the evaluation of a design
+The `Evaluation` class represents and stores all information required to
+evaluate a clinical trial design. It serves as the main interface for
+calculating the Fisher Information Matrix (FIM), Standard Errors (SE),
+and other design criteria.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{evaluationDesign}}{\code{list}. Stores the results of the design evaluation.}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+\dontrun{
+
+# Example: Evaluation of the Population Fisher Information Matrix (FIM)
+# extracted from Vignette n°1.
+
+evaluationPop = Evaluation(
+  name                = "evaluation_example",
+  modelEquations      = modelEquations,
+  modelParameters     = modelParameters,
+  modelError          = modelError,
+  outputs             = list("RespPK" = "Cc", "RespPD" = "E"),
+  designs             = list(design1),
+  fimType             = "population",
+  odeSolverParameters = list(atol = 1e-8, rtol = 1e-8)
+)
+
+# Display the results (Standard Errors, RSE, etc.)
+show(evaluationPop)
+
+}
+
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

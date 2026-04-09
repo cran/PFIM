@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelParameter.R
 \name{ModelParameter}
 \alias{ModelParameter}
-\title{ModelParameter}
+\title{ModelParameter Class}
 \usage{
 ModelParameter(
   name = character(0),
@@ -12,17 +12,60 @@ ModelParameter(
 )
 }
 \arguments{
-\item{name}{A string giving the name of the parameter.}
+\item{name}{The parameter name (string).}
 
-\item{distribution}{A string giving the distribution of the parameter.}
+\item{distribution}{A \code{Distribution} object.}
 
-\item{fixedMu}{A Boolean setting TRUE/FALSE if the mu is estimated or not.}
+\item{fixedMu}{Logical; indicates if the mean is fixed. Defaults to \code{FALSE}.}
 
-\item{fixedOmega}{A Boolean setting TRUE/FALSE if the omega is estimated or not.}
+\item{fixedOmega}{Logical; indicates if the variance is fixed. Defaults to \code{FALSE}.}
+}
+\value{
+An object of class \code{ModelParameter}.
 }
 \description{
-The class \code{ModelParameter} is used to defined the model parameters.
+The \code{ModelParameter} class defines the characteristics of a model parameter,
+including its identifier (name), statistical distribution (mean and variance),
+and the estimation status of its components.
 }
-\details{
-ModelParameter
+\section{Slots}{
+
+\describe{
+\item{\code{name}}{\code{character}. A unique string identifying the parameter.}
+
+\item{\code{distribution}}{\code{Distribution}. An object of class \code{Distribution}
+defining the statistical law (e.g., Log-Normal, Normal).}
+
+\item{\code{fixedMu}}{\code{logical}. If \code{TRUE}, the population mean is
+fixed and will not be estimated.}
+
+\item{\code{fixedOmega}}{\code{logical}. If \code{TRUE}, the inter-individual
+variability (omega) is fixed and will not be estimated.}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+# 1. Clearance with estimated mean and estimated variance (mu and omega)
+clEstimated = ModelParameter(
+  name         = "Cl",
+  distribution = LogNormal(mu = 0.28, omega = 0.456),
+  fixedMu      = FALSE,
+  fixedOmega   = FALSE
+)
+print(clEstimated)
+
+# 2. Clearance with fixed mean and fixed variance
+# Useful for parameters known from literature (e.g., mu = log(20) approx 2.99)
+clFixed = ModelParameter(
+  name         = "Cl",
+  distribution = LogNormal(mu = 2.99, omega = 0.1),
+  fixedMu      = TRUE,
+  fixedOmega   = TRUE
+)
+print(clFixed)
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

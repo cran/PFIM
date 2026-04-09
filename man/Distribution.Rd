@@ -2,17 +2,37 @@
 % Please edit documentation in R/Distribution.R
 \name{Distribution}
 \alias{Distribution}
-\title{Distribution}
+\title{Distribution Class}
 \usage{
 Distribution(name = character(0), mu = 0, omega = 0)
 }
 \arguments{
-\item{name}{A string giving the name of the distribution.}
+\item{name}{A string specifying the distribution type.}
 
-\item{mu}{A double giving the mean mu.}
+\item{mu}{A double representing the fixed effect value.}
 
-\item{omega}{A double giving omega.}
+\item{omega}{A double representing the random effect intensity.}
+}
+\value{
+An object of class \code{Distribution}.
 }
 \description{
-The class \code{Distribution} represents and stores information for the parameter distribution.
+The \code{Distribution} class is an abstract base class used to represent
+statistical distributions for model parameters.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{name}}{\code{character}. The name of the distribution (e.g., "Normal", "LogNormal").}
+
+\item{\code{mu}}{\code{numeric}. The mean value or fixed effect of the parameter.}
+
+\item{\code{omega}}{\code{numeric}. The standard deviation or variance of the random effect.}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

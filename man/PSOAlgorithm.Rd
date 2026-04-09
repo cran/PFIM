@@ -2,72 +2,114 @@
 % Please edit documentation in R/PSOAlgorithm.R
 \name{PSOAlgorithm}
 \alias{PSOAlgorithm}
-\title{PSOAlgorithm}
+\title{PSOAlgorithm Class}
 \usage{
 PSOAlgorithm(
-  name = character(0),
-  modelEquations = list(),
-  modelFromLibrary = list(),
-  modelParameters = list(),
-  modelError = list(),
-  optimizer = character(0),
-  optimizerParameters = list(),
-  outputs = list(),
-  designs = list(),
-  fimType = character(0),
-  fim = Fim(),
-  odeSolverParameters = list(),
+  maxIteration = 100,
+  populationSize = 50,
+  seed = 42,
+  personalLearningCoefficient = 2.05,
+  globalLearningCoefficient = 2.05,
+  showProcess = FALSE,
   optimisationDesign = list(),
   optimisationAlgorithmOutputs = list(),
-  maxIteration = numeric(0),
-  populationSize = numeric(0),
-  seed = numeric(0),
-  personalLearningCoefficient = numeric(0),
-  globalLearningCoefficient = numeric(0),
-  showProcess = FALSE
+  name = character(0),
+  modelParameters = list(),
+  modelEquations = list(),
+  modelFromLibrary = list(),
+  modelError = list(),
+  designs = list(),
+  outputs = list(),
+  fimType = character(0),
+  odeSolverParameters = list()
 )
 }
 \arguments{
-\item{name}{A string giving the name of the design evaluation.}
+\item{maxIteration}{An integer specifying the maximum number of iterations
+before the algorithm stops.}
 
-\item{modelEquations}{A list giving the model equations.}
+\item{populationSize}{An integer specifying the number of particles in
+the swarm. Larger populations explore the space better but increase
+computation time.}
 
-\item{modelFromLibrary}{A list giving the model equations from the library of model.}
+\item{seed}{A numeric value for the random number generator to ensure
+reproducibility of the optimization results.}
 
-\item{modelParameters}{A list giving the model parameters.}
+\item{personalLearningCoefficient}{A numeric value (often denoted as \eqn{c_1})
+that controls the "cognitive" component—how much the particle trusts its
+own best experience.}
 
-\item{modelError}{A list giving the model error.}
+\item{globalLearningCoefficient}{A numeric value (often denoted as \eqn{c_2})
+that controls the "social" component—how much the particle follows the
+swarm's best experience.}
 
-\item{optimizer}{A string giving the name of the optimization algorithm being used.}
+\item{showProcess}{A logical. If \code{TRUE}, the algorithm prints the
+current best fitness and iteration progress to the R console.}
 
-\item{optimizerParameters}{A list giving the parameters of the optimization algorithm.}
+\item{optimisationDesign}{A list storing the evaluations (FIM, criteria, SE)
+of both the initial and the optimal design.}
 
-\item{outputs}{A list giving the model outputs.}
+\item{optimisationAlgorithmOutputs}{A list containing the logs and
+algorithm-specific outputs produced during the optimization process.}
 
-\item{designs}{A list giving the designs to be evaluated.}
+\item{name}{A string representing the name of the project or evaluation study.}
 
-\item{fimType}{A string giving the type of Fim being evaluated.}
+\item{modelParameters}{A list defining the fixed effects and random effects (variances) of the model.}
 
-\item{fim}{A object \code{Fim} giving the Fim.}
+\item{modelEquations}{A list containing the mathematical equations of the model.}
 
-\item{odeSolverParameters}{A list giving the atol and rtol parameters for the ode solver.}
+\item{modelFromLibrary}{A list specifying the pre-defined model selected from the PFIM library.}
 
-\item{optimisationDesign}{A list giving the evaluation of initial and optimal design.}
+\item{modelError}{A list specifying the residual error model (e.g., constant, proportional, or combined).}
 
-\item{optimisationAlgorithmOutputs}{A list giving the outputs of the optimization process.}
+\item{designs}{A list of `Design` objects representing the experimental protocols to be evaluated.}
 
-\item{maxIteration}{A numeric giving the maxIteration.}
+\item{outputs}{A list defining the observation variables or responses of the model.}
 
-\item{populationSize}{A numeric giving the populationSize.}
+\item{fimType}{A string specifying the FIM calculation method.
+Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.}
 
-\item{seed}{A numeric giving the seed.}
-
-\item{personalLearningCoefficient}{A numeric giving the personalLearningCoefficient.}
-
-\item{globalLearningCoefficient}{A numeric giving the globalLearningCoefficient.}
-
-\item{showProcess}{A Boolean giving the showProcess.}
+\item{odeSolverParameters}{A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.}
 }
 \description{
-The class \code{PSOAlgorithm} implements the PSO algorithm.
+The \code{PSOAlgorithm} class is a subclass of \code{\link{Optimization}}
+that implements the PSO metaheuristic. It optimizes experimental designs by
+moving a "swarm" of candidate solutions (particles) through the search space.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+\dontrun{
+
+# Examples from Vignette 2
+
+# Initializing the PSO algorithm for population FIM optimization
+optimizationPSOPopFIM = Optimization(
+  name                = "optimizationExamplePSO",
+  modelFromLibrary    = modelFromLibrary,
+  modelParameters     = modelParameters,
+  modelError          = modelError,
+  optimizer           = "PSOAlgorithm",
+  optimizerParameters = list(
+    maxIteration                = 100,   # number of swarm update cycles
+    populationSize              = 50,    # number of particles
+    personalLearningCoefficient = 2.05,  # c1: attraction toward personal best
+    globalLearningCoefficient   = 2.05,  # c2: attraction toward global best
+    seed                        = 42,    # reproducibility
+    showProcess                 = FALSE  # suppress iteration-level output
+  ),
+  designs             = list(design2),
+  fimType             = "population",
+  outputs             = list("RespPK")
+)
+
+# Run the PSO optimization and display the results
+resultsPSOPopFIM = run(optimizationPSOPopFIM)
+show(resultsPSOPopFIM)
+
+}
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

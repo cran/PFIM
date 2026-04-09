@@ -2,13 +2,19 @@
 % Please edit documentation in R/Design.R
 \name{setSamplingConstraintForOptimization}
 \alias{setSamplingConstraintForOptimization}
-\title{setSamplingConstraintForOptimization: set the sampling time constraints for an arm for the design optimization.}
+\title{Initialize sampling constraints}
 \arguments{
-\item{design}{An object \code{Design} giving the design.}
+\item{design}{An object \code{Design}.}
 }
 \value{
-The arm with the sampling time constraint for the design optimization.
+The \code{Design} object with updated \code{samplingTimesConstraints}.
 }
 \description{
-setSamplingConstraintForOptimization: set the sampling time constraints for an arm for the design optimization.
+Initialize sampling constraints
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

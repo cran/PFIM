@@ -2,17 +2,29 @@
 % Please edit documentation in R/Arm.R
 \name{evaluateArm}
 \alias{evaluateArm}
-\title{evaluateArm: evaluation of the model with the arm parameters.}
+\title{Evaluate an arm}
+\usage{
+evaluateArm(arm, model, fim, ...)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm}.}
 
-\item{model}{A object of class \code{Model} giving the model.}
+\item{model}{An object of class \code{Model}.}
 
-\item{fim}{A object of class \code{Fim} giving the fim.}
+\item{fim}{An object of class \code{Fim}.}
+
+\item{...}{Additional arguments}
 }
 \value{
-The object arm with the slots evaluationModel, evaluationGradients, evaluationVariance and evaluationFim.
+The \code{Arm} object with updated \code{evaluationModel},
+\code{evaluationGradients}, \code{evaluationVariance}, and \code{evaluationFim}.
 }
 \description{
-evaluateArm: evaluation of the model with the arm parameters.
+Evaluates the model, gradients, variance, and FIM for an arm.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

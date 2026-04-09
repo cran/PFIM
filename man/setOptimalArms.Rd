@@ -3,35 +3,24 @@
 %   R/PopulationFim.R
 \name{setOptimalArms}
 \alias{setOptimalArms}
-\title{setOptimalArms: set the optimal arms of an optimization algorithm.}
+\title{Set Optimal Arms for the MultiplicativeAlgorithm and FedorovWynnAlgorithm}
 \arguments{
-\item{fim}{An object \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{\link{PopulationFim}} containing the
+Fisher Information Matrix evaluated at the optimal design points.}
 
-\item{optimizationAlgorithm}{An object \code{FedorovWynnAlgorithm} giving the optimization algorithm.}
-}
-\value{
-The optimal arms.
-
-The optimal arms.
-
-The list optimalArms.
-
-The list optimalArms.
-
-The list optimalArms.
-
-The list optimalArms.
+\item{optimizationAlgorithm}{An object of class \code{\link{MultiplicativeAlgorithm}\link{FedorovWynnAlgorithm}}
+representing the solver that has completed its execution.
+sampling schedule and dosing protocols that maximize the optimization criterion.}
 }
 \description{
-setOptimalArms: set the optimal arms of an optimization algorithm.
-
-setOptimalArms: set the optimal arms of an optimization algorithm.
-
-setOptimalArms: set the optimal arms of an optimization algorithm.
-
-setOptimalArms: set the optimal arms of an optimization algorithm.
-
-setOptimalArms: set the optimal arms of an optimization algorithm.
-
-setOptimalArms: set the optimal arms of an optimization algorithm.
+The \code{setOptimalArms} method identifies and extracts the best performing
+experimental arms from an optimization routine. It converts the output of
+the \code{\link{MultiplicativeAlgorithm}} into a structured list of
+optimized experimental designs.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

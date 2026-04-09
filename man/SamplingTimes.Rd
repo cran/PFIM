@@ -2,15 +2,46 @@
 % Please edit documentation in R/SamplingTimes.R
 \name{SamplingTimes}
 \alias{SamplingTimes}
-\title{SamplingTimes}
+\title{SamplingTimes Class}
 \usage{
 SamplingTimes(outcome = character(0), samplings = numeric(0))
 }
 \arguments{
-\item{outcome}{A string giving the outcome.}
+\item{outcome}{A \code{string} specifying the name of the model output
+(e.g., "RespPK", "Metabolite").}
 
-\item{samplings}{A vector of numeric giving the samplings.}
+\item{samplings}{A \code{numeric vector} representing the sampling schedule.}
+}
+\value{
+An object of class \code{SamplingTimes}.
 }
 \description{
-The class \code{SamplingTimes} is used to defined SamplingTimes.
+The \code{SamplingTimes} class defines the specific time points at which
+observations are collected for a given model outcome. In multi-response
+models, this class allows each outcome (e.g., PK and PD) to have its own
+independent sampling schedule.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{outcome}}{\code{character}. The name of the model output (e.g., "RespPK").}
+
+\item{\code{samplings}}{\code{numeric vector}. The sequence of observation time points.}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+# Define a PK sampling schedule
+samplingTimesRespPK = SamplingTimes(
+  outcome   = "RespPK",
+  samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4)
+)
+
+# Display the sampling schedule summary
+print(samplingTimesRespPK)
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

@@ -1,16 +1,22 @@
-#' @description The class \code{ModelODEInfusion} is used to defined a model ModelODEInfusion.
-#' @title ModelODEInfusion
+# ==============================================================================
+#' @title ModelODEInfusion Class
+#' @name ModelODEInfusion
+#' @description
+#' The \code{ModelODEInfusion} class is specifically designed to define ODE-based
+#' models for infusion-type administrations. It extends the \code{ModelInfusion}
+#' properties to handle continuous drug delivery through differential equations.
 #' @inheritParams ModelInfusion
+#' @include ModelInfusion.R
+#' @template copyright
 #' @export
 
 ModelODEInfusion = new_class( "ModelODEInfusion", package = "PFIM", parent = ModelInfusion )
 
-#' evaluateInitialConditions: evaluate the initial conditions.
+# ==============================================================================
+#' @rdname evaluateInitialConditions
 #' @name evaluateInitialConditions
-#' @param arm A object of class \code{Arm} giving the arm.
-#' @param model A object of class \code{ModelODEInfusion} giving the model.
-#' @param doseEvent A data frame giving the dose event for the ode solver.
 #' @export
+# ==============================================================================
 
 method( evaluateInitialConditions, ModelODEInfusion ) = function( model, arm ) {
 
@@ -39,8 +45,3 @@ method( evaluateInitialConditions, ModelODEInfusion ) = function( model, arm ) {
 
   return( initialConditions )
 }
-
-
-
-
-

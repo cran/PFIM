@@ -2,7 +2,7 @@
 % Please edit documentation in R/Proportional.R
 \name{Proportional}
 \alias{Proportional}
-\title{Proportional}
+\title{Proportional Class}
 \usage{
 Proportional(
   output = character(0),
@@ -16,22 +16,53 @@ Proportional(
 )
 }
 \arguments{
-\item{output}{A string giving the model error output.}
+\item{output}{A string specifying the name of the model output (e.g., "RespPK").}
 
-\item{equation}{A expression giving the model error equation.}
+\item{equation}{An \code{expression} defining the error model relationship.}
 
-\item{derivatives}{A list giving the derivatives of the model error equation.}
+\item{derivatives}{A \code{list} containing the analytic derivatives of the error equation.}
 
-\item{sigmaInter}{A double giving the sigma inter.}
+\item{sigmaInter}{A \code{numeric} specifying the additive error component (intercept).}
 
-\item{sigmaSlope}{A double giving the sigma slope}
+\item{sigmaSlope}{A \code{numeric} specifying the proportional error component (slope).}
 
-\item{sigmaInterFixed}{A Boolean giving if the  sigma inter is fixed or not. - not in the v7.0}
+\item{sigmaInterFixed}{A \code{logical} indicating if the intercept parameter is fixed.}
 
-\item{sigmaSlopeFixed}{A Boolean giving if the  sigma slope is fixed or not. - not in the v7.0}
+\item{sigmaSlopeFixed}{A \code{logical} indicating if the slope parameter is fixed.}
 
-\item{cError}{A integer giving the power parameter.}
+\item{cError}{A \code{numeric} representing the power parameter (typically 1.0).}
+}
+\value{
+An object of class \code{Proportional}.
 }
 \description{
-The class \code{Proportional} is used to defined a model error.
+The \code{Proportional} class defines a proportional residual error model,
+where the standard deviation of the error is proportional to the
+predicted value.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{output}}{\code{character}. The name of the model output (e.g., "RespPK").}
+
+\item{\code{sigmaSlope}}{\code{numeric}. The proportional error component (slope).}
+
+\item{\code{sigmaSlopeFixed}}{\code{logical}. If \code{TRUE}, the slope is fixed.}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+# Define a proportional error model for a PK output "RespPK"
+errorModelRespPK = Proportional(
+  output     = "RespPK",
+  sigmaSlope = 0.10
+)
+
+# Display the proportional error model summary
+print(errorModelRespPK)
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

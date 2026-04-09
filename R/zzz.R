@@ -1,4 +1,4 @@
-.onLoad <- function(...) {
+.onLoad = function(libname, pkgname) {
+  # S7 internal registration — required, must stay
   S7::methods_register()
 }
-

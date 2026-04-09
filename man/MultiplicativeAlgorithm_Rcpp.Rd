@@ -2,7 +2,7 @@
 % Please edit documentation in R/MultiplicativeAlgorithm.R
 \name{MultiplicativeAlgorithm_Rcpp}
 \alias{MultiplicativeAlgorithm_Rcpp}
-\title{Function MultiplicativeAlgorithm_Rcpp}
+\title{Rcpp Multiplicative Algorithm for Optimal Design}
 \usage{
 MultiplicativeAlgorithm_Rcpp(
   fisherMatrices_input,
@@ -16,25 +16,44 @@ MultiplicativeAlgorithm_Rcpp(
 )
 }
 \arguments{
-\item{fisherMatrices_input}{The parameter fotfisherMatrices_input.}
+\item{fisherMatrices_input}{A \code{list} or \code{vector} of flattened Fisher
+Information Matrices for each candidate elementary design arm.}
 
-\item{numberOfFisherMatrices_input}{The parameter numberOfFisherMatrices_input.}
+\item{numberOfFisherMatrices_input}{An \code{integer} specifying the total
+number of candidate arms.}
 
-\item{weights_input}{The parameter weights_input.}
+\item{weights_input}{A \code{numeric} vector of initial weights (must sum to 1).}
 
-\item{numberOfParameters_input}{The parameter numberOfParameters_input.}
+\item{numberOfParameters_input}{The number of fixed parameters in the model.}
 
-\item{dim_input}{The parameter dim_input.}
+\item{dim_input}{The dimension of the matrices (typically equal to
+\code{numberOfParameters_input}).}
 
-\item{lambda_input}{The parameter lambda_input.}
+\item{lambda_input}{Relaxation parameter for weight updates (step size).}
 
-\item{delta_input}{The parameter delta_input.}
+\item{delta_input}{Convergence threshold for the optimality criterion.}
 
-\item{iterationInit_input}{The parameter iterationInit_input.}
+\item{iterationInit_input}{Maximum number of iterations allowed for the C++ solver.}
 }
 \value{
-The list output with the outputs of the MultiplicativeAlgorithm_Rcpp.
+A \code{list} containing:
+\itemize{
+  \item \code{weights}: The vector of optimized design weights.
+  \item \code{criterion}: The final value of the optimality criterion.
+  \item \code{iterations}: The number of iterations performed.
+  \item \code{convergence}: A \code{logical} indicating if the convergence
+  criterion was met.
+}
 }
 \description{
-Run the MultiplicativeAlgorithm_Rcpp in Rcpp.
+Executes the high-performance C++ implementation of the multiplicative algorithm.
+This function serves as the computational engine for the \code{MultiplicativeAlgorithm}
+class, processing Fisher Information Matrices (FIM) from multiple arms to
+determine the optimal weight distribution.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

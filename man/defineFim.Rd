@@ -2,13 +2,33 @@
 % Please edit documentation in R/PFIMProject.R
 \name{defineFim}
 \alias{defineFim}
-\title{define the type of Fisher information matrix: population, individual or Bayesian}
+\title{Define the Fisher Information Matrix object}
+\usage{
+defineFim(pfimproject, ...)
+}
 \arguments{
-\item{pfimproject}{An object \code{PFIMProject}.}
+\item{pfimproject}{An object of class \code{\link{PFIMProject}} containing the
+model and design specifications.}
+
+\item{...}{Additional arguments.}
 }
 \value{
-An object \code{Fim}.
+An object of class \code{\link{Fim}} initialized with the settings
+defined in the project.
 }
 \description{
-define the type of Fisher information matrix: population, individual or Bayesian
+This method initializes and configures the specific type of Fisher Information Matrix
+to be calculated within a \code{PFIMProject}. It maps the project's statistical
+assumptions (Population, Individual, or Bayesian) to the underlying FIM computational engine.
+\itemize{
+  \item \bold{Population:} For Nonlinear Mixed Effects Models (NLME), accounting for inter-individual variability.
+  \item \bold{Individual:} For standard fixed-effects models where only one subject/profile is considered.
+  \item \bold{Bayesian:} When prior distributions for the parameters are incorporated into the information matrix.
+}
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

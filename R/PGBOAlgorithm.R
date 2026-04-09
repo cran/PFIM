@@ -1,32 +1,121 @@
-#' @description The class \code{PGBOAlgorithm} implements the PGBO algorithm.
-#' @title PGBOAlgorithm
-#' @inheritParams Optimization
-#' @param N A numeric giving the parameter N.
-#' @param muteEffect A numeric giving the parameter muteEffect.
-#' @param maxIteration A numeric giving the parameter maxIteration.
-#' @param purgeIteration A numeric giving the parameter purgeIteration.
-#' @param seed A numeric giving the parameter seed.
-#' @param showProcess A Boolean giving showProcess.
+#' @title PGBOAlgorithm Class
+#' @name PGBOAlgorithm
+#' @description
+#' The \code{PGBOAlgorithm} class implements a stochastic optimization routine based
+#' on population genetics principles. It is designed to navigate complex design
+#' spaces by simulating mutation, selection, and purging processes to maximize
+#' the Fisher Information Matrix (FIM) criteria.
 #' @include Optimization.R
+#' @inheritParams Optimization
+#' @param N A numeric value specifying the population size (number of individuals)
+#' per generation.
+#' @param muteEffect A numeric value (0-1) representing the mutation rate or the
+#' intensity of the genetic mutation effect.
+#' @param maxIteration An integer specifying the maximum number of generations
+#' before the algorithm terminates.
+#' @param purgeIteration An integer defining the frequency (in iterations) at
+#' which "weak" individuals are removed from the population to maintain genetic fitness.
+#' @param seed A numeric value for the random number generator to ensure
+#' reproducibility of the optimization results.
+#' @param showProcess A logical value; if \code{TRUE}, the algorithm prints
+#' progress updates and fitness scores to the console.
+#' @examples
+#' \dontrun{
+#'
+#' # Examples from Vignette 2
+#'
+#' # Initializing the PGBO algorithm for population FIM optimization
+#' optimizationPGBOPopFIM = Optimization(
+#'   name                = "optimizationExamplePGBO",
+#'   modelFromLibrary    = modelFromLibrary,
+#'   modelParameters     = modelParameters,
+#'   modelError          = modelError,
+#'   optimizer           = "PGBOAlgorithm",
+#'   optimizerParameters = list(
+#'     N              = 30,    # population of 30 candidate designs
+#'     muteEffect     = 0.65,  # mutation amplitude (65% of window width)
+#'     maxIteration   = 1000,  # total evolutionary steps
+#'     purgeIteration = 200,  # reinitialize worst solutions every 200 steps
+#'     seed           = 42,
+#'     showProcess    = FALSE
+#'   ),
+#'   designs             = list(design2),
+#'   fimType             = "population",
+#'   outputs             = list("RespPK")
+#' )
+#'
+#' # Run the PGBO optimization and display the results
+#' resultsPGBOPopFIM = run(optimizationPGBOPopFIM)
+#' show(resultsPGBOPopFIM)
+#'
+#' }
+#' @template copyright
 #' @export
 
-PGBOAlgorithm = new_class( "PGBOAlgorithm", package = "PFIM", parent = Optimization,
+PGBOAlgorithm = new_class(
+  "PGBOAlgorithm",
+  package = "PFIM",
+  parent  = .Optimization_S7,
+  properties = list(
+    N              = new_property( class_double,  default = 30 ),
+    muteEffect     = new_property( class_double,  default = 0.65 ),
+    maxIteration   = new_property( class_double,  default = 1000 ),
+    purgeIteration = new_property( class_double,  default = 200 ),
+    seed           = new_property( class_double,  default = 42 ),
+    showProcess    = new_property( class_logical, default = FALSE )
+  ),
+  constructor = function(
+    # ── PGBO-specific properties ─────────────────────────────────────────────
+    N              = 30,
+    muteEffect     = 0.65,
+    maxIteration   = 1000,
+    purgeIteration = 200,
+    seed           = 42,
+    showProcess    = FALSE,
+    # ── Inherited Optimization properties (forwarded from the factory) ──────
+    optimisationDesign           = list(),
+    optimisationAlgorithmOutputs = list(),
+    name                         = character(0),
+    modelParameters              = list(),
+    modelEquations               = list(),
+    modelFromLibrary             = list(),
+    modelError                   = list(),
+    designs                      = list(),
+    outputs                      = list(),
+    fimType                      = character(0),
+    odeSolverParameters          = list()
+  ) {
+    new_object(
+      .parent = .Optimization_S7(
+        optimisationDesign           = optimisationDesign,
+        optimisationAlgorithmOutputs = optimisationAlgorithmOutputs,
+        name                         = name,
+        modelParameters              = modelParameters,
+        modelEquations               = modelEquations,
+        modelFromLibrary             = modelFromLibrary,
+        modelError                   = modelError,
+        designs                      = designs,
+        outputs                      = outputs,
+        fimType                      = fimType,
+        odeSolverParameters          = odeSolverParameters
+      ),
+      N              = N,
+      muteEffect     = muteEffect,
+      maxIteration   = maxIteration,
+      purgeIteration = purgeIteration,
+      seed           = seed,
+      showProcess    = showProcess
+    )
+  }
+)
 
-                           properties = list( N = new_property(class_double, default = numeric(0)),
-                                              muteEffect = new_property(class_double, default = numeric(0)),
-                                              maxIteration = new_property(class_double, default = numeric(0)),
-                                              purgeIteration = new_property(class_double, default = numeric(0)),
-                                              seed = new_property(class_double, default = numeric(0)),
-                                              showProcess = new_property(class_logical, default = FALSE )))
-
-#' Optimization PGBOAlgorithm
+# ==============================================================================
+#' @rdname optimizeDesign
 #' @name optimizeDesign
-#' @param optimizationObject A object \code{Optimization}.
-#' @param optimizationAlgorithm A object \code{PGBOAlgorithm}.
-#' @return The object \code{optimizationObject} with the slots updated.
 #' @export
+# ==============================================================================
 
-method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
+method( optimizeDesign, list( .Optimization_S7, PGBOAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
 
   results = list()
   # designs
@@ -103,7 +192,7 @@ method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimi
   prop( design, "arms" ) = armsList
 
   # evaluate the FIMs
-  evaluationFIM = Evaluation( name = "",
+  evaluationFIM = Evaluation( name = "internalFimEvaluation",
                               modelEquations = prop( optimizationObject, "modelEquations" ),
                               modelParameters = prop( optimizationObject, "modelParameters" ),
                               modelError = prop( optimizationObject, "modelError" ),
@@ -214,7 +303,7 @@ method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimi
     # Evaluation
     designB = designA
 
-    evaluationFIM = Evaluation( name = "",
+    evaluationFIM = Evaluation( name = "internalFimEvaluation",
                                 modelEquations = prop( optimizationObject, "modelEquations" ),
                                 modelParameters = prop( optimizationObject, "modelParameters" ),
                                 modelError = prop( optimizationObject, "modelError" ),
@@ -269,8 +358,8 @@ method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimi
           if ( showProcess == TRUE )
           {
             # iteration and Dcriteria
-            print( paste0('Iteration = ',iteration))
-            print( paste0('Criterion = ',1/d))
+            message( paste0('Iteration = ',iteration))
+            message( paste0('Criterion = ',1/d))
           }
         }
       }
@@ -287,7 +376,7 @@ method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimi
   } # end iteration
 
   # evaluate the optimal design
-  evaluationOptimalDesign = Evaluation( name = "",
+  evaluationOptimalDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -299,7 +388,7 @@ method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimi
   evaluationOptimalDesign = run( evaluationOptimalDesign )
 
   # evaluate the initial design
-  evaluationInitialDesign = Evaluation( name = "",
+  evaluationInitialDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -316,31 +405,17 @@ method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimi
   return( optimizationObject )
 }
 
-#' constraintsTableForReport: table of the PGBOAlgorithm constraints for the report.
+# ==============================================================================
+#' @rdname constraintsTableForReport
 #' @name constraintsTableForReport
-#' @param optimizationAlgorithm A object \code{PGBOAlgorithm}.
-#' @param arms List of the arms.
-#' @return The table for the constraints in the arms.
 #' @export
+# ==============================================================================
 
 method( constraintsTableForReport, PGBOAlgorithm ) = function( optimizationAlgorithm, arms  )
 {
   armsConstraints = map( pluck( arms, 1 ) , ~ getArmConstraints( .x, optimizationAlgorithm ) )
-  armsConstraints = map_dfr( armsConstraints, ~ map_df(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
+  armsConstraints = map_dfr( armsConstraints, ~ map_dfr(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
   colnames( armsConstraints ) = c( "Arms name" , "Number of subjects", "Outcome", "Initial samplings", "Samplings windows", "Number of times by windows","Min sampling" )
   armsConstraintsTable = kbl( armsConstraints, align = c( "l","c","c","c","c","c","c") ) %>% kable_styling( bootstrap_options = c( "hover" ), full_width = FALSE, position = "center", font_size = 13 )
   return( armsConstraintsTable )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

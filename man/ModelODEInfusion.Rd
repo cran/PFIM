@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelODEInfusion.R
 \name{ModelODEInfusion}
 \alias{ModelODEInfusion}
-\title{ModelODEInfusion}
+\title{ModelODEInfusion Class}
 \usage{
 ModelODEInfusion(
   name = character(0),
@@ -24,38 +24,46 @@ ModelODEInfusion(
 )
 }
 \arguments{
-\item{name}{Character vector specifying the model name}
+\item{name}{A \code{character} vector specifying the name of the model.}
 
-\item{modelParameters}{List of model parameters}
+\item{modelParameters}{A \code{list} of objects defining the model parameters.}
 
-\item{samplings}{Numeric vector of sampling times}
+\item{samplings}{A \code{numeric} vector specifying the planned sampling times.}
 
-\item{modelEquations}{List containing the model equations}
+\item{modelEquations}{A \code{list} containing the system of equations (analytical or ODEs).}
 
-\item{wrapper}{Function wrapper for the model (default: function () NULL)}
+\item{wrapper}{A \code{function} wrapper used to interface the model (defaults to \code{function() NULL}).}
 
-\item{outputFormula}{List of output formulas}
+\item{outputFormula}{A \code{list} of mathematical formulas for the model outputs.}
 
-\item{outputNames}{Character vector of output names}
+\item{outputNames}{A \code{character} vector defining the names of the output variables.}
 
-\item{variableNames}{Character vector of variable names}
+\item{variableNames}{A \code{character} vector defining the names of the state variables.}
 
-\item{outcomesWithAdministration}{Character vector of outcomes with administration}
+\item{outcomesWithAdministration}{A \code{character} vector specifying outcomes associated with drug administration.}
 
-\item{outcomesWithNoAdministration}{Character vector of outcomes without administration}
+\item{outcomesWithNoAdministration}{A \code{character} vector specifying outcomes without drug administration.}
 
-\item{modelError}{List defining the error model}
+\item{modelError}{A \code{list} defining the residual error model structure.}
 
-\item{odeSolverParameters}{List of ODE solver parameters}
+\item{odeSolverParameters}{A \code{list} of parameters for the ODE solver (e.g., \code{atol}, \code{rtol}).}
 
-\item{parametersForComputingGradient}{List of parameters for gradient computation}
+\item{parametersForComputingGradient}{A \code{list} of parameters required for numerical gradient computation.}
 
-\item{initialConditions}{Numeric vector of initial conditions}
+\item{initialConditions}{A \code{numeric} vector specifying the initial state of the system.}
 
-\item{functionArguments}{Character vector of function arguments}
+\item{functionArguments}{A \code{character} vector of arguments required by the model function.}
 
-\item{functionArgumentsSymbol}{List of function argument symbols}
+\item{functionArgumentsSymbol}{A \code{list} of symbols representing the function arguments.}
 }
 \description{
-The class \code{ModelODEInfusion} is used to defined a model ModelODEInfusion.
+The \code{ModelODEInfusion} class is specifically designed to define ODE-based
+models for infusion-type administrations. It extends the \code{ModelInfusion}
+properties to handle continuous drug delivery through differential equations.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

@@ -3,25 +3,34 @@
 %   R/PopulationFim.R
 \name{evaluateVarianceFIM}
 \alias{evaluateVarianceFIM}
-\title{evaluateVarianceFIM: evaluate the variance}
+\title{Evaluate the Variance Component of the Fisher Information Matrix}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{\link{Arm}} defining the experimental
+design (sampling times, doses) for a group of subjects.}
 
-\item{model}{A object of class \code{Model} giving the model.}
+\item{model}{An object of class \code{\link{Model}} containing the structural
+equations and the statistical model for random effects.}
 
-\item{fim}{A object of class \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{\link{PopulationFim}} used as the
+container for the resulting matrices.}
 }
 \value{
-The matrices MFbeta and V.
-
-The matrices MFbeta and V.
-
-The matrices MFVar and V.
+A \code{list} containing:
+\itemize{
+  \item \code{MFVar}: A matrix representing the Fisher Information for the
+  variance parameters.
+  \item \code{V}: The computed variance-covariance matrix of the observations.
+}
 }
 \description{
-evaluateVarianceFIM: evaluate the variance
-
-evaluateVarianceFIM: evaluate the variance
-
-evaluateVarianceFIM: evaluate the variance
+The \code{evaluateVarianceFIM} method calculates the portion of the Fisher
+Information Matrix that corresponds to the variance parameters of the
+Nonlinear Mixed Effects Model. This includes the inter-individual
+variability (random effects) and the residual error components.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

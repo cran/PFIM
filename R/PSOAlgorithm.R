@@ -1,32 +1,123 @@
-#' @description The class \code{PSOAlgorithm} implements the PSO algorithm.
-#' @title PSOAlgorithm
-#' @inheritParams Optimization
-#' @param maxIteration A numeric giving the maxIteration.
-#' @param populationSize A numeric giving the populationSize.
-#' @param seed A numeric giving the seed.
-#' @param personalLearningCoefficient A numeric giving the personalLearningCoefficient.
-#' @param globalLearningCoefficient A numeric giving the globalLearningCoefficient.
-#' @param showProcess A Boolean giving the showProcess.
+#' @title PSOAlgorithm Class
+#' @name  PSOAlgorithm
+#' @description
+#' The \code{PSOAlgorithm} class is a subclass of \code{\link{Optimization}}
+#' that implements the PSO metaheuristic. It optimizes experimental designs by
+#' moving a "swarm" of candidate solutions (particles) through the search space.
+#' @param maxIteration An integer specifying the maximum number of iterations
+#' before the algorithm stops.
+#' @param populationSize An integer specifying the number of particles in
+#' the swarm. Larger populations explore the space better but increase
+#' computation time.
+#' @param seed A numeric value for the random number generator to ensure
+#' reproducibility of the optimization results.
+#' @param personalLearningCoefficient A numeric value (often denoted as \eqn{c_1})
+#' that controls the "cognitive" component—how much the particle trusts its
+#' own best experience.
+#' @param globalLearningCoefficient A numeric value (often denoted as \eqn{c_2})
+#' that controls the "social" component—how much the particle follows the
+#' swarm's best experience.
+#' @param showProcess A logical. If \code{TRUE}, the algorithm prints the
+#' current best fitness and iteration progress to the R console.
 #' @include Optimization.R
+#' @inheritParams Optimization
+#' @examples
+#' \dontrun{
+#'
+#' # Examples from Vignette 2
+#'
+#' # Initializing the PSO algorithm for population FIM optimization
+#' optimizationPSOPopFIM = Optimization(
+#'   name                = "optimizationExamplePSO",
+#'   modelFromLibrary    = modelFromLibrary,
+#'   modelParameters     = modelParameters,
+#'   modelError          = modelError,
+#'   optimizer           = "PSOAlgorithm",
+#'   optimizerParameters = list(
+#'     maxIteration                = 100,   # number of swarm update cycles
+#'     populationSize              = 50,    # number of particles
+#'     personalLearningCoefficient = 2.05,  # c1: attraction toward personal best
+#'     globalLearningCoefficient   = 2.05,  # c2: attraction toward global best
+#'     seed                        = 42,    # reproducibility
+#'     showProcess                 = FALSE  # suppress iteration-level output
+#'   ),
+#'   designs             = list(design2),
+#'   fimType             = "population",
+#'   outputs             = list("RespPK")
+#' )
+#'
+#' # Run the PSO optimization and display the results
+#' resultsPSOPopFIM = run(optimizationPSOPopFIM)
+#' show(resultsPSOPopFIM)
+#'
+#' }
+#' @template copyright
 #' @export
 
-PSOAlgorithm = new_class( "PSOAlgorithm", package = "PFIM", parent = Optimization,
+PSOAlgorithm = new_class(
+  "PSOAlgorithm",
+  package = "PFIM",
+  parent  = .Optimization_S7,
+  properties = list(
+    maxIteration                = new_property( class_double ,  default = 100 ),
+    populationSize              = new_property( class_double ,  default = 50 ),
+    seed                        = new_property( class_double,  default = 42 ),
+    personalLearningCoefficient = new_property( class_double,  default = 2.05 ),
+    globalLearningCoefficient   = new_property( class_double,  default = 2.05 ),
+    showProcess                 = new_property( class_logical, default = FALSE )
+  ),
+  constructor = function(
+    # ── PSO-specific properties ─────────────────────────────────────────────
+    maxIteration                = 100,
+    populationSize              = 50,
+    seed                        = 42,
+    personalLearningCoefficient = 2.05,
+    globalLearningCoefficient   = 2.05,
+    showProcess                 = FALSE,
+    # ── Inherited Optimization properties (forwarded from the factory) ──────
+    optimisationDesign           = list(),
+    optimisationAlgorithmOutputs = list(),
+    name                         = character(0),
+    modelParameters              = list(),
+    modelEquations               = list(),
+    modelFromLibrary             = list(),
+    modelError                   = list(),
+    designs                      = list(),
+    outputs                      = list(),
+    fimType                      = character(0),
+    odeSolverParameters          = list()
+  ) {
+    new_object(
+      .parent = .Optimization_S7(
+        optimisationDesign           = optimisationDesign,
+        optimisationAlgorithmOutputs = optimisationAlgorithmOutputs,
+        name                         = name,
+        modelParameters              = modelParameters,
+        modelEquations               = modelEquations,
+        modelFromLibrary             = modelFromLibrary,
+        modelError                   = modelError,
+        designs                      = designs,
+        outputs                      = outputs,
+        fimType                      = fimType,
+        odeSolverParameters          = odeSolverParameters
+      ),
+      maxIteration                = maxIteration,
+      populationSize              = populationSize,
+      seed                        = seed,
+      personalLearningCoefficient = personalLearningCoefficient,
+      globalLearningCoefficient   = globalLearningCoefficient,
+      showProcess                 = showProcess
+    )
+  }
+)
 
-                           properties = list( maxIteration = new_property(class_double, default = numeric(0)),
-                                              populationSize = new_property(class_double, default = numeric(0)),
-                                              seed = new_property(class_double, default = numeric(0)),
-                                              personalLearningCoefficient = new_property(class_double, default = numeric(0)),
-                                              globalLearningCoefficient = new_property(class_double, default = numeric(0)),
-                                              showProcess = new_property(class_logical, default = FALSE ) ) )
-
-#' Optimization PSOAlgorithm
+# ==============================================================================
+#' @rdname optimizeDesign
 #' @name optimizeDesign
-#' @param optimizationObject A object \code{Optimization}.
-#' @param optimizationAlgorithm A object \code{PSOAlgorithm}.
-#' @return The object \code{optimizationObject} with the slots updated.
 #' @export
+# ==============================================================================
 
-method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
+method( optimizeDesign, list( .Optimization_S7, PSOAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
 
   # parameters of the optimization algorithm
   optimizerParameters = prop( optimizationObject, "optimizerParameters")
@@ -116,7 +207,7 @@ method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimiz
     prop( optimalDesign, "arms" ) = armsList
 
     # evaluate the FIMs
-    evaluationFIM = Evaluation( name = "",
+    evaluationFIM = Evaluation( name = "internalFimEvaluation",
 
                                 modelEquations = prop( optimizationObject, "modelEquations" ),
                                 modelParameters = prop( optimizationObject, "modelParameters" ),
@@ -161,7 +252,7 @@ method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimiz
     # show process
     if ( showProcess == TRUE )
     {
-      print( paste0( "iter = ", iteration ) )
+      message( paste0( "iter = ", iteration ) )
     }
 
     for ( iterPop in 1:populationSize )
@@ -280,7 +371,7 @@ method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimiz
         prop( optimalDesign, "arms" ) = armsList
 
         # set and evaluate new design with the constraints
-        evaluationFIM = Evaluation( name = "",
+        evaluationFIM = Evaluation( name = "internalFimEvaluation",
                                     modelEquations = prop( optimizationObject, "modelEquations" ),
                                     modelParameters = prop( optimizationObject, "modelParameters" ),
                                     modelError = prop( optimizationObject, "modelError" ),
@@ -341,12 +432,12 @@ method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimiz
 
     if ( showProcess == TRUE )
     {
-      print( paste0( "globalBestCost = ", 1/globalBestCost ) )
+      message( paste0( "globalBestCost = ", 1/globalBestCost ) )
     }
   } # end iteration
 
   # evaluate the optimal design
-  evaluationOptimalDesign = Evaluation( name = "",
+  evaluationOptimalDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -358,7 +449,7 @@ method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimiz
   evaluationOptimalDesign = run( evaluationOptimalDesign )
 
   # evaluate the initial design
-  evaluationInitialDesign = Evaluation( name = "",
+  evaluationInitialDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -375,29 +466,28 @@ method( optimizeDesign, list( Optimization, PSOAlgorithm ) ) = function( optimiz
   return( optimizationObject )
 }
 
-#' constraintsTableForReport: table of the PSOAlgorithm constraints for the report.
+# ==============================================================================
+#' @rdname constraintsTableForReport
 #' @name constraintsTableForReport
-#' @param optimizationAlgorithm A object \code{PSOAlgorithm}.
-#' @param arms List of the arms.
-#' @return The table for the constraints in the arms.
 #' @export
+# ==============================================================================
 
 method( constraintsTableForReport, PSOAlgorithm ) = function( optimizationAlgorithm, arms  )
 {
   armsConstraints = map(pluck(arms, 1), ~ getArmConstraints(.x, optimizationAlgorithm))
-  armsConstraints = map_dfr(armsConstraints, ~ map_df(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
+  armsConstraints = map_dfr(armsConstraints, ~ map_dfr(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
 
-  # Renommer les colonnes
+  # Rename columns
   colnames(armsConstraints) = c("Arms name", "Number of subjects", "Outcome",
                                 "Initial samplings", "Samplings windows",
                                 "Number of times by windows", "Min sampling")
 
-  # Nettoyer la colonne "Min sampling"
+  # Clean column "Min sampling"
   armsConstraints$`Min sampling` = gsub("[()]", "", armsConstraints$`Min sampling`)          # supprime les parenthèses
   armsConstraints$`Min sampling` = as.numeric(armsConstraints$`Min sampling`)                 # convertit en numérique
   armsConstraints$`Min sampling` = round(armsConstraints$`Min sampling`, 1)                   # arrondit à 0.1
 
-  # Création du tableau
+  # Create Table
   armsConstraintsTable = kbl(armsConstraints,
                              align = c("l", "c", "c", "c", "c", "c", "c")) %>%
     kable_styling(bootstrap_options = c("hover"),
@@ -407,10 +497,3 @@ method( constraintsTableForReport, PSOAlgorithm ) = function( optimizationAlgori
 
   return( armsConstraintsTable )
 }
-
-
-
-
-
-
-

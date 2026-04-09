@@ -2,7 +2,7 @@
 % Please edit documentation in R/BayesianFim.R
 \name{BayesianFim}
 \alias{BayesianFim}
-\title{BayesianFim}
+\title{BayesianFim Class}
 \usage{
 BayesianFim(
   fisherMatrix = numeric(0),
@@ -15,20 +15,46 @@ BayesianFim(
 )
 }
 \arguments{
-\item{fisherMatrix}{A matrix giving the numerical values of the Fim.}
+\item{fisherMatrix}{A numerical matrix representing the FIM.}
 
-\item{fixedEffects}{A matrix giving the numerical values of the fixedEffects of the Fim.}
+\item{fixedEffects}{A matrix representing fixed effects information.}
 
-\item{varianceEffects}{A matrix giving the numerical values of varianceEffects of the Fim.}
+\item{varianceEffects}{A matrix representing variance components information.}
 
-\item{SEAndRSE}{A data frame giving the value of the SE and RSE.}
+\item{SEAndRSE}{A data frame containing calculated SE and RSE values.}
 
-\item{condNumberFixedEffects}{The conditional number of the fixedEffects of the Fim.}
+\item{condNumberFixedEffects}{A numeric value for the fixed effects condition number.}
 
-\item{condNumberVarianceEffects}{The conditional number of the varianceEffects of the Fim.}
+\item{condNumberVarianceEffects}{A numeric value for the variance effects condition number.}
 
-\item{shrinkage}{A vector giving the shrinkage values.}
+\item{shrinkage}{A numeric vector representing parameter shrinkage.}
 }
 \description{
-The class \code{BayesianFim} represents and stores information for the Bayesian Fim.
+The \code{BayesianFim} class stores the Bayesian Fisher Information Matrix (FIM).
+It extends the standard \code{Fim} class by incorporating Bayesian-specific
+metrics, such as the shrinkage of individual parameters.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{fisherMatrix}}{\code{matrix}. The numerical values of the Bayesian FIM.}
+
+\item{\code{shrinkage}}{\code{numeric vector}. The shrinkage values for each random effect.}
+
+\item{\code{fixedEffects}}{\code{matrix}. The FIM components related to fixed effects.}
+
+\item{\code{varianceEffects}}{\code{matrix}. The FIM components related to variance components (random effects).}
+
+\item{\code{SEAndRSE}}{\code{data.frame}. Standard Errors (SE) and Relative Standard Errors (RSE).}
+
+\item{\code{condNumberFixedEffects}}{\code{numeric}. The condition number for the fixed effects sub-matrix.}
+
+\item{\code{condNumberVarianceEffects}}{\code{numeric}. The condition number for the variance effects sub-matrix.}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

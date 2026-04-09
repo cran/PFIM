@@ -1,25 +1,31 @@
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+#' @title ModelODEBolus Class
+#' @name ModelODEBolus
 #' @description The class \code{ModelODEBolus} is used to defined a model ode admin bolus.
-#' @title ModelODEBolus
 #' @inheritParams ModelODE
 #' @param modelODE An object \code{modelODE}.
 #' @param doseEvent A dataframge given the doseEvent for the ode solver.
 #' @param solverInputs A list giving the solver inputs.
 #' @include ModelODE.R
+#' @template copyright
 #' @export
 
-ModelODEBolus = new_class( "ModelODEBolus", package = "PFIM", parent = ModelODE,
-
+ModelODEBolus = new_class( "ModelODEBolus",
+                           package = "PFIM",
+                           parent = ModelODE,
                            properties = list(
                              modelODE = new_property(class_function, default = NULL),
                              doseEvent = new_property(class_list, default = list()),
                              solverInputs = new_property(class_list, default = list())
                            ))
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @rdname defineModelWrapper
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelODEBolus} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with updated slots.
+#' @export
+# ==============================================================================
 
 method( defineModelWrapper, ModelODEBolus ) = function( model, evaluation ) {
 
@@ -65,12 +71,15 @@ method( defineModelWrapper, ModelODEBolus ) = function( model, evaluation ) {
   return( model )
 }
 
-#' evaluateInitialConditions: evaluate the initial conditions.
+# ==============================================================================
+#' @title evaluate the initial conditions.
 #' @name evaluateInitialConditions
 #' @param arm A object of class \code{Arm} giving the arm.
 #' @param model A object of class \code{Model} giving the model.
 #' @param doseEvent A data frame giving the dose event for the ode solver.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( evaluateInitialConditions, ModelODEBolus ) = function( model, arm, doseEvent ) {
 
@@ -116,12 +125,11 @@ method( evaluateInitialConditions, ModelODEBolus ) = function( model, arm, doseE
   return( initialConditions )
 }
 
-#' defineModelAdministration: define the administration
+# ==============================================================================
+#' @rdname defineModelAdministration
 #' @name defineModelAdministration
-#' @param model An object of class \code{ModelODEBolus} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return The model with updated slots.
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelODEBolus ) = function( model, arm ) {
 
@@ -210,12 +218,11 @@ method( defineModelAdministration, ModelODEBolus ) = function( model, arm ) {
   return( model )
 }
 
-#' evaluateModel
+# ==============================================================================
+#' @rdname evaluateModel
 #' @name evaluateModel
-#' @param arm A object of class \code{Arm} giving the arm.
-#' @param model A object of class \code{Model} giving the model.
-#' @return A data frame giving the output of the model evaluation.
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelODEBolus ) = function( model, arm ) {
 
@@ -245,11 +252,11 @@ method( evaluateModel, ModelODEBolus ) = function( model, arm ) {
   return( evaluationModel )
 }
 
-#' definePKModel: define PK model ode bolus
+# ==============================================================================
+#' @rdname definePKModel
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelODEBolus} that defines the PK model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKModel, list( ModelODEBolus, PFIMProject ) ) = function( pkModel, pfimproject ) {
 
@@ -263,18 +270,3 @@ method( definePKModel, list( ModelODEBolus, PFIMProject ) ) = function( pkModel,
 
   return( pkModelEquations )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

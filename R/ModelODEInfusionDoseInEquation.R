@@ -1,27 +1,37 @@
-#' @description The class \code{ModelODEInfusionDoseInEquation} is used to defined a ModelODEInfusionDoseInEquation
-#' @title ModelODEInfusionDoseInEquation
+# ==============================================================================
+# ==============================================================================
+#' @title ModelODEInfusionDoseInEquation Class
+#' @name ModelODEInfusionDoseInEquation
+#' @description
+#' The \code{ModelODEInfusionDoseInEquation} class is designed for infusion models
+#' where the differential equations transition between different states
+#' depending on whether the infusion is currently active or has ended.
 #' @inheritParams ModelODEInfusion
-#' @param modelODE An object \code{modelODE}.
-#' @param wrapperModelInfusion Wrapper for solver.
-#' @param solverInputs A list giving the solver inputs.
+#' @param modelODE A \code{function} representing the complete ODE system.
+#' @param wrapperModelInfusion A \code{list} containing two distinct sets of
+#' equations: \code{duringInfusion} (for active drug delivery) and
+#' \code{afterInfusion} (for the post-infusion phase).
+#' @param solverInputs A \code{list} of pre-calculated inputs for the numerical
+#' solver, including infusion start times, doses, and durations.
 #' @include ModelODEInfusion.R
+#' @template copyright
 #' @export
 
 ModelODEInfusionDoseInEquation = new_class( "ModelODEInfusionDoseInEquation",
-                                        package = "PFIM",
-                                        parent = ModelODEInfusion,
+                                            package = "PFIM",
+                                            parent = ModelODEInfusion,
 
-                                        properties = list(
-                                          modelODE = new_property(class_function, default = NULL ),
-                                          wrapperModelInfusion = new_property(class_list, default = list()),
-                                          solverInputs = new_property(class_list, default = list())
-                                        ))
+                                            properties = list(
+                                              modelODE = new_property(class_function, default = NULL ),
+                                              wrapperModelInfusion = new_property(class_list, default = list()),
+                                              solverInputs = new_property(class_list, default = list())
+                                            ))
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @rdname defineModelWrapper
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelODEInfusionDoseInEquation} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with updated slots.
+#' @export
+# ==============================================================================
 
 method( defineModelWrapper, ModelODEInfusionDoseInEquation ) = function( model, evaluation ) {
 
@@ -44,12 +54,11 @@ method( defineModelWrapper, ModelODEInfusionDoseInEquation ) = function( model, 
   return( model )
 }
 
-#' defineModelAdministration: define the administration
+# ==============================================================================
+#' @rdname defineModelAdministration
 #' @name defineModelAdministration
-#' @param model An object of class \code{ModelODEInfusionDoseInEquation} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return The model with updated slots.
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelODEInfusionDoseInEquation ) = function( model, arm ) {
 
@@ -218,12 +227,11 @@ method( defineModelAdministration, ModelODEInfusionDoseInEquation ) = function( 
   return( model )
 }
 
-#' evaluateModel
+# ==============================================================================
+#' @rdname evaluateModel
 #' @name evaluateModel
-#' @param arm A object of class \code{Arm} giving the arm.
-#' @param model A object of class \code{ModelODEInfusionDoseInEquation} giving the model.
-#' @return A data frame giving the output of the model evaluation.
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelODEInfusionDoseInEquation ) = function( model, arm ) {
 
@@ -254,11 +262,11 @@ method( evaluateModel, ModelODEInfusionDoseInEquation ) = function( model, arm )
   return( evaluationModel )
 }
 
-#' definePKModel: define PK model ode bolus
+# ==============================================================================
+#' @rdname definePKModel
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelODEInfusionDoseInEquation} that defines the PK model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKModel, list( ModelODEInfusionDoseInEquation, PFIMProject ) ) = function( pkModel, pfimproject ) {
 
@@ -277,14 +285,13 @@ method( definePKModel, list( ModelODEInfusionDoseInEquation, PFIMProject ) ) = f
   return( pkModelEquations )
 }
 
-#' definePKPDModel: define a PKPD model from library of model
+# ==============================================================================
+#' @rdname definePKPDModel
 #' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelODEInfusionDoseInEquation} that defines the PK model.
-#' @param pkModel An object of class \code{ModelODE} that defines the PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
-method( definePKPDModel, list( ModelODEInfusionDoseInEquation, ModelODE, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
+method( definePKPDModel, list( ModelODEInfusionDoseInEquation, class_any, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
 
   pkModelEquations = prop( pkModel, "modelEquations")
   pdModelEquations = prop( pdModel, "modelEquations")
@@ -298,11 +305,3 @@ method( definePKPDModel, list( ModelODEInfusionDoseInEquation, ModelODE, PFIMPro
 
   return( equations )
 }
-
-
-
-
-
-
-
-

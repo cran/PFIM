@@ -1,37 +1,125 @@
-#' @description The class \code{SimplexAlgorithm} implements the Simplex algorithm.
-#' @title SimplexAlgorithm
+#' @title SimplexAlgorithm Class
+#' @name SimplexAlgorithm
+#' @description
+#' The \code{SimplexAlgorithm} class implements the Nelder-Mead downhill simplex
+#' method for derivative-free optimization. It is particularly robust for
+#' non-smooth objective functions in population FIM optimization.
+#' @param pctInitialSimplexBuilding A numeric value giving the percent variation
+#' used to build the initial simplex around the starting point.
+#' @param maxIteration An integer specifying the maximum number of iterations allowed.
+#' @param tolerance A numeric value for the convergence tolerance on the FIM criterion.
+#' @param seed A numeric value for the random number generator seed (if applicable).
+#' @param showProcess A logical value; if \code{TRUE}, prints optimization progress
+#' to the console at each iteration.
 #' @inheritParams Optimization
-#' @param pctInitialSimplexBuilding A numeric giving the pctInitialSimplexBuilding.
-#' @param maxIteration  A numeric giving the maxIteration.
-#' @param tolerance  A numeric giving the tolerance.
-#' @param seed  A numeric giving the seed.
-#' @param showProcess A Boolean giving the showProcess.
 #' @include Optimization.R
+#' @examples
+#' \dontrun{
+#'
+#' # Examples from Vignette 2
+#'
+#' # Initializing the Simplex algorithm for population FIM optimization
+#' optimizationSimplexPopFIM = Optimization(
+#'   name                = "optimizationExampleSimplex",
+#'   modelFromLibrary    = modelFromLibrary,
+#'   modelParameters     = modelParameters,
+#'   modelError          = modelError,
+#'   optimizer           = "SimplexAlgorithm",
+#'   optimizerParameters = list(
+#'     pctInitialSimplexBuilding = 10,    # initial spread: 10% of window widths
+#'     maxIteration              = 1000,  # max Nelder-Mead iterations
+#'     tolerance                 = 1e-10, # convergence on relative D-criterion change
+#'     showProcess               = FALSE
+#'   ),
+#'   designs             = list(design2),
+#'   fimType             = "population",
+#'   outputs             = list("RespPK")
+#' )
+#'
+#' # Run the Simplex optimization and display the results
+#' resultsSimplexPopFIM = run(optimizationSimplexPopFIM)
+#' show(resultsSimplexPopFIM)
+#'
+#' }
+#' @template copyright
 #' @export
 
-SimplexAlgorithm = new_class( "SimplexAlgorithm", package = "PFIM", parent = Optimization,
-
-                          properties = list( pctInitialSimplexBuilding = new_property(class_double, default = numeric(0)),
-                                             maxIteration = new_property(class_double, default = numeric(0)),
-                                             seed = new_property(class_double, default = numeric(0)),
-                                             tolerance = new_property(class_double, default = numeric(0)),
-                                             showProcess = new_property(class_logical, default = FALSE ) ) )
+SimplexAlgorithm = new_class(
+  "SimplexAlgorithm",
+  package = "PFIM",
+  parent  = .Optimization_S7,
+  properties = list(
+    pctInitialSimplexBuilding = new_property( class_double,  default = 10 ),
+    maxIteration              = new_property( class_double,  default = 1000 ),
+    tolerance                 = new_property( class_double,  default = 1e-10 ),
+    seed                      = new_property( class_double,  default = 42 ),
+    showProcess               = new_property( class_logical, default = FALSE )
+  ),
+  constructor = function(
+    # ── Simplex-specific properties ──────────────────────────────────────────
+    pctInitialSimplexBuilding = 10,
+    maxIteration              = 1000,
+    tolerance                 = 1e-10,
+    seed                      = 42,
+    showProcess               = FALSE,
+    # ── Inherited Optimization properties (forwarded from the factory) ──────
+    optimisationDesign           = list(),
+    optimisationAlgorithmOutputs = list(),
+    name                         = character(0),
+    modelParameters              = list(),
+    modelEquations               = list(),
+    modelFromLibrary             = list(),
+    modelError                   = list(),
+    designs                      = list(),
+    outputs                      = list(),
+    fimType                      = character(0),
+    odeSolverParameters          = list()
+  ) {
+    new_object(
+      .parent = .Optimization_S7(
+        optimisationDesign           = optimisationDesign,
+        optimisationAlgorithmOutputs = optimisationAlgorithmOutputs,
+        name                         = name,
+        modelParameters              = modelParameters,
+        modelEquations               = modelEquations,
+        modelFromLibrary             = modelFromLibrary,
+        modelError                   = modelError,
+        designs                      = designs,
+        outputs                      = outputs,
+        fimType                      = fimType,
+        odeSolverParameters          = odeSolverParameters
+      ),
+      pctInitialSimplexBuilding = pctInitialSimplexBuilding,
+      maxIteration              = maxIteration,
+      tolerance                 = tolerance,
+      seed                      = seed,
+      showProcess               = showProcess
+    )
+  }
+)
 
 fisherSimplex = new_generic( "fisherSimplex", c( "optimizationObject" ) )
 
-#' Compute the fun.amoeba
-#'
+# ==============================================================================
+#' @title Compute the Amoeba (Nelder-Mead) Simplex Search
 #' @name fun.amoeba
-#' @param p parameter p
-#' @param y parameter y
-#' @param ftol parameter ftol
-#' @param itmax parameter itmax
-#' @param funk parameter funk
-#' @param outcomes The model outcomes.
-#' @param data parameter data
-#' @param showProcess Boolean.
-#' @return fun.amoeba
+#' @description
+#' \code{fun.amoeba} is an internal numerical routine that performs the
+#' Nelder-Mead simplex search. It iteratively updates the simplex vertices
+#' to find the optimal experimental design parameters.
+#' @param p A matrix where each row represents a vertex of the simplex.
+#' @param y A vector containing the function values (FIM criteria) at each vertex.
+#' @param ftol A numeric value specifying the fractional convergence tolerance.
+#' @param itmax An integer specifying the maximum number of iterations.
+#' @param funk The objective function to be minimized (e.g., the D-optimality criterion).
+#' @param outcomes The model outcomes used for FIM evaluation.
+#' @param data Additional data or design constraints.
+#' @param showProcess A logical value; if \code{TRUE}, logs the progress of the simplex.
+#' @return A list containing the optimized parameters, the function value,
+#' and the number of iterations performed.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
   alpha = 1.0
@@ -49,8 +137,8 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
 
     if ( showProcess == TRUE )
     {
-      print( paste0('iter = ',iter))
-      print( paste0('Criterion = ', 1/min(y) ) )
+      message( paste0('iter = ',iter))
+      message( paste0('Criterion = ', 1/min(y) ) )
     }
 
     results = rbind( c( iter , 1/min(y) ) , results)
@@ -176,15 +264,18 @@ fun.amoeba = function(p,y,ftol,itmax,funk,outcomes,data,showProcess){
   return(list(p=p,y=y,iter=iter,converge=converge, results = results ))
 } # end function amoeba
 
-#' Compute the fisher.simplex
+# ==============================================================================
+#' @title Compute the fisher.simplex
 #' @name fisherSimplex
 #' @param simplex A list giving the parameters of the simplex.
 #' @param optimizationObject An object \code{Optimization}.
 #' @param outcomes A vector giving the outcomes of the arms.
 #' @return A list giving the results of the optimization.
+#' @template copyright
 #' @export
+# ==============================================================================
 
-method( fisherSimplex, Optimization ) = function( optimizationObject, simplex, outcomes )
+method( fisherSimplex, .Optimization_S7 ) = function( optimizationObject, simplex, outcomes )
 {
   samplingTimeConstraintsForContinuousOptimization = list( )
 
@@ -243,7 +334,7 @@ method( fisherSimplex, Optimization ) = function( optimizationObject, simplex, o
     if( all( samplingTimeConstraintsForContinuousOptimization ) == TRUE )
     {
       # evaluate the fim
-      evaluationFIM = Evaluation( name = "",
+      evaluationFIM = Evaluation( name = "internalFimEvaluation",
                                   modelEquations = prop( optimizationObject, "modelEquations" ),
                                   modelParameters = prop( optimizationObject, "modelParameters" ),
                                   modelError = prop( optimizationObject, "modelError" ),
@@ -268,14 +359,13 @@ method( fisherSimplex, Optimization ) = function( optimizationObject, simplex, o
   return( Dcriterion )
 }
 
-#' Optimization SimplexAlgorithm
+# ==============================================================================
+#' @rdname optimizeDesign
 #' @name optimizeDesign
-#' @param optimizationObject A object \code{Optimization}.
-#' @param optimizationAlgorithm A object \code{SimplexAlgorithm}.
-#' @return The object \code{optimizationObject} with the slots updated.
 #' @export
+# ==============================================================================
 
-method( optimizeDesign, list( Optimization, SimplexAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm )
+method( optimizeDesign, list( .Optimization_S7, SimplexAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm )
 {
   # get simplex parameters
   optimizerParameters = prop( optimizationObject, "optimizerParameters")
@@ -333,14 +423,14 @@ method( optimizeDesign, list( Optimization, SimplexAlgorithm ) ) = function( opt
   samplingsSimplex = t( apply( samplingsSimplex, 1, sort ) )
 
   # percentage initial simplex
-  for ( i in 1:dim( samplingsSimplex )[2] )
+  for ( i in 1:ncol( samplingsSimplex ) )
   {
     samplingsSimplex[i+1,i] = samplingsSimplex[i+1,i]*( 1-pctInitialSimplexBuilding/100 )
   }
 
   # evaluate criteria
   y = c()
-  for ( i in 1:dim( samplingsSimplex )[1] )
+  for ( i in 1:nrow( samplingsSimplex ) )
   {
     y[i] = fisherSimplex( optimizationObject, samplingsSimplex[i,], outcomes )
   }
@@ -383,7 +473,7 @@ method( optimizeDesign, list( Optimization, SimplexAlgorithm ) ) = function( opt
   prop( optimalDesign, "arms" ) = armsList
 
   # evaluate the optimal design
-  evaluationOptimalDesign = Evaluation( name = "",
+  evaluationOptimalDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -395,7 +485,7 @@ method( optimizeDesign, list( Optimization, SimplexAlgorithm ) ) = function( opt
   evaluationOptimalDesign = run( evaluationOptimalDesign )
 
   # evaluate the initial design
-  evaluationInitialDesign = Evaluation( name = "",
+  evaluationInitialDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -412,22 +502,17 @@ method( optimizeDesign, list( Optimization, SimplexAlgorithm ) ) = function( opt
   return( optimizationObject )
 }
 
-#' constraintsTableForReport: table of the SimplexAlgorithm constraints for the report.
+# ==============================================================================
+#' @rdname constraintsTableForReport
 #' @name constraintsTableForReport
-#' @param optimizationAlgorithm A object \code{SimplexAlgorithm}.
-#' @param arms List of the arms.
-#' @return The table for the constraints in the arms.
 #' @export
+# ==============================================================================
 
 method( constraintsTableForReport, SimplexAlgorithm ) = function( optimizationAlgorithm, arms  )
 {
   armsConstraints = map( pluck( arms, 1 ) , ~ getArmConstraints( .x, optimizationAlgorithm ) )
-  armsConstraints = map_dfr( armsConstraints, ~ map_df(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
+  armsConstraints = map_dfr( armsConstraints, ~ map_dfr(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
   colnames( armsConstraints ) = c( "Arms name" , "Number of subjects", "Outcome", "Initial samplings", "Samplings windows", "Number of times by windows","Min sampling" )
   armsConstraintsTable = kbl( armsConstraints, align = c( "l","c","c","c","c","c","c") ) %>% kable_styling( bootstrap_options = c(  "hover" ), full_width = FALSE, position = "center", font_size = 13 )
   return( armsConstraintsTable )
 }
-
-
-
-

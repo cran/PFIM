@@ -1,26 +1,37 @@
-#' @description The class \code{ModelODEDoseNotInEquations} is used to defined a ModelODEDoseNotInEquations
-#' @title ModelODEDoseNotInEquations
+# ==============================================================================
+# ==============================================================================
+#' @title ModelODEDoseNotInEquations Class
+#' @name ModelODEDoseNotInEquations
+#' @description
+#' The \code{ModelODEDoseNotInEquations} class defines an ODE-based model where
+#' doses are handled as discrete events rather than continuous functions within
+#' the equations. This is typically used for bolus administrations where the
+#' dose results in an instantaneous change in state variables.
 #' @inheritParams ModelODE
-#' @param modelODE An object \code{modelODE}.
-#' @param doseEvent A dataframge given the doseEvent for the ode solver.
-#' @param solverInputs A list giving the solver inputs.
+#' @param modelODE An object of class \code{modelODE} defining the structural
+#' differential equations.
+#' @param doseEvent A \code{data.frame} containing the event schedule (time,
+#' dose amount, compartment index) required by the ODE solver.
+#' @param solverInputs A \code{list} providing specific configurations for the
+#' numerical integrator, such as event-handling logic.
 #' @include Model.R
+#' @template copyright
 #' @export
 
 ModelODEDoseNotInEquations = new_class( "ModelODEDoseNotInEquations",
-                                     package = "PFIM",
-                                     parent = ModelODE,
-                                     properties = list(
-                                       modelODE = new_property(class_function, default = NULL ),
-                                       doseEvent = new_property(class_list, default = list()),
-                                       solverInputs = new_property(class_list, default = list())
-                                     ))
+                                        package = "PFIM",
+                                        parent = ModelODE,
+                                        properties = list(
+                                          modelODE = new_property(class_function, default = NULL ),
+                                          doseEvent = new_property(class_list, default = list()),
+                                          solverInputs = new_property(class_list, default = list())
+                                        ))
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @rdname defineModelWrapper
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelODEDoseNotInEquations} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with the updated slots.
+#' @export
+# ==============================================================================
 
 method( defineModelWrapper, ModelODEDoseNotInEquations ) = function( model, evaluation ) {
 
@@ -64,12 +75,11 @@ method( defineModelWrapper, ModelODEDoseNotInEquations ) = function( model, eval
   return( model )
 }
 
-#' defineModelAdministration: define the administration
+# ==============================================================================
+#' @rdname defineModelAdministration
 #' @name defineModelAdministration
-#' @param model An object of class \code{ModelODEDoseNotInEquations} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return The model with samplings, solverInputs
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelODEDoseNotInEquations ) = function( model, arm ) {
 
@@ -118,14 +128,20 @@ method( defineModelAdministration, ModelODEDoseNotInEquations ) = function( mode
 
   list2env( mu, envir = environment() )
 
-  # initial conditions with variable admin
-  initialConditionsAdmin = doseEvent$value[ doseEvent$time ==0 ]
-  names( initialConditionsAdmin ) = unique( doseEvent$var )
+  # Compartments administered (must be in y for deSolve events to work)
+  # Initialize them to 0; the dose at t=0 is added via doseEvent (method="add")
+  initialConditionsAdmin = setNames(
+    rep(0, length(unique(doseEvent$var))),
+    unique(doseEvent$var)
+  )
 
-  if (length( initialConditions ) != 1 )
-  {
-    initialConditions = c( initialConditionsAdmin, initialConditions )
-  }
+  # User-provided initial conditions override/supplement
+  # Only keep admin compartments NOT already in user initialConditions
+  missingAdmin = initialConditionsAdmin[ !names(initialConditionsAdmin) %in% names(initialConditions) ]
+
+  initialConditions = c( missingAdmin, initialConditions )
+
+
 
   # function evaluation model
   modelODEDoseAsCmpt = function( samplingTimes, initialConditions, parameters )
@@ -148,12 +164,11 @@ method( defineModelAdministration, ModelODEDoseNotInEquations ) = function( mode
   return( model )
 }
 
-#' evaluateModel: evaluate the model
+# ==============================================================================
+#' @rdname evaluateModel
 #' @name evaluateModel
-#' @param model An object of class \code{ModelODEDoseNotInEquations} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return A list of dataframes that contains the results for the evaluation of the model.
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelODEDoseNotInEquations ) = function( model, arm ) {
 
@@ -185,24 +200,13 @@ method( evaluateModel, ModelODEDoseNotInEquations ) = function( model, arm ) {
   return( evaluationModel )
 }
 
-#' definePKModel: define a PK model from library of model
+# ==============================================================================
+#' @rdname definePKModel
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelODEDoseNotInEquations} that defines the PK model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKModel, list( ModelODEDoseNotInEquations, PFIMProject ) ) = function( pkModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
   return( pkModelEquations )
 }
-
-
-
-
-
-
-
-
-
-
-

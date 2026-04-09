@@ -1,42 +1,137 @@
+#' @title FedorovWynnAlgorithm Class
+#' @name FedorovWynnAlgorithm
 #' @description The class \code{FedorovWynnAlgorithm} implements the FedorovWynn algorithm.
-#' @title FedorovWynnAlgorithm
+#' The class \code{FedorovWynnAlgorithm} implements the Fedorov-Wynn exchange
+#' algorithm. This algorithm is used for discrete design optimization,
+#' iteratively adding or exchanging elementary protocols to maximize the
+#' determinant of the Fisher Information Matrix (D-optimality).
 #' @inheritParams Optimization
-#' @param elementaryProtocols List of elementary protocols
-#' @param numberOfSubjects Numeric vector specifying number of subjects
-#' @param showProcess Logical indicating whether to show process
-#' @param proportionsOfSubjects Numeric vector of subject proportions
-#' @param FedorovWynnAlgorithmOutputs A list giving the output of the optimization algorithm.
+#' @param elementaryProtocols A list of elementary protocols available for selection.
+#' @param numberOfSubjects A numeric vector specifying the number of subjects per arm.
+#' @param proportionsOfSubjects A numeric vector of subject proportions for each protocol.
+#' @param showProcess A logical indicating whether to display optimization progress.
+#' @param FedorovWynnAlgorithmOutputs A list storing the results of the optimization.
 #' @include Optimization.R
+#' @examples
+#' \dontrun{
+#'
+#' # Example from Vignette 1: Population FIM optimization using Fedorov-Wynn
+#'
+#' # 1. Initialize the Optimization object
+#' optiFW <- Optimization(
+#'   name                = "FedorovWynn_Optimization",
+#'   modelEquations      = modelEquations,
+#'   modelParameters     = modelParameters,
+#'   modelError          = modelError,
+#'   optimizer           = "FedorovWynnAlgorithm",
+#'   optimizerParameters = list(
+#'     elementaryProtocols   = initialElementaryProtocols,
+#'     numberOfSubjects      = numberOfSubjects,
+#'     proportionsOfSubjects = proportionsOfSubjects,
+#'     showProcess           = TRUE
+#'   ),
+#'   designs             = list(designConstraint),
+#'   fimType             = "population",
+#'   outputs             = list("RespPK" = "Cc", "RespPD" = "E"),
+#'   odeSolverParameters = list(atol = 1e-8, rtol = 1e-8)
+#' )
+#'
+#' # 2. Run the optimization algorithm
+#' optimizationResults = run(optiFW)
+#'
+#' # 3. Display the optimized design and Fisher Information Matrix
+#' show(optimizationResults)
+#'
+#' }
+#' @template copyright
 #' @export
 
-FedorovWynnAlgorithm = new_class("FedorovWynnAlgorithm", package = "PFIM", parent = Optimization,
-
-                properties = list(elementaryProtocols = new_property(class_list, default = list()),
-                                  numberOfSubjects = new_property(class_vector, default = 0.0),
-                                  proportionsOfSubjects = new_property(class_vector, default = 0.0),
-                                  showProcess = new_property(class_logical, default = FALSE),
-                                  FedorovWynnAlgorithmOutputs = new_property(class_list, default = list())
-                ))
+FedorovWynnAlgorithm = new_class(
+  "FedorovWynnAlgorithm",
+  package    = "PFIM",
+  parent = .Optimization_S7,
+  properties = list(
+    elementaryProtocols         = new_property(class_list,    default = list()),
+    numberOfSubjects            = new_property(class_vector,  default = 0.0),
+    proportionsOfSubjects       = new_property(class_vector,  default = 0.0),
+    showProcess                 = new_property(class_logical,  default = FALSE),
+    FedorovWynnAlgorithmOutputs = new_property(class_list,    default = list())
+  ),
+  # Explicit constructor required so that do.call(FedorovWynnAlgorithm,
+  # c(parentSlots, fwSlots)) populates every slot correctly.
+  # S7 auto-generated constructors only declare the class's own properties;
+  # parent-class slots passed via do.call() would otherwise be silently dropped,
+  # leaving designs / modelEquations / ... at their empty defaults and causing
+  # the validator to fire during the first prop<- assignment inside run().
+  constructor = function(
+    # ── FW-specific properties ──────────────────────────────────────────────
+    elementaryProtocols         = list(),
+    numberOfSubjects            = 0.0,
+    proportionsOfSubjects       = 0.0,
+    showProcess                 = FALSE,
+    FedorovWynnAlgorithmOutputs = list(),
+    # ── Inherited Optimization properties (forwarded from the factory) ──────
+    optimisationDesign           = list(),
+    optimisationAlgorithmOutputs = list(),
+    name                         = character(0),
+    modelParameters              = list(),
+    modelEquations               = list(),
+    modelFromLibrary             = list(),
+    modelError                   = list(),
+    designs                      = list(),
+    outputs                      = list(),
+    fimType                      = character(0),
+    odeSolverParameters          = list()
+  ) {
+    new_object(
+      # Build a fully-populated Optimization parent instance by calling the
+      # original S7 class constructor directly (not the factory wrapper), so
+      # there is no recursive factory dispatch.
+      .parent = .Optimization_S7(
+        optimisationDesign           = optimisationDesign,
+        optimisationAlgorithmOutputs = optimisationAlgorithmOutputs,
+        name                         = name,
+        modelParameters              = modelParameters,
+        modelEquations               = modelEquations,
+        modelFromLibrary             = modelFromLibrary,
+        modelError                   = modelError,
+        designs                      = designs,
+        outputs                      = outputs,
+        fimType                      = fimType,
+        odeSolverParameters          = odeSolverParameters
+      ),
+      elementaryProtocols         = elementaryProtocols,
+      numberOfSubjects            = numberOfSubjects,
+      proportionsOfSubjects       = proportionsOfSubjects,
+      showProcess                 = showProcess,
+      FedorovWynnAlgorithmOutputs = FedorovWynnAlgorithmOutputs
+    )
+  }
+)
 
 plotFrequenciesFedorovWynnAlgorithm = new_generic( "plotFrequenciesFedorovWynnAlgorithm", c( "optimization", "optimizationAlgorithm" ) )
 
-#' Fedorov-Wynn algorithm in Rcpp.
-#'
+# ==============================================================================
+#' @title FedorovWynnAlgorithm with Rcpp
 #' @name FedorovWynnAlgorithm_Rcpp
-#' @description Run the FedorovWynnAlgorithm in Rcpp
-#' @param protocols_input parameter protocols_input
-#' @param ndimen_input parameter ndimen_input
-#' @param nbprot_input parameter nbprot_input
-#' @param numprot_input parameter numprot_input
-#' @param freq_input parameter freq_input
-#' @param nbdata_input parameter nbdata_input
-#' @param vectps_input parameter vectps_input
-#' @param fisher_input parameter fisher_input
-#' @param nok_input parameter nok_input
-#' @param protdep_input parameter protdep_input
-#' @param freqdep_input parameter freqdep_input
-#' @return A list giving the results of the outputs of the FedorovWynn algorithm.
+#' @description
+#' Implementation of the Fedorov-Wynn algorithm in C++
+#' via Rcpp. This function handles the heavy matrix computations and
+#' exchange logic required for D-optimal design.
+#' @param protocols_input List of protocol definitions.
+#' @param ndimen_input Dimensions of the problem.
+#' @param nbprot_input Number of protocols.
+#' @param numprot_input Protocol indices.
+#' @param freq_input Frequencies of protocols.
+#' @param nbdata_input Data point counts.
+#' @param vectps_input Sampling times vector.
+#' @param fisher_input Fisher matrix inputs.
+#' @param nok_input Error code/status.
+#' @param protdep_input Initial protocol indices.
+#' @param freqdep_input Initial frequencies.
+#' @return A list containing optimal frequencies, sampling times, and the resulting FIM.
 #' @export
+# ==============================================================================
 
 FedorovWynnAlgorithm_Rcpp = function( protocols_input,  ndimen_input, nbprot_input,
                                       numprot_input, freq_input, nbdata_input,
@@ -1062,13 +1157,13 @@ return( output )
 
 }
 
-#' Optimization FedorovWynnAlgorithm
+# ==============================================================================
+#' @rdname optimizeDesign
 #' @name optimizeDesign
-#' @param optimizationObject A object \code{Optimization}.
-#' @param optimizationAlgorithm A object \code{FedorovWynnAlgorithm}.
-#' @return The object \code{optimizationObject} with the slots updated.
+#' @export
+# ==============================================================================
 
-method( optimizeDesign, list( Optimization, FedorovWynnAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
+method( optimizeDesign, list( .Optimization_S7, FedorovWynnAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
 
   # parameters of the optimization algorithm
   optimizerParameters = prop( optimizationObject, "optimizerParameters")
@@ -1096,8 +1191,8 @@ method( optimizeDesign, list( Optimization, FedorovWynnAlgorithm ) ) = function(
 
   # elementaryProtocols
   elementaryProtocolsFW = list()
-  elementaryProtocolsFW$numberOfprotocols = dim( samplingsForFedorovWynn )[1]
-  elementaryProtocolsFW$numberOfTimes = dim( samplingsForFedorovWynn )[2]
+  elementaryProtocolsFW$numberOfprotocols = nrow( samplingsForFedorovWynn )
+  elementaryProtocolsFW$numberOfTimes = ncol( samplingsForFedorovWynn )
   elementaryProtocolsFW$nbOfDimensions = fimsFromConstraints$dimFim
   elementaryProtocolsFW$totalCost = totalCost
   elementaryProtocolsFW$samplingTimes = samplingsForFedorovWynn
@@ -1136,9 +1231,9 @@ method( optimizeDesign, list( Optimization, FedorovWynnAlgorithm ) ) = function(
   # check if FW has converged
   if ( length( indexOptimalSamplingTimes ) == 0 )
   {
-    print ( " ==================================================================================================== ")
-    print ( paste0( " The algorithm has not converged " ) )
-    print ( " ==================================================================================================== ")
+    message( " ==================================================================================================== ")
+    message( " The algorithm has not converged " )
+    message( " ==================================================================================================== ")
     stop()
   }
 
@@ -1160,11 +1255,11 @@ method( optimizeDesign, list( Optimization, FedorovWynnAlgorithm ) ) = function(
   fim =  prop( optimizationObject, "fim" )
   optimalArms = setOptimalArms( fim, optimizationAlgorithm )
 
-  # set optimal arms with samplingTmp removed
+  # set optimal arms
   prop( optimalDesign, "arms" ) = map( optimalArms, ~.x$arm )
 
   # evaluate the optimal design
-  evaluationOptimalDesign = Evaluation( name = "",
+  evaluationOptimalDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -1176,7 +1271,7 @@ method( optimizeDesign, list( Optimization, FedorovWynnAlgorithm ) ) = function(
   evaluationOptimalDesign = run( evaluationOptimalDesign )
 
   # evaluate the initial design
-  evaluationInitialDesign = Evaluation( name = "",
+  evaluationInitialDesign = Evaluation( name = "internalFimEvaluation",
                                         modelEquations = prop( optimizationObject, "modelEquations" ),
                                         modelParameters = prop( optimizationObject, "modelParameters" ),
                                         modelError = prop( optimizationObject, "modelError" ),
@@ -1196,55 +1291,67 @@ method( optimizeDesign, list( Optimization, FedorovWynnAlgorithm ) ) = function(
 
 }
 
-#' plotFrequenciesFedorovWynnAlgorithm
+# ==============================================================================
+#' @title plotFrequenciesFedorovWynnAlgorithm for the FedorovWynnAlgorithm
 #' @name plotFrequenciesFedorovWynnAlgorithm
-#' @param optimization optimization
-#' @param optimizationAlgorithm optimizationAlgorithm
-#' @return plotFrequenciesFedorovWynnAlgorithm
+#' @description
+#' Generates a horizontal bar chart representing the optimal frequencies of the
+#' arms selected by the Fedorov-Wynn algorithm.
+#' @param optimization An object of class \code{Optimization}.
+#' @param optimizationAlgorithm An object of class \code{FedorovWynnAlgorithm}.
+#' @return A \code{ggplot} object showing the frequency distribution.
+#' @template copyright
 #' @export
-#'
-method( plotFrequenciesFedorovWynnAlgorithm, list( Optimization, FedorovWynnAlgorithm ) ) = function( optimization, optimizationAlgorithm )
+# ==============================================================================
+
+method( plotFrequenciesFedorovWynnAlgorithm, list( .Optimization_S7, FedorovWynnAlgorithm ) ) = function( optimization, optimizationAlgorithm, thresholdFrequencies = 0 )
 {
   optimisationAlgorithmOutputs = prop( optimization, "optimisationAlgorithmOutputs" )
-  frequencies = optimisationAlgorithmOutputs$frequencies
-  optimalArms = optimisationAlgorithmOutputs$optimalArms
+  frequencies     = as.numeric( optimisationAlgorithmOutputs$frequencies )
+  optimalArms     = optimisationAlgorithmOutputs$optimalArms
+  optimalArmsName = map( optimalArms, ~ prop(.x$arm, "name") ) %>% unlist() %>% as.character()
 
-  optimalArmsName = map( optimalArms, ~ prop(.x$arm,"name" ) ) %>% unlist()
-  optimalArms = data.frame( optimalArmsName, frequencies )
+  keep        = frequencies > thresholdFrequencies
+  optimalArms = data.frame(
+    optimalArmsName = optimalArmsName[ keep ],
+    frequencies     = frequencies[ keep ],
+    stringsAsFactors = FALSE
+  )
 
-  frequenciesPlot = ggplot(optimalArms, aes(x = reorder(optimalArmsName, frequencies), y = frequencies)) +
-    geom_bar(stat = "identity", fill = "gray50") +
-    scale_y_continuous(limits = c(0, 1),breaks = seq(0, 1, by = 0.1),minor_breaks = seq(0, 1, by = 0.05),expand = c(0, 0)  ) +
-    scale_x_discrete(expand = c(0, 0)) +
-    labs(  x = "Arm",  y = "Frequency" ) +
+  print( optimalArms)
+  frequenciesPlot = ggplot( optimalArms, aes( x = reorder( optimalArmsName, frequencies ), y = frequencies ) ) +
+    geom_bar( stat = "identity", fill = "gray50" ) +
+    scale_y_continuous( limits = c(0, 1), breaks = seq(0, 1, by = 0.1), minor_breaks = seq(0, 1, by = 0.05), expand = c(0, 0) ) +
+    scale_x_discrete( expand = c(0, 0) ) +
+    labs( x = "Arm", y = "Frequency" ) +
     coord_flip() +
-    theme_minimal(base_size = 14) +
+    theme_minimal( base_size = 14 ) +
     theme(
-      plot.title = element_text(hjust = 0.5, face = "bold"),
-      axis.title.x = element_text(color = "black", margin = margin(t = 10)),
-      axis.title.y = element_text(color = "black", margin = margin(r = 10)),
-      axis.text.x = element_text(color = "black", margin = margin(t = 5)),
-      axis.text.y = element_text(color = "black", margin = margin(r = 5)),
-      panel.grid.major.x = element_line(color = "gray90", linewidth = 0.5),
-      panel.grid.minor.x = element_line(color = "gray95", linewidth = 0.3),
+      plot.title         = element_text( hjust = 0.5, face = "bold" ),
+      axis.title.x       = element_text( color = "black", margin = margin(t = 10) ),
+      axis.title.y       = element_text( color = "black", margin = margin(r = 10) ),
+      axis.text.x        = element_text( color = "black", margin = margin(t = 5) ),
+      axis.text.y        = element_text( color = "black", margin = margin(r = 5) ),
+      panel.grid.major.x = element_line( color = "gray90", linewidth = 0.5 ),
+      panel.grid.minor.x = element_line( color = "gray95", linewidth = 0.3 ),
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
-      panel.border = element_rect(color = "gray80", fill = NA, linewidth = 0.5),
-      plot.margin = margin(10, 10, 10, 10) )
+      panel.border       = element_rect( color = "gray80", fill = NA, linewidth = 0.5 ),
+      plot.margin        = margin(10, 10, 10, 10) )
+
   return( frequenciesPlot )
 }
 
-#' constraintsTableForReport
+# ==============================================================================
+#' @rdname constraintsTableForReport
 #' @name constraintsTableForReport
-#' @param optimizationAlgorithm FedorovWynnAlgorithm
-#' @param arms arms
-#' @return armsConstraintsTable
 #' @export
+# ==============================================================================
 
 method( constraintsTableForReport, FedorovWynnAlgorithm ) = function( optimizationAlgorithm, arms  )
 {
   armsConstraints = map( pluck( arms, 1 ) , ~ getArmConstraints( .x, optimizationAlgorithm ) )
-  armsConstraints = map_df( pluck( armsConstraints, 1), ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
+  armsConstraints = map_dfr( pluck( armsConstraints, 1), ~ as.data.frame(.x, stringsAsFactors = FALSE ) )
   colnames( armsConstraints ) = c( "Arms name" , "Number of subjects", "Outcome", "Initial samplings", "Fixed times", "Number of samplings optimisable","Dose constraints" )
   armsConstraintsTable = kbl( armsConstraints, align = c( "l","c","c","c","c","c","c") ) %>%
     kable_styling( bootstrap_options = c( "hover" ), full_width = FALSE, position = "center", font_size = 13 )

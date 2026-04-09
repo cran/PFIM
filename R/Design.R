@@ -1,14 +1,57 @@
-#' Design
+#' @title Design Class
+#' @name Design
+#'
 #' @description
-#' The class \code{Design} represents and stores information for the Design.
-#' @title Design
+#' The \code{Design} class represents a full clinical trial design. It acts as a
+#' container for multiple \code{Arm} objects and stores the population-level
+#' Fisher Information Matrix (FIM) and evaluation results for the entire study.
+#'
+#' @slot name \code{character}. The name of the design.
+#' @slot size \code{numeric}. Total number of subjects across all arms.
+#' @slot arms \code{list}. A list containing the \code{Arm} objects.
+#' @slot numberOfArms \code{numeric}. The count of arms in the design.
+#' @slot fim \code{Fim}. The global Fisher Information Matrix for the design.
+#'
 #' @param name A string giving the name of the design.
-#' @param size A integer giving the size of the design.
-#' @param arms A list giving the arms of the design.
-#' @param numberOfArms A integer giving the number of arms.
-#' @param evaluationArms A list giving the valuation of the arms of the design.
-#' @param fim A object \code{Fim} giving the Fim of the design.
+#' @param size A numeric value representing the total number of subjects.
+#' @param arms A list of \code{Arm} objects defining the different groups.
+#' @param numberOfArms An integer giving the number of arms.
+#' @param evaluationArms A list containing the evaluation results for each arm.
+#' @param fim An object of class \code{Fim} giving the global FIM of the design.
+#'
+#' @return An object of class \code{Design}.
+#'
 #' @include Fim.R
+#'
+#' @examples
+#'
+#' # 1. Define sampling times for PK and PD outcomes
+#' samplingTimesRespPK = SamplingTimes(outcome   = "RespPK",
+#'                                      samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
+#'
+#' samplingTimesRespPD = SamplingTimes(outcome   = "RespPD",
+#'                                      samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
+#'
+#' # 2. Define the administration (Dose of 20 at t=0)
+#' adminRespPK = Administration(outcome = "RespPK", timeDose = 0, dose = 20)
+#'
+#' # 3. Define the study arm "0.2mg"
+#' # Outcomes are linked to state variables: RespPK to Cc, RespPD to E.
+#' arm02mg = Arm(name = "0.2mg",
+#'                size = 6,
+#'                administrations   = list(adminRespPK),
+#'                samplingTimes     = list(samplingTimesRespPK, samplingTimesRespPD),
+#'                initialConditions = list("Cc" = 0, "E" = 100))
+#'
+#' # 4. Create the Design object
+#' # The arm defined above is included in the 'arms' list.
+#' design1 = Design(name = "Design1",
+#'                   arms = list(arm02mg))
+#'
+#' # Display the design summary
+#' print(design1)
+#'
+#' @template copyright
 #' @export
 
 Design = new_class("Design", package = "PFIM",
@@ -28,13 +71,16 @@ generateSamplingTimesCombination = new_generic( "generateSamplingTimesCombinatio
 checkValiditySamplingConstraint = new_generic( "checkValiditySamplingConstraint", c( "design" ) )
 setSamplingConstraintForOptimization = new_generic( "setSamplingConstraintForOptimization", c( "design" ) )
 
-#' evaluateDesign: evaluation of a design.
+# ==============================================================================
+#' @title Evaluation of a clinical design
 #' @name evaluateDesign
-#' @param design An object \code{Design} giving the design.
-#' @param model An object \code{Model} giving the model.
-#' @param fim An object \code{Fim} giving the Fim.
-#' @return The object \code{Design} with its evaluation results.
+#' @param design An object \code{Design} to evaluate.
+#' @param model An object \code{Model} used for evaluation.
+#' @param fim An object \code{Fim} to store results.
+#' @return The \code{Design} object with evaluated arms and aggregated global FIM.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( evaluateDesign, Design ) = function( design, model, fim ) {
 
@@ -52,11 +98,14 @@ method( evaluateDesign, Design ) = function( design, model, fim ) {
   return( design )
 }
 
-#' generateDosesCombination: generate the combination for the doses.
+# ==============================================================================
+#' @title Generate dose combinations for optimization
 #' @name generateDosesCombination
-#' @param design An object \code{Design} giving the design.
-#' @return dosesForFIMs, numberOfDoses used in the design optimization.
+#' @param design An object \code{Design}.
+#' @return A list containing the combinations of doses and the total count.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( generateDosesCombination, Design ) = function( design ) {
 
@@ -86,11 +135,14 @@ method( generateDosesCombination, Design ) = function( design ) {
   return( c( dosesForFIMs, numberOfDoses = dim(dosesForFIMsTmp)[1] ) )
 }
 
-#' generateSamplingTimesCombination: generate the combination for the samplings.
+# ==============================================================================
+#' @title Generate sampling time combinations
 #' @name generateSamplingTimesCombination
-#' @param design An object \code{Design} giving the design.
-#' @return samplingTimesCombinations used in the design optimization.
+#' @param design An object \code{Design}.
+#' @return A list of possible sampling time combinations for each arm.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( generateSamplingTimesCombination, Design ) = function( design ) {
 
@@ -109,7 +161,7 @@ method( generateSamplingTimesCombination, Design ) = function( design ) {
     samplingTimesCombinations = map( samplingTimesConstraints, function( samplingTimesConstraint ) {
       initialSamplings = prop( samplingTimesConstraint, "initialSamplings" )
       fixedTimes = prop( samplingTimesConstraint, "fixedTimes" )
-      numberOfSamplingsOptimisable = prop( samplingTimesConstraint, "numberOfsamplingsOptimisable" )
+      numberOfSamplingsOptimisable = prop( samplingTimesConstraint, "numberOfSamplingsOptimisable" )
       availableSamplings = setdiff( initialSamplings, fixedTimes )
       combinations = combn( availableSamplings, numberOfSamplingsOptimisable - length( fixedTimes ), simplify = FALSE )
 
@@ -135,11 +187,15 @@ method( generateSamplingTimesCombination, Design ) = function( design ) {
   set_names( armResults, armNames )
 }
 
-#' checkValiditySamplingConstraint: check if the constraints used for the design optimization are valid.
+# ==============================================================================
+#' @title Validate optimization constraints
 #' @name checkValiditySamplingConstraint
-#' @param design An object \code{Design} giving the design.
-#' @return A boolean TRUE / FALSE, if FALSE it also gives an error message.
+#' @param design An object \code{Design}.
+#' @return Returns nothing if valid, or stops with an error message if
+#' the sampling window/delta constraints are mathematically impossible.
+#' @template copyright
 #' @export
+#' ===================================================================
 
 method( checkValiditySamplingConstraint, Design ) = function( design ) {
 
@@ -202,11 +258,14 @@ method( checkValiditySamplingConstraint, Design ) = function( design ) {
   })
 }
 
-#' setSamplingConstraintForOptimization: set the sampling time constraints for an arm for the design optimization.
+# ==============================================================================
+#' @title Initialize sampling constraints
 #' @name setSamplingConstraintForOptimization
-#' @param design An object \code{Design} giving the design.
-#' @return The arm with the sampling time constraint for the design optimization.
+#' @param design An object \code{Design}.
+#' @return The \code{Design} object with updated \code{samplingTimesConstraints}.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( setSamplingConstraintForOptimization, Design ) = function( design ) {
 

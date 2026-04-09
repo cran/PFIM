@@ -2,7 +2,7 @@
 % Please edit documentation in R/Constant.R
 \name{Constant}
 \alias{Constant}
-\title{Constant}
+\title{Constant  Class}
 \usage{
 Constant(
   output = character(0),
@@ -16,22 +16,42 @@ Constant(
 )
 }
 \arguments{
-\item{output}{A string giving the model error output.}
+\item{output}{A string specifying the name of the model output.}
 
-\item{equation}{A expression giving the model error equation.}
+\item{equation}{An expression representing the model error equation.}
 
-\item{derivatives}{A list giving the derivatives of the model error equation.}
+\item{derivatives}{A list of derivatives for the model error equation.}
 
-\item{sigmaInter}{A double giving the sigma inter.}
+\item{sigmaInter}{A numeric value for the constant residual error component.}
 
-\item{sigmaSlope}{A double giving the sigma slope}
+\item{sigmaSlope}{A numeric value for the slope (defaulted to 0.0 for this model).}
 
-\item{sigmaInterFixed}{A boolean giving if the  sigma inter is fixed or not.}
+\item{sigmaInterFixed}{Logical; indicates if \code{sigmaInter} is fixed (default FALSE).}
 
-\item{sigmaSlopeFixed}{A boolean giving if the  sigma slope is fixed or not.}
+\item{sigmaSlopeFixed}{Logical; indicates if \code{sigmaSlope} is fixed (default FALSE).}
 
-\item{cError}{A integer giving the power parameter.}
+\item{cError}{A numeric power parameter (default 1.0).}
+}
+\value{
+An object of class \code{Constant}.
 }
 \description{
-The class \code{Constant} represents and stores information for the error model Constant.
+The \code{Constant} class defines an additive residual error model, where
+the standard deviation (SD) of the error remains constant.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{output}}{\code{character}. The name of the model output.}
+
+\item{\code{sigmaInter}}{\code{numeric}. The additive residual error value.}
+
+\item{\code{sigmaInterFixed}}{\code{logical}. If \code{TRUE}, \code{sigmaInter} is not estimated.}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

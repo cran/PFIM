@@ -1,5 +1,8 @@
+# Copyright (c) 2026-present Romain Leroux. All rights reserved.
+
+#' @title ModelAnalytic Class
+#' @name ModelAnalytic
 #' @description The class \code{ModelAnalytic} is used to defined an analytic model.
-#' @title ModelAnalytic
 #' @param wrapperModelAnalytic Wrapper for the ode solver.
 #' @inheritParams Model
 #' @param functionArgumentsModelAnalytic A list giving the functionArguments of the wrapper for the analytic model.
@@ -7,6 +10,7 @@
 #' @param solverInputs A list giving the solver inputs.
 #' @include Model.R
 #' @include ModelODE.R
+#' @template copyright
 #' @export
 
 ModelAnalytic = new_class(
@@ -23,11 +27,15 @@ ModelAnalytic = new_class(
 
 convertPKModelAnalyticToPKModelODE = new_generic( "convertPKModelAnalyticToPKModelODE", c( "pkModel" ) )
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @title define the model wrapper for the ode solver
 #' @name defineModelWrapper
 #' @param model An object of class \code{ModelAnalytic} that defines the model.
 #' @param evaluation An object of class Evaluation that defines the evaluation
 #' @return The model with wrapperModelAnalytic, functionArgumentsModelAnalytic, functionArgumentsSymbolModelAnalytic, outputNames, outcomesWithAdministration
+#' @template copyright
+#' @export
+# ==============================================================================
 
 method( defineModelWrapper, ModelAnalytic ) = function( model, evaluation ) {
 
@@ -118,12 +126,15 @@ method( defineModelWrapper, ModelAnalytic ) = function( model, evaluation ) {
   return( model )
 }
 
-#' defineModelAdministration: define the administration
+# ==============================================================================
+#' @title Define the administration for an analytic model
 #' @name defineModelAdministration
 #' @param model An object of class \code{ModelAnalytic} that defines the model.
 #' @param arm An object of class \code{Arm} that defines the arm.
 #' @return The model with samplings, solverInputs
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelAnalytic ) = function( model, arm ) {
 
@@ -172,12 +183,15 @@ method( defineModelAdministration, ModelAnalytic ) = function( model, arm ) {
   return( model )
 }
 
-#' evaluateModel: evaluate the model
+# ==============================================================================
+#' @title Evaluate the analytic model
 #' @name evaluateModel
 #' @param model An object of class \code{ModelAnalytic} that defines the model.
 #' @param arm An object of class \code{Arm} that defines the arm.
 #' @return A list of dataframes that contains the results for the evaluation of the model.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelAnalytic ) = function( model, arm ) {
 
@@ -267,10 +281,14 @@ method( evaluateModel, ModelAnalytic ) = function( model, arm ) {
   return( evaluationModel )
 }
 
-#' convertPKModelAnalyticToPKModelODE: conversion from analytic to ode
+# ==============================================================================
+#' @title Conversion from analytic PK model to ODE PK model
 #' @name convertPKModelAnalyticToPKModelODE
 #' @param pkModel An object of class \code{ModelAnalytic} that defines the model.
+#' @return A character string containing the ODE equation derived from the analytic expression.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( convertPKModelAnalyticToPKModelODE, ModelAnalytic ) = function( pkModel  ) {
 
@@ -291,23 +309,29 @@ method( convertPKModelAnalyticToPKModelODE, ModelAnalytic ) = function( pkModel 
   return( pkModelEquations )
 }
 
-#' definePKModel: define a PK model from library of model
+# ==============================================================================
+#' @title Define a PK model from library of model
 #' @name definePKModel
 #' @param pkModel An object of class \code{ModelAnalytic} that defines the PK model.
 #' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( definePKModel, list( ModelAnalytic, PFIMProject ) ) = function( pkModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
   return( pkModelEquations )
 }
 
-#' definePKPDModel:  define a PKPD model from library of model
+# ==============================================================================
+#' @title Define a PKPD model from library of model
 #' @name definePKPDModel
 #' @param pkModel An object of class \code{ModelAnalytic} that defines the PK model.
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the PD model.
+#' @param pdModel An object of class \code{ModelAnalytic} that defines the PD model.
 #' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( definePKPDModel, list( ModelAnalytic, ModelAnalytic, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
@@ -316,14 +340,13 @@ method( definePKPDModel, list( ModelAnalytic, ModelAnalytic, PFIMProject ) ) = f
   return( equations )
 }
 
-#' definePKPDModel:  define a PKPD model from library of model
+# ==============================================================================
+#' @rdname definePKPDModel
 #' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the PK model.
-#' @param pkModel An object of class \code{ModelODE} that defines the PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
-method( definePKPDModel, list( ModelAnalytic, ModelODE, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
+method( definePKPDModel, list( ModelAnalytic, class_any, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
 
   # PKPD model equations
   pkModelEquations = convertPKModelAnalyticToPKModelODE( pkModel )

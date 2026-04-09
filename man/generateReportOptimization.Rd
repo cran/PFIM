@@ -3,61 +3,30 @@
 %   R/PopulationFim.R
 \name{generateReportOptimization}
 \alias{generateReportOptimization}
-\title{generateReportOptimization: generate the report for the design optimization.}
+\title{Generate the HTML Report for Design Optimization}
 \arguments{
-\item{fim}{An object \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{\link{PopulationFim}} containing the
+Fisher Information Matrix of the final optimized design.}
 
-\item{optimizationAlgorithm}{An object \code{PGBOAlgorithm} giving the PGBOAlgorithm}
+\item{optimizationAlgorithm}{An object of class \code{\link{MultiplicativeAlgorithm},\link{FedorovWynnAlgorithm}
+\link{SimplexAlgorithm},\link{PSOAlgorithm},\link{PGBOAlgorithm}}.}
 
-\item{tablesForReport}{The output list giving by the method tablesForReport.}
+\item{tablesForReport}{A \code{list} of data frames (as returned by
+\code{\link{tablesForReport}}) containing the final optimized statistical summaries.}
 }
 \value{
-The html report for the design optimization.
-
-The html report for the design optimization.
-
-The html report.
-
-The html report.
-
-The html report.
-
-The html report.
-
-The html report.
-
-The html report.
-
-The html report.
-
-The html report.
-
-The html report.
-
-The html report.
+An HTML report file (or a path to the file) containing the detailed
+optimization results and diagnostic plots.
 }
 \description{
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
-
-generateReportOptimization: generate the report for the design optimization.
+The \code{generateReportOptimization} method compiles the results of a design
+optimization into a professional HTML document. It specifically handles the
+output of the \code{\link{MultiplicativeAlgorithm}}, documenting the
+transition from the initial design to the optimal sampling schedule.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

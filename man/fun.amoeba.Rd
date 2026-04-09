@@ -2,30 +2,39 @@
 % Please edit documentation in R/SimplexAlgorithm.R
 \name{fun.amoeba}
 \alias{fun.amoeba}
-\title{Compute the fun.amoeba}
+\title{Compute the Amoeba (Nelder-Mead) Simplex Search}
 \usage{
 fun.amoeba(p, y, ftol, itmax, funk, outcomes, data, showProcess)
 }
 \arguments{
-\item{p}{parameter p}
+\item{p}{A matrix where each row represents a vertex of the simplex.}
 
-\item{y}{parameter y}
+\item{y}{A vector containing the function values (FIM criteria) at each vertex.}
 
-\item{ftol}{parameter ftol}
+\item{ftol}{A numeric value specifying the fractional convergence tolerance.}
 
-\item{itmax}{parameter itmax}
+\item{itmax}{An integer specifying the maximum number of iterations.}
 
-\item{funk}{parameter funk}
+\item{funk}{The objective function to be minimized (e.g., the D-optimality criterion).}
 
-\item{outcomes}{The model outcomes.}
+\item{outcomes}{The model outcomes used for FIM evaluation.}
 
-\item{data}{parameter data}
+\item{data}{Additional data or design constraints.}
 
-\item{showProcess}{Boolean.}
+\item{showProcess}{A logical value; if \code{TRUE}, logs the progress of the simplex.}
 }
 \value{
-fun.amoeba
+A list containing the optimized parameters, the function value,
+and the number of iterations performed.
 }
 \description{
-Compute the fun.amoeba
+\code{fun.amoeba} is an internal numerical routine that performs the
+Nelder-Mead simplex search. It iteratively updates the simplex vertices
+to find the optimal experimental design parameters.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

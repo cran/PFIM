@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelODEDoseNotInEquations.R
 \name{ModelODEDoseNotInEquations}
 \alias{ModelODEDoseNotInEquations}
-\title{ModelODEDoseNotInEquations}
+\title{ModelODEDoseNotInEquations Class}
 \usage{
 ModelODEDoseNotInEquations(
   name = character(0),
@@ -27,44 +27,56 @@ ModelODEDoseNotInEquations(
 )
 }
 \arguments{
-\item{name}{Character vector specifying the model name}
+\item{name}{A \code{character} vector specifying the name of the model.}
 
-\item{modelParameters}{List of model parameters}
+\item{modelParameters}{A \code{list} of objects defining the model parameters.}
 
-\item{samplings}{Numeric vector of sampling times}
+\item{samplings}{A \code{numeric} vector specifying the planned sampling times.}
 
-\item{modelEquations}{List containing the model equations}
+\item{modelEquations}{A \code{list} containing the system of equations (analytical or ODEs).}
 
-\item{wrapper}{Function wrapper for the model (default: function () NULL)}
+\item{wrapper}{A \code{function} wrapper used to interface the model (defaults to \code{function() NULL}).}
 
-\item{outputFormula}{List of output formulas}
+\item{outputFormula}{A \code{list} of mathematical formulas for the model outputs.}
 
-\item{outputNames}{Character vector of output names}
+\item{outputNames}{A \code{character} vector defining the names of the output variables.}
 
-\item{variableNames}{Character vector of variable names}
+\item{variableNames}{A \code{character} vector defining the names of the state variables.}
 
-\item{outcomesWithAdministration}{Character vector of outcomes with administration}
+\item{outcomesWithAdministration}{A \code{character} vector specifying outcomes associated with drug administration.}
 
-\item{outcomesWithNoAdministration}{Character vector of outcomes without administration}
+\item{outcomesWithNoAdministration}{A \code{character} vector specifying outcomes without drug administration.}
 
-\item{modelError}{List defining the error model}
+\item{modelError}{A \code{list} defining the residual error model structure.}
 
-\item{odeSolverParameters}{List of ODE solver parameters}
+\item{odeSolverParameters}{A \code{list} of parameters for the ODE solver (e.g., \code{atol}, \code{rtol}).}
 
-\item{parametersForComputingGradient}{List of parameters for gradient computation}
+\item{parametersForComputingGradient}{A \code{list} of parameters required for numerical gradient computation.}
 
-\item{initialConditions}{Numeric vector of initial conditions}
+\item{initialConditions}{A \code{numeric} vector specifying the initial state of the system.}
 
-\item{functionArguments}{Character vector of function arguments}
+\item{functionArguments}{A \code{character} vector of arguments required by the model function.}
 
-\item{functionArgumentsSymbol}{List of function argument symbols}
+\item{functionArgumentsSymbol}{A \code{list} of symbols representing the function arguments.}
 
-\item{modelODE}{An object \code{modelODE}.}
+\item{modelODE}{An object of class \code{modelODE} defining the structural
+differential equations.}
 
-\item{doseEvent}{A dataframge given the doseEvent for the ode solver.}
+\item{doseEvent}{A \code{data.frame} containing the event schedule (time,
+dose amount, compartment index) required by the ODE solver.}
 
-\item{solverInputs}{A list giving the solver inputs.}
+\item{solverInputs}{A \code{list} providing specific configurations for the
+numerical integrator, such as event-handling logic.}
 }
 \description{
-The class \code{ModelODEDoseNotInEquations} is used to defined a ModelODEDoseNotInEquations
+The \code{ModelODEDoseNotInEquations} class defines an ODE-based model where
+doses are handled as discrete events rather than continuous functions within
+the equations. This is typically used for bolus administrations where the
+dose results in an instantaneous change in state variables.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

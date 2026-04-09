@@ -2,17 +2,23 @@
 % Please edit documentation in R/Design.R
 \name{evaluateDesign}
 \alias{evaluateDesign}
-\title{evaluateDesign: evaluation of a design.}
+\title{Evaluation of a clinical design}
 \arguments{
-\item{design}{An object \code{Design} giving the design.}
+\item{design}{An object \code{Design} to evaluate.}
 
-\item{model}{An object \code{Model} giving the model.}
+\item{model}{An object \code{Model} used for evaluation.}
 
-\item{fim}{An object \code{Fim} giving the Fim.}
+\item{fim}{An object \code{Fim} to store results.}
 }
 \value{
-The object \code{Design} with its evaluation results.
+The \code{Design} object with evaluated arms and aggregated global FIM.
 }
 \description{
-evaluateDesign: evaluation of a design.
+Evaluation of a clinical design
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

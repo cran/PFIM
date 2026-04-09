@@ -2,7 +2,7 @@
 % Please edit documentation in R/IndividualFim.R
 \name{IndividualFim}
 \alias{IndividualFim}
-\title{IndividualFim}
+\title{Individual Fisher Information Matrix (IndividualFim) Class}
 \usage{
 IndividualFim(
   fisherMatrix = numeric(0),
@@ -17,18 +17,35 @@ IndividualFim(
 \arguments{
 \item{fisherMatrix}{A matrix giving the numerical values of the Fim.}
 
-\item{fixedEffects}{A matrix giving the numerical values of the fixedEffects of the Fim.}
+\item{fixedEffects}{A matrix giving the numerical values of the fixed effects of the Fim.}
 
-\item{varianceEffects}{A matrix giving the numerical values of varianceEffects of the Fim.}
+\item{varianceEffects}{A matrix giving the numerical values of variance effects of the Fim.}
 
-\item{SEAndRSE}{A data frame giving the value of the SE and RSE.}
+\item{SEAndRSE}{A data frame giving the calculated values of SE and RSE for parameters.}
 
-\item{condNumberFixedEffects}{The conditional number of the fixedEffects of the Fim.}
+\item{condNumberFixedEffects}{The condition number of the fixed effects portion of the Fim.}
 
-\item{condNumberVarianceEffects}{The conditional number of the varianceEffects of the Fim.}
+\item{condNumberVarianceEffects}{The condition number of the variance effects portion of the Fim.}
 
-\item{shrinkage}{A vector giving the shrinkage values.}
+\item{shrinkage}{A vector giving the shrinkage values for the random effects.}
 }
 \description{
-The class \code{IndividualFim} represents and stores information for the IndividualFim.
+The \code{IndividualFim} class represents and stores the Fisher Information Matrix (FIM)
+calculated for a single individual's design. In contrast to a population FIM,
+it focuses solely on the precision of the fixed parameters (or individual
+parameters) without considering inter-individual variability.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\section{Methods}{
+
+\describe{
+  \item{\code{calculateDcriterion}}{Computes the D-optimality criterion.}
+  \item{\code{calculateEfficiency}}{Compares the efficiency of two individual designs.}
+}
+}
+
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

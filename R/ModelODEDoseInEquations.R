@@ -1,9 +1,19 @@
-#' @description The class \code{ModelODEDoseNotInEquations} is used to defined a ModelODEDoseNotInEquations
-#' @title ModelODEDoseNotInEquations
+# ==============================================================================
+# ==============================================================================
+#' @title ModelODEDoseInEquations Class
+#' @name ModelODEDoseInEquations
+#' @description
+#' The \code{ModelODEDoseInEquations} class is designed to define Ordinary Differential
+#' Equation (ODE) models where the dose and the time elapsed since administration
+#' are explicitly included within the system of equations (e.g., infusions,
+#' zero-order inputs, or custom input functions).
 #' @inheritParams ModelODE
-#' @param modelODEDoseInEquations An object \code{modelODEDoseInEquations}.
-#' @param solverInputs A list giving the solver inputs.
+#' @param modelODEDoseInEquations A \code{function} representing the ODE system,
+#' incorporating dose-related variables.
+#' @param solverInputs A \code{list} containing solver-specific inputs, such as
+#' dose intervals, rates, and administration schedules.
 #' @include ModelODE.R
+#' @template copyright
 #' @export
 
 ModelODEDoseInEquations = new_class( "ModelODEDoseInEquations",
@@ -14,11 +24,11 @@ ModelODEDoseInEquations = new_class( "ModelODEDoseInEquations",
                                        modelODEDoseInEquations = new_property(class_function, default = NULL ),
                                        solverInputs = new_property(class_list, default = list())))
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @rdname defineModelWrapper
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelODEDoseInEquations} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with the updated slots.
+#' @export
+# ==============================================================================
 
 method( defineModelWrapper, ModelODEDoseInEquations ) = function( model, evaluation ) {
 
@@ -75,12 +85,11 @@ method( defineModelWrapper, ModelODEDoseInEquations ) = function( model, evaluat
   return( model )
 }
 
-#' defineModelAdministration: define the administration
+# ==============================================================================
+#' @rdname defineModelAdministration
 #' @name defineModelAdministration
-#' @param model An object of class \code{ModelODEDoseInEquations} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return The model with samplings, solverInputs
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelODEDoseInEquations ) = function( model, arm ) {
 
@@ -184,12 +193,11 @@ method( defineModelAdministration, ModelODEDoseInEquations ) = function( model, 
   return( model )
 }
 
-#' evaluateModel: evaluate the model
+# ==============================================================================
+#' @rdname evaluateModel
 #' @name evaluateModel
-#' @param model An object of class \code{ModelODEDoseInEquations} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return A list of dataframes that contains the results for the evaluation of the model.
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelODEDoseInEquations ) = function( model, arm ) {
 
@@ -221,19 +229,13 @@ method( evaluateModel, ModelODEDoseInEquations ) = function( model, arm ) {
   return( evaluationModel )
 }
 
-#' definePKModel: define a PK model from library of model
+# ==============================================================================
+#' @rdname definePKModel
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelODEDoseInEquations} that defines the PK model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKModel, list( ModelODEDoseInEquations, PFIMProject ) ) = function( pkModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
   return( pkModelEquations )
 }
-
-
-
-
-
-

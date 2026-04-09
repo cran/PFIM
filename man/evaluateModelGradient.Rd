@@ -2,7 +2,7 @@
 % Please edit documentation in R/Model.R
 \name{evaluateModelGradient}
 \alias{evaluateModelGradient}
-\title{evaluateModelGradient: evaluate the gradient of the model}
+\title{evaluate the gradient of the model}
 \arguments{
 \item{model}{An object \code{Model} that defines the model.}
 
@@ -12,5 +12,12 @@
 A data frame that contains the gradient of the model.
 }
 \description{
-evaluateModelGradient: evaluate the gradient of the model
+Computes the numerical gradient of the model response with respect to the
+structural parameters using the finite difference method.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

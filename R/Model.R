@@ -1,21 +1,26 @@
-#' @description The class \code{Model} represents and stores information for a model.
-#' @title Model
-#' @param name Character vector specifying the model name
-#' @param modelParameters List of model parameters
-#' @param samplings Numeric vector of sampling times
-#' @param modelEquations List containing the model equations
-#' @param wrapper Function wrapper for the model (default: function () NULL)
-#' @param outputFormula List of output formulas
-#' @param outputNames Character vector of output names
-#' @param variableNames Character vector of variable names
-#' @param outcomesWithAdministration Character vector of outcomes with administration
-#' @param outcomesWithNoAdministration Character vector of outcomes without administration
-#' @param modelError List defining the error model
-#' @param odeSolverParameters List of ODE solver parameters
-#' @param parametersForComputingGradient List of parameters for gradient computation
-#' @param initialConditions Numeric vector of initial conditions
-#' @param functionArguments Character vector of function arguments
-#' @param functionArgumentsSymbol List of function argument symbols
+#' @title Model Class
+#' @name Model
+#' @description
+#' The \code{Model} class represents and stores all information required to define
+#' a structural model (PK, PD, or PKPD). This includes model parameters,
+#' differential equations (ODEs), and the residual error model.
+#' @param name A \code{character} vector specifying the name of the model.
+#' @param modelParameters A \code{list} of objects defining the model parameters.
+#' @param samplings A \code{numeric} vector specifying the planned sampling times.
+#' @param modelEquations A \code{list} containing the system of equations (analytical or ODEs).
+#' @param wrapper A \code{function} wrapper used to interface the model (defaults to \code{function() NULL}).
+#' @param outputFormula A \code{list} of mathematical formulas for the model outputs.
+#' @param outputNames A \code{character} vector defining the names of the output variables.
+#' @param variableNames A \code{character} vector defining the names of the state variables.
+#' @param outcomesWithAdministration A \code{character} vector specifying outcomes associated with drug administration.
+#' @param outcomesWithNoAdministration A \code{character} vector specifying outcomes without drug administration.
+#' @param modelError A \code{list} defining the residual error model structure.
+#' @param odeSolverParameters A \code{list} of parameters for the ODE solver (e.g., \code{atol}, \code{rtol}).
+#' @param parametersForComputingGradient A \code{list} of parameters required for numerical gradient computation.
+#' @param initialConditions A \code{numeric} vector specifying the initial state of the system.
+#' @param functionArguments A \code{character} vector of arguments required by the model function.
+#' @param functionArgumentsSymbol A \code{list} of symbols representing the function arguments.
+#' @template copyright
 #' @export
 
 Model = new_class("Model", package = "PFIM",
@@ -49,11 +54,26 @@ finiteDifferenceHessian = new_generic( "finiteDifferenceHessian", c( "model" ) )
 definePKModel = new_generic( "definePKModel", c( "pkModel", "pfimproject") )
 definePKPDModel = new_generic( "definePKPDModel", c("pkModel", "pdModel", "pfimproject"))
 
-#' finiteDifferenceHessian: compute the Hessian
+# ==============================================================================
+#' @title Compute the Hessian
 #' @name finiteDifferenceHessian
-#' @param model A object \code{Model} giving the model.
-#' @return The model with the slots parametersForComputingGradient with XcolsInv, shifted, frac.
+#' @description
+#' Prepares the necessary parameters and data structures for the computation of
+#' gradients and the Hessian matrix via the finite difference method. This includes
+#' calculating inverse column scales (\code{XcolsInv}), shifted parameter values,
+#' and step size fractions.
+#' @param model An object of class \code{\link{Model}} containing the structural
+#' and error model definitions.
+#' @return Returns the \code{Model} object with the updated slot
+#' \code{parametersForComputingGradient}, now containing:
+#' \itemize{
+#'   \item \code{XcolsInv}: The inverse of the column scaling factors.
+#'   \item \code{shifted}: The perturbed parameter values for finite differences.
+#'   \item \code{frac}: The fractional step size used for the perturbations.
+#' }
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( finiteDifferenceHessian, Model ) = function( model ) {
 
@@ -86,12 +106,26 @@ method( finiteDifferenceHessian, Model ) = function( model ) {
   return( model )
 }
 
-#' evaluateModelVariance: evaluate the variance of the model
+# ==============================================================================
+#' @title Evaluate Model Variance and Sigma Derivatives
 #' @name evaluateModelVariance
-#' @param model A object \code{Model} giving the model.
-#' @param arm A object \code{Arm} giving the arm
-#' @return A list giving errorVariance  and sigmaDerivatives.
+#' @description
+#' Evaluates the residual error variance of the model and computes the
+#' partial derivatives with respect to the variance parameters (\eqn{\sigma}).
+#' @param model An object of class \code{\link{Model}} defining the structural
+#' and residual error models.
+#' @param arm An object of class \code{\link{Arm}} defining the design (sampling
+#' times and doses) for a specific group.
+#' @return A \code{list} containing:
+#' \itemize{
+#'   \item \code{errorVariance}: A numeric vector or matrix representing the
+#'   evaluated residual variance.
+#'   \item \code{sigmaDerivatives}: The derivatives of the variance with
+#'   respect to the \eqn{\sigma} parameters.
+#' }
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( evaluateModelVariance, Model ) = function( model, arm ) {
 
@@ -131,12 +165,18 @@ method( evaluateModelVariance, Model ) = function( model, arm ) {
   return( list( errorVariance = errorVariance, sigmaDerivatives = sigmaDerivatives ) )
 }
 
-#' evaluateModelGradient: evaluate the gradient of the model
+# ==============================================================================
+#' @title evaluate the gradient of the model
 #' @name evaluateModelGradient
+#' @description
+#' Computes the numerical gradient of the model response with respect to the
+#' structural parameters using the finite difference method.
 #' @param model An object \code{Model} that defines the model.
 #' @param arm A object \code{Arm} giving the arm
 #' @return A data frame that contains the gradient of the model.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( evaluateModelGradient, Model ) = function( model, arm ) {
 
@@ -182,13 +222,20 @@ method( evaluateModelGradient, Model ) = function( model, arm ) {
   return( gradients )
 }
 
-#' replaceVariablesLibraryOfModels: replace variable in the LibraryOfModels
+# ==============================================================================
+#' @title: replace variable in the LibraryOfModels
 #' @name replaceVariablesLibraryOfModels
+#' @description
+#' A utility function designed to rename or replace variable names within
+#' model strings (e.g., library equations). It ensures safe replacement
+#' by protecting reserved mathematical terms and keywords.
 #' @param text the text
 #' @param old old string
 #' @param new new string
 #' @return text with new string
+#' @template copyright
 #' @export
+# ==============================================================================
 
 replaceVariablesLibraryOfModels = function(text, old, new) {
   protected_terms = c("dose_", "Tinf_", "Emax")
@@ -202,4 +249,3 @@ replaceVariablesLibraryOfModels = function(text, old, new) {
     str_replace_all(text, regex(paste0("\\b", old, "\\b")), new)
   }
 }
-

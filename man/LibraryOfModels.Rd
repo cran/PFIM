@@ -2,13 +2,25 @@
 % Please edit documentation in R/LibraryOfModels.R
 \name{LibraryOfModels}
 \alias{LibraryOfModels}
-\title{LibraryOfModels}
+\title{LibraryOfModels Class}
 \usage{
 LibraryOfModels(models = list())
 }
 \arguments{
-\item{models}{A list giving all the PK and PD models.}
+\item{models}{A named list containing the PK and PD model strings or objects.}
 }
 \description{
-The class \code{LibraryOfModels} represents and stores information for the LibraryOfModels.
+The \code{LibraryOfModels} class is a centralized container designed to
+store and manage Pharmacokinetic (PK) and Pharmacodynamic (PD) model
+definitions.
+}
+\details{
+This class acts as a bridge between structural model definitions and the
+\code{Evaluation} engine, ensuring that PK/PD associations are correctly mapped.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

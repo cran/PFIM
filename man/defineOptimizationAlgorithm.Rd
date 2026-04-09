@@ -2,13 +2,27 @@
 % Please edit documentation in R/Optimization.R
 \name{defineOptimizationAlgorithm}
 \alias{defineOptimizationAlgorithm}
-\title{Define optimization algorithm}
+\title{Define Optimization Algorithm}
+\usage{
+defineOptimizationAlgorithm(optimization, ...)
+}
 \arguments{
-\item{optimization}{An \code{Optimization} object.}
+\item{optimization}{An object of class \code{Optimization} containing
+the optimization settings and design parameters.}
+
+\item{...}{Additional arguments.}
 }
 \value{
-An optimization algorithm.
+An object of class \code{OptimizationAlgorithm}
 }
 \description{
-Define optimization algorithm
+This method initializes the selected optimization algorithm using the specific
+hyperparameters (such as lambda, delta, iterations) extracted from the project options.
+It prepares the algorithmic object for subsequent use by the \code{optimizeDesign} function.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

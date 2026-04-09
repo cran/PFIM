@@ -1,12 +1,15 @@
-#' ModelAnalyticSteadyState
+# Copyright (c) 2026-present Romain Leroux. All rights reserved.
+
+#' @title ModelAnalyticSteadyState Class
+#' @name ModelAnalyticSteadyState
 #' @description The class \code{ModelAnalyticSteadyState} is used to defined an analytic model in steady state.
-#' @title ModelAnalyticSteadyState
 #' @inheritParams ModelAnalytic
 #' @param wrapperModelAnalytic Wrapper for the ode solver.
 #' @param functionArgumentsModelAnalytic A list giving the functionArguments of the wrapper for the analytic model in steady state.
 #' @param functionArgumentsSymbolModelAnalytic A list giving the functionArgumentsSymbol of the wrapper for the analytic model in steady state.
 #' @param solverInputs A list giving the solver inputs.
 #' @include Model.R
+#' @template copyright
 #' @export
 
 ModelAnalyticSteadyState = new_class( "ModelAnalyticSteadyState", package = "PFIM", parent = ModelAnalytic,
@@ -16,12 +19,11 @@ ModelAnalyticSteadyState = new_class( "ModelAnalyticSteadyState", package = "PFI
                                                          functionArgumentsSymbolModelAnalytic = new_property(class_list, default = list()),
                                                          solverInputs = new_property(class_list, default = list()) ) )
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @rdname defineModelWrapper
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelAnalyticSteadyState} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with wrapperModelAnalytic, functionArgumentsModelAnalytic, functionArgumentsSymbolModelAnalytic, outputNames, outcomesWithAdministration
-
+#' @export
+# ==============================================================================
 method( defineModelWrapper, ModelAnalyticSteadyState ) = function( model, evaluation ) {
 
   # outcomes with administration
@@ -87,7 +89,7 @@ method( defineModelWrapper, ModelAnalyticSteadyState ) = function( model, evalua
   # wrapper for function outcome without administration
 
   # args for function without admin
-  functionArgumentsWithNoAdmin = unique( c( outcomesWithAdministration, parameterNames, timeNames,tauName ) )
+  functionArgumentsWithNoAdmin = unique( c( outcomesWithAdministration, parameterNames, timeNames, tauName ) )
   functionArgumentsSymbolWithNoAdmin = map( functionArgumentsWithNoAdmin, ~ as.symbol(.x) )
 
   # create function without admin
@@ -114,12 +116,11 @@ method( defineModelWrapper, ModelAnalyticSteadyState ) = function( model, evalua
   return( model )
 }
 
-#' evaluateModel: evaluate the ModelAnalyticInfusion
-#' @name evaluateModel
-#' @param model An object of class \code{ModelAnalyticSteadyState} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return A list of dataframes that contains the results for the evaluation of the model.
+# ==============================================================================
+#' @rdname defineModelAdministration
+#' @name defineModelAdministration
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelAnalyticSteadyState ) = function( model, arm ) {
 
@@ -164,12 +165,11 @@ method( defineModelAdministration, ModelAnalyticSteadyState ) = function( model,
   return( model )
 }
 
-#' evaluateModel
+# ==============================================================================
+#' @rdname evaluateModel
 #' @name evaluateModel
-#' @param model An object of class ModelAnalyticSteadyState that defines the model.
-#' @param arm An object of class Arm that defines the arm.
-#' @return A list of dataframes that contains the evaluation of the model.
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelAnalyticSteadyState ) = function( model, arm ) {
 
@@ -261,23 +261,22 @@ method( evaluateModel, ModelAnalyticSteadyState ) = function( model, arm ) {
   return( evaluationModel )
 }
 
-#' definePKModel
+# ==============================================================================
+#' @rdname definePKModel
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelAnalyticSteadyState} that defines the PK model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKModel, list( ModelAnalyticSteadyState, PFIMProject ) ) = function( pkModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
   return( pkModelEquations )
 }
 
-#' definePKPDModel
+# ==============================================================================
+#' @rdname definePKPDModel
 #' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelAnalyticSteadyState} that defines the PK model.
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKPDModel, list( ModelAnalyticSteadyState, ModelAnalytic, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
@@ -286,14 +285,13 @@ method( definePKPDModel, list( ModelAnalyticSteadyState, ModelAnalytic, PFIMProj
   return( equations )
 }
 
-#' definePKPDModel
+# ==============================================================================
+#' @rdname definePKPDModel
 #' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelAnalyticSteadyState} that defines the PK model.
-#' @param pkModel An object of class \code{ModelODE} that defines the PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
-method( definePKPDModel, list( ModelAnalyticSteadyState, ModelODE, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
+method( definePKPDModel, list( ModelAnalyticSteadyState, class_any, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
 
   # PKPD model equations
   pkModelEquations = convertPKModelAnalyticToPKModelODE( pkModel )
@@ -301,7 +299,7 @@ method( definePKPDModel, list( ModelAnalyticSteadyState, ModelODE, PFIMProject )
   equations = c( pkModelEquations, pdModelEquations )
 
   # get the initial conditions to get variable names
-  designs = prop( evaluation, "designs" )
+  designs = prop( pfimproject, "designs" )   # fix: was prop( evaluation, "designs" )
   variablesNames = designs %>% map(~ map( prop(.x,"arms"), ~ prop(.x,"initialConditions"))) %>% unlist() %>% names() %>% unique()
   variablesNamesToChange =  c("RespPK", "E")
 
@@ -309,4 +307,3 @@ method( definePKPDModel, list( ModelAnalyticSteadyState, ModelODE, PFIMProject )
   equations = equations %>% imap( ~ reduce2( variablesNamesToChange, variablesNames, replaceVariablesLibraryOfModels, .init = .x ) ) %>% set_names( paste0( "Deriv_", variablesNames ) )
   return( equations )
 }
-

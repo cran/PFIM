@@ -1,15 +1,42 @@
+#' @title Combined1 Class
+#' @name Combined
+#'
 #' @description
-#' The class \code{Combined1} represents and stores information for the error model Combined1.
-#' @title Combined1
-#' @param output A string giving the model error output.
-#' @param equation A expression giving the model error equation.
-#' @param derivatives A list giving the derivatives of the model error equation.
-#' @param sigmaInter A double giving the sigma inter.
-#' @param sigmaSlope A double giving the sigma slope
-#' @param sigmaInterFixed A Boolean giving if the  sigma inter is fixed or not. - not in the v7.0
-#' @param sigmaSlopeFixed A Boolean giving if the  sigma slope is fixed or not. - not in the v7.0
-#' @param cError A integer giving the power parameter.
+#' The \code{Combined1} class defines a combined residual error model, which
+#' incorporates both an additive and a proportional component.
+#'
+#' @slot output \code{character}. The name of the model output (e.g., "Cc").
+#' @slot sigmaInter \code{numeric}. The additive (intercept) error component.
+#' @slot sigmaSlope \code{numeric}. The proportional (slope) error component.
+#' @slot sigmaInterFixed \code{logical}. If \code{TRUE}, the intercept is fixed.
+#' @slot sigmaSlopeFixed \code{logical}. If \code{TRUE}, the slope is fixed.
+#'
+#' @param output A string specifying the model error output name.
+#' @param equation An expression representing the model error equation.
+#' @param derivatives A list of derivatives for the model error equation.
+#' @param sigmaInter A numeric value for the additive component (default 0).
+#' @param sigmaSlope A numeric value for the proportional component (default 0).
+#' @param sigmaInterFixed Logical; indicates if \code{sigmaInter} is fixed (default FALSE).
+#' @param sigmaSlopeFixed Logical; indicates if \code{sigmaSlope} is fixed (default FALSE).
+#' @param cError A numeric power parameter (default 1.0).
+#'
+#' @return An object of class \code{Combined1}.
+#'
 #' @include ModelError.R
+#'
+#' #' @examples
+#'
+#' # Define a Combined1 error model for a PK outcomes "RespPK"
+#' # sigmaInter = 0.5 (additive), sigmaSlope = sqrt(0.15) (proportional)
+#' errorModelRespk = Combined1(
+#'   output     = "RespPK",
+#'   sigmaInter = 0.5,
+#'   sigmaSlope = sqrt(0.15)
+#' )
+#'
+#' print(errorModelRespk)
+#'
+#' @template copyright
 #' @export
 
 Combined1 = new_class("Combined1", package = "PFIM", parent = ModelError,

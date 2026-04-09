@@ -2,27 +2,43 @@
 % Please edit documentation in R/Arm.R
 \name{plotEvaluationSI}
 \alias{plotEvaluationSI}
-\title{plotEvaluationSI: process for the evaluation of the gradient of the responses.}
+\title{Plot sensitivity indices for an arm}
+\usage{
+plotEvaluationSI(
+  arm,
+  evaluationModelGradient,
+  parametersNames,
+  outputNames,
+  samplingData,
+  designName,
+  plotOptions
+)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm}.}
 
-\item{evaluationModelGradient}{A list giving the evaluation of the gradient of the model responses.}
+\item{evaluationModelGradient}{A list of data frames from \code{evaluateModelGradient}.}
 
-\item{parametersNames}{A vector of string giving the parameter names?}
+\item{parametersNames}{A character vector of parameter names.}
 
-\item{outputNames}{A list of string giving the name of the outputs.}
+\item{outputNames}{A list of strings giving the output names.}
 
-\item{samplingData}{A list giving the sampling data from the method getSamplingData.}
-
-\item{unitXAxis}{A list giving the unit of the x-axis.}
-
-\item{unitYAxis}{A list giving the unit of the y-axis.}
+\item{samplingData}{A list from \code{getSamplingData}.}
 
 \item{designName}{A string giving the design name.}
+
+\item{plotOptions}{A list with \code{unitTime} and \code{unitOutcomes}.}
 }
 \value{
-A list giving the plot of the evaluation of gradient of the model responses.
+A named list of \code{ggplot} objects per output and parameter.
 }
 \description{
-plotEvaluationSI: process for the evaluation of the gradient of the responses.
+Generates \code{ggplot2} line plots of the partial derivatives of model
+responses with respect to population parameters (sensitivity indices).
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

@@ -1,19 +1,30 @@
+# Copyright (c) 2026-present Romain Leroux. All rights reserved.
+
+#' @title PopulationFim Class
+#' @name PopulationFim
 #' @description
-#' The class \code{PopulationFim} represents and stores information for the PopulationFim.
-#' @title PopulationFim
+#' The \code{PopulationFim} class is a child of the \code{Fim} class. It is
+#' specifically designed to store and manage the Fisher Information Matrix
+#' calculated for population-level analyses. Unlike individual FIMs, it
+#' incorporates the variance-covariance components of the random effects,
+#' providing a measure of the information content regarding both structural
+#' and statistical parameters.
+#' \itemize{
+#'   \item Determining the Standard Errors (SE) of population parameters.
+#'   \item Calculating the Relative Standard Errors (RSE\%).
+#'   \item Evaluating and optimizing designs for clinical trials.
+#' }
 #' @inheritParams Fim
-#' @include Fim.R
+#' @template copyright
 #' @export
 
 PopulationFim = new_class( "PopulationFim", package = "PFIM", parent = Fim )
 
-#' evaluateFim: evaluation of the Fim
+# ==============================================================================
+#' @rdname evaluateFim
 #' @name evaluateFim
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param model An object \code{Model} giving the model.
-#' @param arm An object \code{Arm} giving the arm.
-#' @return The object \code{IndividualFim} with the fisherMatrix and the shrinkage.
 #' @export
+# ==============================================================================
 
 method( evaluateFim, list( PopulationFim, Model, Arm ) ) = function( fim, model, arm ) {
 
@@ -61,26 +72,54 @@ method( evaluateFim, list( PopulationFim, Model, Arm ) ) = function( fim, model,
   return( fim )
 }
 
-#' computeVMat
+# ==============================================================================
+#' @title Compute Variance Matrix Component
 #' @name computeVMat
-#' @param varParam1 varParam1
-#' @param varParam2 varParam2
-#' @param invCholV invCholV
-#' @return VMat
+#' @description
+#' The \code{computeVMat} method calculates the V matrix for a given set of
+#' model parameters. In the context of population modeling, V represents
+#' the total variance of the data, integrating both the structural model
+#' sensitivity to random effects and the residual error components.
+#' @param varParam1 A numeric vector or matrix representing the first set of
+#' variance components (typically related to the linearized structural model).
+#' @param varParam2 A numeric vector or matrix representing the second set of
+#' variance components (typically the residual error terms).
+#' @param invCholV A logical or numeric matrix used for the Inverse Cholesky
+#' decomposition of \eqn{V}, facilitating faster computation of the FIM and likelihood.
+#' @return A square, symmetric matrix representing the total variance \code{V}
+#' for the observations.
+#' @template copyright
 #' @export
+#' =====================================================================
 
 computeVMat = function( varParam1, varParam2, invCholV )
 {
   1/2 * sum( diag( invCholV %*% varParam1 %*% invCholV %*% varParam2 ) )
 }
 
-#' evaluateVarianceFIM: evaluate the variance
+# ==============================================================================
+#' @title Evaluate the Variance Component of the Fisher Information Matrix
 #' @name evaluateVarianceFIM
-#' @param arm A object of class \code{Arm} giving the arm.
-#' @param model A object of class \code{Model} giving the model.
-#' @param fim A object of class \code{PopulationFim} giving the Fim.
-#' @return The matrices MFVar and V.
+#' @description
+#' The \code{evaluateVarianceFIM} method calculates the portion of the Fisher
+#' Information Matrix that corresponds to the variance parameters of the
+#' Nonlinear Mixed Effects Model. This includes the inter-individual
+#' variability (random effects) and the residual error components.
+#' @param arm An object of class \code{\link{Arm}} defining the experimental
+#' design (sampling times, doses) for a group of subjects.
+#' @param model An object of class \code{\link{Model}} containing the structural
+#' equations and the statistical model for random effects.
+#' @param fim An object of class \code{\link{PopulationFim}} used as the
+#' container for the resulting matrices.
+#' @return A \code{list} containing:
+#' \itemize{
+#'   \item \code{MFVar}: A matrix representing the Fisher Information for the
+#'   variance parameters.
+#'   \item \code{V}: The computed variance-covariance matrix of the observations.
+#' }
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( evaluateVarianceFIM, list( PopulationFim, Model, Arm ) ) = function( fim, model, arm ) {
 
@@ -104,7 +143,7 @@ method( evaluateVarianceFIM, list( PopulationFim, Model, Arm ) ) = function( fim
   }) %>% reduce( rbind ) %>% t(.)
 
   # V matrix
-  if ( length(omega)[1] == 1)
+  if (length(omega) == 1)
   { # cas omega is one scale
     adjustedGradient = matrix(adjustedGradient)
     V = omega * adjustedGradient %*% t( adjustedGradient ) + errorVariance
@@ -130,12 +169,22 @@ method( evaluateVarianceFIM, list( PopulationFim, Model, Arm ) ) = function( fim
   return( list( MFVar = MFVar, V = V ) )
 }
 
-#' setOptimalArms: set the optimal arms of an optimization algorithm.
+# ==============================================================================
+#' @title Set Optimal Arms for the MultiplicativeAlgorithm and FedorovWynnAlgorithm
 #' @name setOptimalArms
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param optimizationAlgorithm An object \code{MultiplicativeAlgorithm} giving the optimization algorithm.
-#' @return The list optimalArms.
+#' @description
+#' The \code{setOptimalArms} method identifies and extracts the best performing
+#' experimental arms from an optimization routine. It converts the output of
+#' the \code{\link{MultiplicativeAlgorithm}} into a structured list of
+#' optimized experimental designs.
+#' @param fim An object of class \code{\link{PopulationFim}} containing the
+#' Fisher Information Matrix evaluated at the optimal design points.
+#' @param optimizationAlgorithm An object of class \code{\link{MultiplicativeAlgorithm}\link{FedorovWynnAlgorithm}}
+#' representing the solver that has completed its execution.
+#' sampling schedule and dosing protocols that maximize the optimization criterion.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( setOptimalArms, list( PopulationFim, MultiplicativeAlgorithm ) ) = function( fim, optimizationAlgorithm ) {
 
@@ -173,13 +222,6 @@ method( setOptimalArms, list( PopulationFim, MultiplicativeAlgorithm ) ) = funct
   return( optimalArms )
 }
 
-#' setOptimalArms: set the optimal arms of an optimization algorithm.
-#' @name setOptimalArms
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param optimizationAlgorithm An object \code{FedorovWynnAlgorithm} giving the optimization algorithm.
-#' @return The list optimalArms.
-#' @export
-
 method( setOptimalArms, list( PopulationFim, FedorovWynnAlgorithm ) ) = function( fim, optimizationAlgorithm ) {
 
   # get the parameters of the FedorovWynnAlgorithm
@@ -197,12 +239,23 @@ method( setOptimalArms, list( PopulationFim, FedorovWynnAlgorithm ) ) = function
   return( optimalArms )
 }
 
-#' setEvaluationFim: set the Fim results.
+# ==============================================================================
+#' @title Finalize and Set Population FIM Results
 #' @name setEvaluationFim
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
-#' @return The object \code{PopulationFim} with its fisherMatrix, fixedEffects, shrinkage, condNumberFixedEffects, SEAndRSE.
+#' @description
+#' The \code{setEvaluationFim} method processes the raw results from a model
+#' evaluation to populate the detailed statistical slots of a \code{\link{PopulationFim}}
+#' object. It transforms the Fisher Information Matrix into actionable
+#' metrics like Standard Errors (SE) and Relative Standard Errors (RSE).
+#' @param fim An object of class \code{\link{PopulationFim}} to be updated.
+#' @param evaluation An object of class \code{Evaluation} containing the
+#' outputs from the structural model and error engine.
+#' @return The updated \code{\link{PopulationFim}} object, with the following slots
+#' populated: \code{fisherMatrix}, \code{fixedEffects}, \code{shrinkage},
+#' \code{condNumberFixedEffects}, and \code{SEAndRSE}.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( setEvaluationFim, PopulationFim ) = function( fim, evaluation ) {
 
@@ -212,25 +265,25 @@ method( setEvaluationFim, PopulationFim ) = function( fim, evaluation ) {
   modelError = prop( evaluation, "modelError" )
 
   # Greek letter for column names
-  greeksLetterForCOnsole = c( mu = "\u03bc_", omega = "\u03c9\u00B2_", sigma = "\u03c3" )
+  greeksLetterForConsole  = c( mu = "\u03bc_", omega = "\u03c9\u00B2_", sigma = "\u03c3" )
 
   # define the name for the columns and rows for mu, omega and sigma
   columnNamesMu = parameters %>%
     keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
     keep( ~ .x@distribution@mu != 0 ) %>%
     map_chr( "name" ) %>%
-    map_chr(~ paste0( greeksLetterForCOnsole['mu'], .x ) )
+    map_chr(~ paste0( greeksLetterForConsole ['mu'], .x ) )
 
   columnNamesOmega = parameters %>%
     keep( ~ prop( .x, "fixedOmega" ) == FALSE ) %>%
     keep( ~ .x@distribution@omega != 0 ) %>%
     map_chr( "name" ) %>%
-    map_chr( ~ paste0( greeksLetterForCOnsole['omega'], .x ) )
+    map_chr( ~ paste0( greeksLetterForConsole ['omega'], .x ) )
 
   columnNamesSigma = map( modelError, ~{
     sigma = character()
-    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_inter_", prop( .x ,"output" ) ) )
-    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_slope_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "_inter_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "_slope_", prop( .x ,"output" ) ) )
     return( sigma )
   }) %>% unlist()  %>% unname()
 
@@ -292,11 +345,22 @@ method( setEvaluationFim, PopulationFim ) = function( fim, evaluation ) {
   return( fim )
 }
 
-#' showFIM: show the Fim in the R console.
+# ==============================================================================
+#' @title Display FIM Results in the R Console
 #' @name showFIM
-#' @param fim An object \code{IndividualFim} giving the Fim.
-#' @return The fisherMatrix, fixedEffects, Determinant, condition numbers and D-criterion, Shrinkage and Parameters estimation
+#' @description
+#' The \code{showFIM} method provides a comprehensive summary of the Fisher Information
+#' Matrix (FIM) results. It prints structural and statistical metrics to the console,
+#' allowing the user to evaluate parameter precision, numerical stability, and
+#' optimization criteria for a specific design.
+##' @param fim An object of class \code{IndividualFim} (or \code{PopulationFim})
+#' containing the computed results.
+#' @return This function returns a formatted summary to the console. It invisibly
+#' returns a list containing the \code{fisherMatrix}, \code{fixedEffects},
+#' \code{Determinant}, \code{conditionNumbers}, \code{D-criterion}, and \code{Shrinkage}.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( showFIM, PopulationFim ) = function( fim ) {
 
@@ -311,7 +375,7 @@ method( showFIM, PopulationFim ) = function( fim ) {
   RSE = SEAndRSE$RSE
   SEAndRSE = SEAndRSE$SEAndRSE
 
-  Dcriterion = Dcriterion( fim )
+  dcriterion = Dcriterion( fim )
 
   determinant = det( fisherMatrix )
 
@@ -331,21 +395,32 @@ method( showFIM, PopulationFim ) = function( fim ) {
   cat(" Determinant, condition numbers and D-criterion  \n" )
   cat("*********************************************** \n\n")
   cat( c( "Determinant:", as.numeric(determinant) ), "\n")
-  cat( c( "D-criterion:", as.numeric(Dcriterion) ), "\n")
-  cat( c("Conditional number of the fixed effects:", as.numeric(condNumberFixedEffects) , "\n") )
-  cat( c("Conditional number of the random effects:", as.numeric(condNumberVarianceEffects) , "\n") )
+  cat( c( "D-criterion:", as.numeric(dcriterion) ), "\n")
+  cat( c("Condition number of the fixed effects:", as.numeric(condNumberFixedEffects) , "\n") )
+  cat( c("Condition number of the random effects:", as.numeric(condNumberVarianceEffects) , "\n") )
   cat("\n*************************************** \n")
   cat(" Parameters estimation \n" )
   cat("*************************************** \n\n")
   print( SEAndRSE )
 }
 
-#' plotSEFIM: barplot for the SE
+# ==============================================================================
+#' @title Plot Standard Errors from the Population FIM
 #' @name plotSEFIM
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
-#' @return The bar plot of the SE.
+#' @description
+#' The \code{plotSEFIM} method generates a diagnostic bar plot representing the
+#' Standard Errors (SE) or Relative Standard Errors (RSE\%) for all estimated
+#' parameters. This visualization is crucial for comparing the precision
+#' between structural parameters (fixed effects) and variance components.
+#' @param fim An object of class \code{\link{PopulationFim}} containing the
+#' calculated SE and RSE values.
+#' @param evaluation An object of class \code{Evaluation} providing the
+#' context of the model being plotted.
+#' @return A \code{ggplot2} or base R plot object showing the bar plot of the
+#' parameter uncertainties.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( plotSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluation ) {
 
@@ -359,7 +434,7 @@ method( plotSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluat
   standardErrors = prop( fim, "SEAndRSE" )
 
   # Greek letter for column names
-  greeksLetterForCOnsole = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
+  greeksLetterForConsole  = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
 
   parametersMu =  parameters %>%
     keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
@@ -373,14 +448,14 @@ method( plotSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluat
 
   parametersSigma = map( modelError, ~{
     sigma = character()
-    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_inter_", prop( .x ,"output" ) ) )
-    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_slope_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "_inter_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "_slope_", prop( .x ,"output" ) ) )
     return( sigma )
   }) %>% unlist()  %>% unname()
 
-  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForCOnsole['mu'] )
-  columnNamesOmega = parametersOmega %>% map_chr( ~  greeksLetterForCOnsole['omega']  )
-  columnNamesSigma = parametersSigma %>% map_chr( ~  greeksLetterForCOnsole['sigma']  )
+  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForConsole ['mu'] )
+  columnNamesOmega = parametersOmega %>% map_chr( ~  greeksLetterForConsole ['omega']  )
+  columnNamesSigma = parametersSigma %>% map_chr( ~  greeksLetterForConsole ['sigma']  )
 
   # data for plot
   data = data.frame( Parameter = c( parametersMu, parametersOmega, parametersSigma ),
@@ -393,7 +468,7 @@ method( plotSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluat
   # bar plot of the plot SE
   plotSE = ggplot( data, aes( x = Parameter, y = SE ) ) +
     geom_bar( stat = "identity", position = "dodge", show.legend = FALSE ) +
-    facet_wrap( ~factor( cat, levels =  paste0( "SE ", c( greeksLetterForCOnsole['mu'],  greeksLetterForCOnsole['omega'], greeksLetterForCOnsole["sigma"] ) ) ), scales = "free_x" ) +
+    facet_wrap( ~factor( cat, levels =  paste0( "SE ", c( greeksLetterForConsole ['mu'],  greeksLetterForConsole ['omega'], greeksLetterForConsole ["sigma"] ) ) ), scales = "free_x" ) +
     theme(legend.position = "none",
           plot.title = element_text(size=16, hjust = 0.5),
           axis.title.x = element_text(size=16),
@@ -405,12 +480,18 @@ method( plotSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluat
   return( plotSE )
 }
 
-#' plotRSEFIM: barplot for the RSE
+# ==============================================================================
+#' @title Plot Relative Standard Errors (RSE\%) for Population FIM
 #' @name plotRSEFIM
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
-#' @return The bar plot of the RSE.
+#' @param fim An object of class \code{\link{PopulationFim}} containing the
+#' calculated RSE values.
+#' @param evaluation An object of class \code{Evaluation} providing the
+#' context and parameter names for the plot.
+#' @return A plot object (typically \code{ggplot2} or \code{lattice}) displaying
+#' the RSE\% for structural and variance parameters.
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( plotRSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evaluation ) {
 
@@ -424,7 +505,7 @@ method( plotRSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evalua
   standardErrors = prop( fim, "SEAndRSE" )
 
   # Greek letter for column names
-  greeksLetterForCOnsole = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
+  greeksLetterForConsole  = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
 
   parametersMu =  parameters %>%
     keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
@@ -438,14 +519,14 @@ method( plotRSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evalua
 
   parametersSigma = map( modelError, ~{
     sigma = character()
-    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_inter_", prop( .x ,"output" ) ) )
-    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "_slope_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "_inter_", prop( .x ,"output" ) ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "_slope_", prop( .x ,"output" ) ) )
     return( sigma )
   }) %>% unlist()  %>% unname()
 
-  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForCOnsole['mu'] )
-  columnNamesOmega = parametersOmega %>% map_chr( ~  greeksLetterForCOnsole['omega']  )
-  columnNamesSigma = parametersSigma %>% map_chr( ~  greeksLetterForCOnsole['sigma']  )
+  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForConsole ['mu'] )
+  columnNamesOmega = parametersOmega %>% map_chr( ~  greeksLetterForConsole ['omega']  )
+  columnNamesSigma = parametersSigma %>% map_chr( ~  greeksLetterForConsole ['sigma']  )
 
   # data for plot
   data = data.frame( Parameter = c( parametersMu, parametersOmega, parametersSigma ),
@@ -458,7 +539,7 @@ method( plotRSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evalua
   # bar plot of the plot SE
   plotRSE = ggplot( data, aes( x = Parameter, y = RSE ) ) +
     geom_bar( stat = "identity", position = "dodge", show.legend = FALSE ) +
-    facet_wrap( ~factor( cat, levels =  paste0( "RSE ", c( greeksLetterForCOnsole['mu'],  greeksLetterForCOnsole['omega'], greeksLetterForCOnsole["sigma"] ) ) ), scales = "free_x" ) +
+    facet_wrap( ~factor( cat, levels =  paste0( "RSE ", c( greeksLetterForConsole ['mu'],  greeksLetterForConsole ['omega'], greeksLetterForConsole ["sigma"] ) ) ), scales = "free_x" ) +
     theme(legend.position = "none",
           plot.title = element_text(size=16, hjust = 0.5),
           axis.title.x = element_text(size=16),
@@ -470,12 +551,27 @@ method( plotRSEFIM, list( PopulationFim, PFIMProject ) ) = function( fim, evalua
   return( plotRSE )
 }
 
-#' tablesForReport: generate the table for the report.
+# ==============================================================================
+#' @title Generate Statistical Tables for Evaluation Reports
 #' @name tablesForReport
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param evaluation An object \code{Evaluation} giving the evaluation of the model.
-#' @return fixedEffectsTable, FIMCriteriaTable, SEAndRSETable.
+#' @description
+#' The \code{tablesForReport} method aggregates the results of a PFIM analysis
+#' into three standardized tables. It provides a structured view of parameter
+#' estimates, global design criteria, and the precision of the estimation
+#' (Standard Errors and Relative Standard Errors).
+#' @param fim An object of class \code{\link{PopulationFim}} containing the
+#' calculated Fisher Information Matrix and derived statistics.
+#' @param evaluation An object of class \code{Evaluation} providing the
+#' structural model context and output definitions.
+#' @return A \code{list} containing three data frames:
+#' \describe{
+#'   \item{\code{fixedEffectsTable}}{Table of parameter names and values.}
+#'   \item{\code{FIMCriteriaTable}}{Summary of FIM-based optimality criteria.}
+#'   \item{\code{SEAndRSETable}}{Table of precision metrics (SE and RSE\%).}
+#' }
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( tablesForReport, list( PopulationFim, PFIMProject ) ) = function( fim, evaluation ) {
 
@@ -492,25 +588,25 @@ method( tablesForReport, list( PopulationFim, PFIMProject ) ) = function( fim, e
   modelError = prop( evaluation, "modelError" )
 
   # Greek letter for column names
-  greeksLetterForCOnsole = c( mu = "$\\mu_{", omega = "$\\omega^2_{", sigma = "${\\sigma_" )
+  greeksLetterForConsole  = c( mu = "$\\mu_{", omega = "$\\omega^2_{", sigma = "${\\sigma_" )
 
   # define the name for the columns and rows for mu, omega and sigma
   columnNamesMu = parameters %>%
     keep( ~ prop( .x, "fixedMu" ) == FALSE) %>%
     keep( ~  prop( prop(.x,"distribution"), "mu" ) != 0 ) %>%
     map_chr( "name" ) %>%
-    map_chr(~ paste0( greeksLetterForCOnsole['mu'], .x,"}$" ) )
+    map_chr(~ paste0( greeksLetterForConsole ['mu'], .x,"}$" ) )
 
   columnNamesOmega = parameters %>%
     keep( ~ prop( .x, "fixedOmega" ) == FALSE ) %>%
     keep( ~  prop( prop(.x,"distribution"), "omega" ) != 0 ) %>%
     map_chr( "name" ) %>%
-    map_chr( ~ paste0( greeksLetterForCOnsole['omega'], .x ,"}$" ) )
+    map_chr( ~ paste0( greeksLetterForConsole ['omega'], .x ,"}$" ) )
 
   columnNamesSigma = map( modelError, ~{
     sigma = character()
-    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "{inter}}_{", prop( .x ,"output" ),"}$" ) )
-    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForCOnsole["sigma"], "{slope}}_{", prop( .x ,"output" ),"}$" ) )
+    if ( prop( .x, "sigmaInter" ) != 0 && prop( .x, "sigmaInterFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "{inter}}_{", prop( .x ,"output" ),"}$" ) )
+    if ( prop( .x, "sigmaSlope" ) != 0 && prop( .x, "sigmaSlopeFixed" ) == FALSE ) sigma = c( sigma, paste0( greeksLetterForConsole ["sigma"], "{slope}}_{", prop( .x ,"output" ),"}$" ) )
     return( sigma )
   }) %>% unlist()  %>% unname()
 
@@ -573,104 +669,94 @@ method( tablesForReport, list( PopulationFim, PFIMProject ) ) = function( fim, e
   return( fimTables )
 }
 
-#' generateReportEvaluation: generate the report for the model evaluation.
+# ==============================================================================
+#' @title Generate a Comprehensive HTML Evaluation Report
 #' @name generateReportEvaluation
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param tablesForReport The output list giving by the method tablesForReport.
-#' @return The html report for the model evaluation.
+#' @description
+#' The \code{generateReportEvaluation} method compiles all computed Fisher Information
+#' Matrix (FIM) results into a standalone HTML document. This report serves as
+#' the final deliverable for a design evaluation, summarizing parameter precision,
+#' design efficiency, and numerical stability.
+#' @param fim An object of class \code{\link{PopulationFim}} containing the
+#' finalized FIM data.
+#' @param tablesForReport A \code{list} of data frames (as returned by
+#' \code{\link{tablesForReport}}) containing the formatted statistical summaries.
+#' @return An HTML file (or a path to the generated file) containing the
+#' complete model evaluation report.
+#' @template copyright
 #' @export
+# ==============================================================================
 
-method( generateReportEvaluation, PopulationFim ) = function( fim, tablesForReport ) {
+method( generateReportEvaluation, PopulationFim ) = function( fim, tablesForReport, outputPath, outputFile ) {
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
   nameInputFile = paste0( path, "EvaluationPopulationFIM.Rmd" )
-
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
 }
 
-#' generateReportOptimization: generate the report for the design optimization.
-#' @name generateReportOptimization
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param optimizationAlgorithm An object \code{MultiplicativeAlgorithm} giving the MultiplicativeAlgorithm.
-#' @param tablesForReport The output list giving by the method tablesForReport.
-#' @return The html report.
-#' @export
 
-method( generateReportOptimization, list( PopulationFim, MultiplicativeAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+#' @title Generate the HTML Report for Design Optimization
+#' @name generateReportOptimization
+#' @description
+#' The \code{generateReportOptimization} method compiles the results of a design
+#' optimization into a professional HTML document. It specifically handles the
+#' output of the \code{\link{MultiplicativeAlgorithm}}, documenting the
+#' transition from the initial design to the optimal sampling schedule.
+#' @param fim An object of class \code{\link{PopulationFim}} containing the
+#' Fisher Information Matrix of the final optimized design.
+#' @param optimizationAlgorithm An object of class \code{\link{MultiplicativeAlgorithm},\link{FedorovWynnAlgorithm}
+#' \link{SimplexAlgorithm},\link{PSOAlgorithm},\link{PGBOAlgorithm}}.
+#' @param tablesForReport A \code{list} of data frames (as returned by
+#' \code{\link{tablesForReport}}) containing the final optimized statistical summaries.
+#' @return An HTML report file (or a path to the file) containing the detailed
+#' optimization results and diagnostic plots.
+#' @template copyright
+#' @export
+# ==============================================================================
+
+method( generateReportOptimization, list( PopulationFim, MultiplicativeAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
   nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmPopulationFIM.Rmd" )
 
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
 }
 
-#' generateReportOptimization: generate the report for the design optimization.
-#' @name generateReportOptimization
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param optimizationAlgorithm An object \code{FedorovWynnAlgorithm} giving the FedorovWynnAlgorithm
-#' @param tablesForReport The output list giving by the method tablesForReport.
-#' @return The html report.
-#' @export
-
-method( generateReportOptimization, list( PopulationFim, FedorovWynnAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+method( generateReportOptimization, list( PopulationFim, FedorovWynnAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
   nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmPopulationFIM.Rmd" )
 
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
 }
 
-#' generateReportOptimization: generate the report for the design optimization.
-#' @name generateReportOptimization
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param optimizationAlgorithm An object \code{SimplexAlgorithm} giving the SimplexAlgorithm
-#' @param tablesForReport The output list giving by the method tablesForReport.
-#' @return The html report.
-#' @export
-
-method( generateReportOptimization, list( PopulationFim, SimplexAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+method( generateReportOptimization, list( PopulationFim, SimplexAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
   nameInputFile = paste0( path, "OptimizationSimplexAlgorithmPopulationFIM.Rmd" )
 
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
 
 }
 
-#' generateReportOptimization: generate the report for the design optimization.
-#' @name generateReportOptimization
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param optimizationAlgorithm An object \code{PSOAlgorithm} giving the PSOAlgorithm
-#' @param tablesForReport The output list giving by the method tablesForReport.
-#' @return The html report.
-#' @export
-
-method( generateReportOptimization, list( PopulationFim, PSOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+method( generateReportOptimization, list( PopulationFim, PSOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
   nameInputFile = paste0( path, "OptimizationPSOAlgorithmPopulationFIM.Rmd" )
 
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
 }
 
-#' generateReportOptimization: generate the report for the design optimization.
-#' @name generateReportOptimization
-#' @param fim An object \code{PopulationFim} giving the Fim.
-#' @param optimizationAlgorithm An object \code{PGBOAlgorithm} giving the PGBOAlgorithm
-#' @param tablesForReport The output list giving by the method tablesForReport.
-#' @return The html report.
-#' @export
-
-method( generateReportOptimization, list( PopulationFim, PGBOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport ) {
+method( generateReportOptimization, list( PopulationFim, PGBOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
 
   path = system.file(package = "PFIM")
   path = paste0( path, "/rmarkdown/templates/skeleton/" )
   nameInputFile = paste0( path, "OptimizationPGBOAlgorithmPopulationFIM.Rmd" )
 
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = "tablesForReport" ) )
+  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
 }

@@ -2,19 +2,33 @@
 % Please edit documentation in R/Arm.R
 \name{processArmEvaluationSI}
 \alias{processArmEvaluationSI}
-\title{processArmEvaluationSI: process for the evaluation of the gradient of the responses.}
+\title{Process arm evaluation for sensitivity index plots}
+\usage{
+processArmEvaluationSI(arm, model, fim, designName, plotOptions, ...)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm}.}
 
-\item{model}{A object of class \code{Model} giving the model.}
+\item{model}{An object of class \code{Model}.}
 
-\item{fim}{A object of class \code{Fim} giving the fim.}
+\item{fim}{An object of class \code{Fim}.}
 
 \item{designName}{A string giving the name of the design.}
+
+\item{plotOptions}{A list with \code{unitTime} and \code{unitOutcomes}.}
+
+\item{...}{Additional arguments}
 }
 \value{
-A list giving the ggplot object of the plots of the gradient.
+A named list of \code{ggplot} objects per design, arm, output, and parameter.
 }
 \description{
-processArmEvaluationSI: process for the evaluation of the gradient of the responses.
+Evaluates model gradients on a dense time grid and generates sensitivity
+index plots (partial derivatives of responses with respect to parameters).
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

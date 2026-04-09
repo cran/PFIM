@@ -5,43 +5,21 @@
 %   R/ModelODEDoseNotInEquations.R, R/ModelODEInfusionDoseInEquation.R
 \name{defineModelWrapper}
 \alias{defineModelWrapper}
-\title{defineModelWrapper: define the model wrapper for the ode solver}
+\title{define the model wrapper for the ode solver}
 \arguments{
-\item{model}{An object of class \code{ModelODEInfusionDoseInEquation} that defines the model.}
+\item{model}{An object of class \code{ModelAnalytic} that defines the model.}
 
 \item{evaluation}{An object of class Evaluation that defines the evaluation}
 }
 \value{
 The model with wrapperModelAnalytic, functionArgumentsModelAnalytic, functionArgumentsSymbolModelAnalytic, outputNames, outcomesWithAdministration
-
-The model with wrapperModelAnalyticInfusion, functionArgumentsModelAnalyticInfusion, functionArgumentsSymbolModelAnalyticInfusion, outputNames, outcomesWithAdministration
-
-The model with wrapperModelAnalyticInfusion, functionArgumentsModelAnalyticInfusion, functionArgumentsSymbolModelAnalyticInfusion, outputNames, outcomesWithAdministration
-
-The model with wrapperModelAnalytic, functionArgumentsModelAnalytic, functionArgumentsSymbolModelAnalytic, outputNames, outcomesWithAdministration
-
-The model with updated slots.
-
-The model with the updated slots.
-
-The model with the updated slots.
-
-The model with updated slots.
 }
 \description{
-defineModelWrapper: define the model wrapper for the ode solver
-
-defineModelWrapper: define the model wrapper for the ode solver
-
-defineModelWrapper: define the model wrapper for the ode solver
-
-defineModelWrapper: define the model wrapper for the ode solver
-
-defineModelWrapper: define the model wrapper for the ode solver
-
-defineModelWrapper: define the model wrapper for the ode solver
-
-defineModelWrapper: define the model wrapper for the ode solver
-
-defineModelWrapper: define the model wrapper for the ode solver
+define the model wrapper for the ode solver
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

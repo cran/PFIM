@@ -3,7 +3,7 @@
 \docType{data}
 \name{LibraryOfPDModels}
 \alias{LibraryOfPDModels}
-\title{LibraryOfPDModels}
+\title{LibraryOfPDModels Class}
 \format{
 An object of class \code{PFIM::LibraryOfPDModels} (inherits from \code{PFIM::LibraryOfModels}, \code{S7_object}) of length 1.
 }
@@ -11,6 +11,26 @@ An object of class \code{PFIM::LibraryOfPDModels} (inherits from \code{PFIM::Lib
 LibraryOfPDModels
 }
 \description{
-The class \code{LibraryOfPDModels} represents and stores information for the LibraryOfPDModels.
+The \code{LibraryOfPDModels} class is a specialized container for managing
+and storing Pharmacodynamic (PD) model definitions.
+}
+\details{
+This class inherits from \code{\link{LibraryOfModels}} and provides a
+dedicated structure for pharmacodynamic responses. It is designed to handle
+various PD mechanisms, including direct effect models (Emax, Sigmoid Emax),
+indirect response models (Turnover), and kinetic-pharmacodynamic (K-PD)
+structures.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{models}}{A named list of PD model structures (e.g., Emax, Indirect Response).}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }
 \keyword{datasets}

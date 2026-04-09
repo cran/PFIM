@@ -2,15 +2,22 @@
 % Please edit documentation in R/FedorovWynnAlgorithm.R
 \name{plotFrequenciesFedorovWynnAlgorithm}
 \alias{plotFrequenciesFedorovWynnAlgorithm}
-\title{plotFrequenciesFedorovWynnAlgorithm}
+\title{plotFrequenciesFedorovWynnAlgorithm for the FedorovWynnAlgorithm}
 \arguments{
-\item{optimization}{optimization}
+\item{optimization}{An object of class \code{Optimization}.}
 
-\item{optimizationAlgorithm}{optimizationAlgorithm}
+\item{optimizationAlgorithm}{An object of class \code{FedorovWynnAlgorithm}.}
 }
 \value{
-plotFrequenciesFedorovWynnAlgorithm
+A \code{ggplot} object showing the frequency distribution.
 }
 \description{
-plotFrequenciesFedorovWynnAlgorithm
+Generates a horizontal bar chart representing the optimal frequencies of the
+arms selected by the Fedorov-Wynn algorithm.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

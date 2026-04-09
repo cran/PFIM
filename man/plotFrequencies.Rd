@@ -2,13 +2,34 @@
 % Please edit documentation in R/Optimization.R
 \name{plotFrequencies}
 \alias{plotFrequencies}
-\title{Plot frequencies for the FedorovWynn algorithm}
+\title{plotFrequencies: visualize optimal frequencies for the Fedorov-Wynn algorithm}
+\usage{
+plotFrequencies(optimization, ...)
+}
 \arguments{
-\item{optimization}{An \code{Optimization} object.}
+\item{optimization}{An object of class \code{Optimization} containing
+Fedorov-Wynn algorithm results.}
+
+\item{...}{Additional arguments.}
 }
 \value{
-Graph of the optimal frequencies.
+A \code{ggplot2} bar plot of the optimal frequencies.
 }
 \description{
-Plot frequencies for the FedorovWynn algorithm
+Generates a bar plot showing the frequencies (normalized counts) of the
+design arms selected by the Fedorov-Wynn algorithm. This plot identifies
+the support points of the optimal discrete design.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+\dontrun{
+# plot frequencie from optimizationFedorovWynnPopulationFIMObject
+frequencies = plotFrequencies( optimizationFedorovWynnPopulationFIMObject )
+print(frequencies)
+}
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

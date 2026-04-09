@@ -5,47 +5,21 @@
 %   R/ModelODEDoseNotInEquations.R, R/ModelODEInfusionDoseInEquation.R
 \name{evaluateModel}
 \alias{evaluateModel}
-\title{evaluateModel: evaluate the model}
+\title{Evaluate the analytic model}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{model}{An object of class \code{ModelAnalytic} that defines the model.}
 
-\item{model}{A object of class \code{ModelODEInfusionDoseInEquation} giving the model.}
+\item{arm}{An object of class \code{Arm} that defines the arm.}
 }
 \value{
 A list of dataframes that contains the results for the evaluation of the model.
-
-A list of dataframes that contains the results for the evaluation of the model.
-
-A list of dataframes that contains the results for the evaluation of the model.
-
-A list of dataframes that contains the results for the evaluation of the model.
-
-A list of dataframes that contains the evaluation of the model.
-
-A data frame giving the output of the model evaluation.
-
-A list of dataframes that contains the results for the evaluation of the model.
-
-A list of dataframes that contains the results for the evaluation of the model.
-
-A data frame giving the output of the model evaluation.
 }
 \description{
-evaluateModel: evaluate the model
-
-evaluateModel: evaluate the ModelAnalyticInfusion
-
-evaluateModel: evaluate the ModelAnalyticInfusion
-
-evaluateModel: evaluate the ModelAnalyticInfusion
-
-evaluateModel
-
-evaluateModel
-
-evaluateModel: evaluate the model
-
-evaluateModel: evaluate the model
-
-evaluateModel
+Evaluate the analytic model
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

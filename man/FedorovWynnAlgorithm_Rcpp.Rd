@@ -2,7 +2,7 @@
 % Please edit documentation in R/FedorovWynnAlgorithm.R
 \name{FedorovWynnAlgorithm_Rcpp}
 \alias{FedorovWynnAlgorithm_Rcpp}
-\title{Fedorov-Wynn algorithm in Rcpp.}
+\title{FedorovWynnAlgorithm with Rcpp}
 \usage{
 FedorovWynnAlgorithm_Rcpp(
   protocols_input,
@@ -19,31 +19,33 @@ FedorovWynnAlgorithm_Rcpp(
 )
 }
 \arguments{
-\item{protocols_input}{parameter protocols_input}
+\item{protocols_input}{List of protocol definitions.}
 
-\item{ndimen_input}{parameter ndimen_input}
+\item{ndimen_input}{Dimensions of the problem.}
 
-\item{nbprot_input}{parameter nbprot_input}
+\item{nbprot_input}{Number of protocols.}
 
-\item{numprot_input}{parameter numprot_input}
+\item{numprot_input}{Protocol indices.}
 
-\item{freq_input}{parameter freq_input}
+\item{freq_input}{Frequencies of protocols.}
 
-\item{nbdata_input}{parameter nbdata_input}
+\item{nbdata_input}{Data point counts.}
 
-\item{vectps_input}{parameter vectps_input}
+\item{vectps_input}{Sampling times vector.}
 
-\item{fisher_input}{parameter fisher_input}
+\item{fisher_input}{Fisher matrix inputs.}
 
-\item{nok_input}{parameter nok_input}
+\item{nok_input}{Error code/status.}
 
-\item{protdep_input}{parameter protdep_input}
+\item{protdep_input}{Initial protocol indices.}
 
-\item{freqdep_input}{parameter freqdep_input}
+\item{freqdep_input}{Initial frequencies.}
 }
 \value{
-A list giving the results of the outputs of the FedorovWynn algorithm.
+A list containing optimal frequencies, sampling times, and the resulting FIM.
 }
 \description{
-Run the FedorovWynnAlgorithm in Rcpp
+Implementation of the Fedorov-Wynn algorithm in C++
+via Rcpp. This function handles the heavy matrix computations and
+exchange logic required for D-optimal design.
 }

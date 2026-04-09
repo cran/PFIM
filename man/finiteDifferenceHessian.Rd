@@ -2,13 +2,29 @@
 % Please edit documentation in R/Model.R
 \name{finiteDifferenceHessian}
 \alias{finiteDifferenceHessian}
-\title{finiteDifferenceHessian: compute the Hessian}
+\title{Compute the Hessian}
 \arguments{
-\item{model}{A object \code{Model} giving the model.}
+\item{model}{An object of class \code{\link{Model}} containing the structural
+and error model definitions.}
 }
 \value{
-The model with the slots parametersForComputingGradient with XcolsInv, shifted, frac.
+Returns the \code{Model} object with the updated slot
+\code{parametersForComputingGradient}, now containing:
+\itemize{
+  \item \code{XcolsInv}: The inverse of the column scaling factors.
+  \item \code{shifted}: The perturbed parameter values for finite differences.
+  \item \code{frac}: The fractional step size used for the perturbations.
+}
 }
 \description{
-finiteDifferenceHessian: compute the Hessian
+Prepares the necessary parameters and data structures for the computation of
+gradients and the Hessian matrix via the finite difference method. This includes
+calculating inverse column scales (\code{XcolsInv}), shifted parameter values,
+and step size fractions.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

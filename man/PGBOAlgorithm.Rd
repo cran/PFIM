@@ -2,72 +2,112 @@
 % Please edit documentation in R/PGBOAlgorithm.R
 \name{PGBOAlgorithm}
 \alias{PGBOAlgorithm}
-\title{PGBOAlgorithm}
+\title{PGBOAlgorithm Class}
 \usage{
 PGBOAlgorithm(
-  name = character(0),
-  modelEquations = list(),
-  modelFromLibrary = list(),
-  modelParameters = list(),
-  modelError = list(),
-  optimizer = character(0),
-  optimizerParameters = list(),
-  outputs = list(),
-  designs = list(),
-  fimType = character(0),
-  fim = Fim(),
-  odeSolverParameters = list(),
+  N = 30,
+  muteEffect = 0.65,
+  maxIteration = 1000,
+  purgeIteration = 200,
+  seed = 42,
+  showProcess = FALSE,
   optimisationDesign = list(),
   optimisationAlgorithmOutputs = list(),
-  N = numeric(0),
-  muteEffect = numeric(0),
-  maxIteration = numeric(0),
-  purgeIteration = numeric(0),
-  seed = numeric(0),
-  showProcess = FALSE
+  name = character(0),
+  modelParameters = list(),
+  modelEquations = list(),
+  modelFromLibrary = list(),
+  modelError = list(),
+  designs = list(),
+  outputs = list(),
+  fimType = character(0),
+  odeSolverParameters = list()
 )
 }
 \arguments{
-\item{name}{A string giving the name of the design evaluation.}
+\item{N}{A numeric value specifying the population size (number of individuals)
+per generation.}
 
-\item{modelEquations}{A list giving the model equations.}
+\item{muteEffect}{A numeric value (0-1) representing the mutation rate or the
+intensity of the genetic mutation effect.}
 
-\item{modelFromLibrary}{A list giving the model equations from the library of model.}
+\item{maxIteration}{An integer specifying the maximum number of generations
+before the algorithm terminates.}
 
-\item{modelParameters}{A list giving the model parameters.}
+\item{purgeIteration}{An integer defining the frequency (in iterations) at
+which "weak" individuals are removed from the population to maintain genetic fitness.}
 
-\item{modelError}{A list giving the model error.}
+\item{seed}{A numeric value for the random number generator to ensure
+reproducibility of the optimization results.}
 
-\item{optimizer}{A string giving the name of the optimization algorithm being used.}
+\item{showProcess}{A logical value; if \code{TRUE}, the algorithm prints
+progress updates and fitness scores to the console.}
 
-\item{optimizerParameters}{A list giving the parameters of the optimization algorithm.}
+\item{optimisationDesign}{A list storing the evaluations (FIM, criteria, SE)
+of both the initial and the optimal design.}
 
-\item{outputs}{A list giving the model outputs.}
+\item{optimisationAlgorithmOutputs}{A list containing the logs and
+algorithm-specific outputs produced during the optimization process.}
 
-\item{designs}{A list giving the designs to be evaluated.}
+\item{name}{A string representing the name of the project or evaluation study.}
 
-\item{fimType}{A string giving the type of Fim being evaluated.}
+\item{modelParameters}{A list defining the fixed effects and random effects (variances) of the model.}
 
-\item{fim}{A object \code{Fim} giving the Fim.}
+\item{modelEquations}{A list containing the mathematical equations of the model.}
 
-\item{odeSolverParameters}{A list giving the atol and rtol parameters for the ode solver.}
+\item{modelFromLibrary}{A list specifying the pre-defined model selected from the PFIM library.}
 
-\item{optimisationDesign}{A list giving the evaluation of initial and optimal design.}
+\item{modelError}{A list specifying the residual error model (e.g., constant, proportional, or combined).}
 
-\item{optimisationAlgorithmOutputs}{A list giving the outputs of the optimization process.}
+\item{designs}{A list of `Design` objects representing the experimental protocols to be evaluated.}
 
-\item{N}{A numeric giving the parameter N.}
+\item{outputs}{A list defining the observation variables or responses of the model.}
 
-\item{muteEffect}{A numeric giving the parameter muteEffect.}
+\item{fimType}{A string specifying the FIM calculation method.
+Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.}
 
-\item{maxIteration}{A numeric giving the parameter maxIteration.}
-
-\item{purgeIteration}{A numeric giving the parameter purgeIteration.}
-
-\item{seed}{A numeric giving the parameter seed.}
-
-\item{showProcess}{A Boolean giving showProcess.}
+\item{odeSolverParameters}{A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.}
 }
 \description{
-The class \code{PGBOAlgorithm} implements the PGBO algorithm.
+The \code{PGBOAlgorithm} class implements a stochastic optimization routine based
+on population genetics principles. It is designed to navigate complex design
+spaces by simulating mutation, selection, and purging processes to maximize
+the Fisher Information Matrix (FIM) criteria.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+\dontrun{
+
+# Examples from Vignette 2
+
+# Initializing the PGBO algorithm for population FIM optimization
+optimizationPGBOPopFIM = Optimization(
+  name                = "optimizationExamplePGBO",
+  modelFromLibrary    = modelFromLibrary,
+  modelParameters     = modelParameters,
+  modelError          = modelError,
+  optimizer           = "PGBOAlgorithm",
+  optimizerParameters = list(
+    N              = 30,    # population of 30 candidate designs
+    muteEffect     = 0.65,  # mutation amplitude (65\% of window width)
+    maxIteration   = 1000,  # total evolutionary steps
+    purgeIteration = 200,  # reinitialize worst solutions every 200 steps
+    seed           = 42,
+    showProcess    = FALSE
+  ),
+  designs             = list(design2),
+  fimType             = "population",
+  outputs             = list("RespPK")
+)
+
+# Run the PGBO optimization and display the results
+resultsPGBOPopFIM = run(optimizationPGBOPopFIM)
+show(resultsPGBOPopFIM)
+
+}
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

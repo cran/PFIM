@@ -2,13 +2,19 @@
 % Please edit documentation in R/Design.R
 \name{generateDosesCombination}
 \alias{generateDosesCombination}
-\title{generateDosesCombination: generate the combination for the doses.}
+\title{Generate dose combinations for optimization}
 \arguments{
-\item{design}{An object \code{Design} giving the design.}
+\item{design}{An object \code{Design}.}
 }
 \value{
-dosesForFIMs, numberOfDoses used in the design optimization.
+A list containing the combinations of doses and the total count.
 }
 \description{
-generateDosesCombination: generate the combination for the doses.
+Generate dose combinations for optimization
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

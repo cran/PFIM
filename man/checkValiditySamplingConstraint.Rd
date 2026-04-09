@@ -2,13 +2,20 @@
 % Please edit documentation in R/Design.R
 \name{checkValiditySamplingConstraint}
 \alias{checkValiditySamplingConstraint}
-\title{checkValiditySamplingConstraint: check if the constraints used for the design optimization are valid.}
+\title{Validate optimization constraints}
 \arguments{
-\item{design}{An object \code{Design} giving the design.}
+\item{design}{An object \code{Design}.}
 }
 \value{
-A boolean TRUE / FALSE, if FALSE it also gives an error message.
+Returns nothing if valid, or stops with an error message if
+the sampling window/delta constraints are mathematically impossible.
 }
 \description{
-checkValiditySamplingConstraint: check if the constraints used for the design optimization are valid.
+Validate optimization constraints
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

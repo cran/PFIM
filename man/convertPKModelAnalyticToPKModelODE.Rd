@@ -3,14 +3,23 @@
 %   R/ModelAnalyticInfusion.R
 \name{convertPKModelAnalyticToPKModelODE}
 \alias{convertPKModelAnalyticToPKModelODE}
-\title{convertPKModelAnalyticToPKModelODE: conversion from analytic to ode}
+\title{Conversion from analytic PK model to ODE PK model}
 \arguments{
-\item{pkModel}{An object of class \code{ModelAnalyticInfusion} that defines the model.}
+\item{pkModel}{An object of class \code{ModelInfusion} that defines the model.}
+}
+\value{
+A character string containing the ODE equation derived from the analytic expression.
 }
 \description{
-convertPKModelAnalyticToPKModelODE: conversion from analytic to ode
+Conversion from analytic PK model to ODE PK model
 
-convertPKModelAnalyticToPKModelODE: conversion from analytic to ode
+conversion from analytic to ode
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
 
-convertPKModelAnalyticToPKModelODE: conversion from analytic infusion to ode
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

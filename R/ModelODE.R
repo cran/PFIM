@@ -1,17 +1,20 @@
+# ==============================================================================
+#' @title ModelODE Class
+#' @name ModelODE
 #' @description The class \code{ModelODE} is used to defined a ode model.
 #' @title ModelODE
 #' @inheritParams Model
 #' @include Model.R
+#' @template copyright
 #' @export
 
 ModelODE = new_class( "ModelODE", package = "PFIM", parent = Model )
 
-#' evaluateInitialConditions: evaluate the initial conditions.
+# ==============================================================================
+#' @rdname evaluateInitialConditions
 #' @name evaluateInitialConditions
-#' @param arm A object of class \code{Arm} giving the arm.
-#' @param model A object of class \code{Model} giving the model.
-#' @return A list giving the evaluated initial conditions.
 #' @export
+# ==============================================================================
 
 method( evaluateInitialConditions, ModelODE ) = function( model, arm ) {
 

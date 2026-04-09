@@ -4,26 +4,20 @@
 %   R/ModelODEInfusionDoseInEquation.R
 \name{definePKPDModel}
 \alias{definePKPDModel}
-\title{definePKPDModel:  define a PKPD model from library of model}
+\title{Define a PKPD model from library of model}
 \arguments{
-\item{pkModel}{An object of class \code{ModelODE} that defines the PD model.}
+\item{pkModel}{An object of class \code{ModelAnalytic} that defines the PK model.}
+
+\item{pdModel}{An object of class \code{ModelAnalytic} that defines the PD model.}
 
 \item{pfimproject}{An object of class \code{PFIMProject} that defines the pfimproject.}
 }
 \description{
-definePKPDModel:  define a PKPD model from library of model
-
-definePKPDModel:  define a PKPD model from library of model
-
-definePKPDModel ModelAnalyticInfusion, ModelAnalytic
-
-definePKPDModel ModelAnalyticInfusion, ModelODE
-
-definePKPDModel
-
-definePKPDModel
-
-definePKPDModel
-
-definePKPDModel: define a PKPD model from library of model
+Define a PKPD model from library of model
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

@@ -2,13 +2,25 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{generateSamplingsFromSamplingConstraints}
 \alias{generateSamplingsFromSamplingConstraints}
-\title{generateSamplingsFromSamplingConstraints}
+\title{Generate Numerical Intervals from Sampling Constraints}
 \arguments{
-\item{samplingTimeConstraints}{An object \code{SamplingTimeConstraints}}
+\item{samplingTimeConstraints}{An object of class \code{\link{SamplingTimeConstraints}}
+containing the user-defined constraints and windows.}
 }
 \value{
-A list intervalsConstraints.
+A \code{list} named \code{intervalsConstraints}. Each element of the
+list is a numeric vector of length 2 (lower and upper bound) representing
+the search space for one optimizable sample.
 }
 \description{
-generateSamplingsFromSamplingConstraints
+The \code{generateSamplingsFromSamplingConstraints} method transforms a
+\code{\link{SamplingTimeConstraints}} object into a structured list of
+mathematical intervals. These intervals define the feasible search space
+for each optimizable sampling point.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

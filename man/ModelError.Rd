@@ -2,7 +2,7 @@
 % Please edit documentation in R/ModelError.R
 \name{ModelError}
 \alias{ModelError}
-\title{ModelError}
+\title{ModelError Class}
 \usage{
 ModelError(
   output = "output",
@@ -26,15 +26,36 @@ ModelError(
 
 \item{sigmaSlope}{A double giving the sigma slope}
 
-\item{sigmaInterFixed}{A boolean giving if the  sigma inter is fixed or not. - not in the v7.0}
+\item{sigmaInterFixed}{A boolean giving if the  sigma inter is fixed or not.}
 
-\item{sigmaSlopeFixed}{A boolean giving if the  sigma slope is fixed or not. - not in the v7.0}
+\item{sigmaSlopeFixed}{A boolean giving if the  sigma slope is fixed or not.}
 
 \item{cError}{A integer giving the power parameter.}
 }
 \description{
 The class \code{ModelError} is used to defined a model error.
 }
-\details{
-ModelError
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+# 1. Define an additive error model
+# sigmaInter: intercept (additive), sigmaSlope: slope (proportional)
+additiveError = ModelError(
+  output     = "RespPK",
+  sigmaInter = 0.1,
+  sigmaSlope = 0.0
+)
+print(additiveError)
+
+# 2. Define a combined error model (Additive + Proportional)
+combinedError = ModelError(
+  output     = "RespPK",
+  sigmaInter = 0.05,
+  sigmaSlope = 0.15
+)
+print(combinedError)
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

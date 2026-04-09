@@ -2,23 +2,22 @@
 % Please edit documentation in R/MultiplicativeAlgorithm.R
 \name{MultiplicativeAlgorithm}
 \alias{MultiplicativeAlgorithm}
-\title{MultiplicativeAlgorithm}
+\title{MultiplicativeAlgorithm Class}
 \usage{
 MultiplicativeAlgorithm(
-  name = character(0),
-  modelEquations = list(),
-  modelFromLibrary = list(),
-  modelParameters = list(),
-  modelError = list(),
-  optimizer = character(0),
-  optimizerParameters = list(),
-  outputs = list(),
-  designs = list(),
-  fimType = character(0),
-  fim = Fim(),
-  odeSolverParameters = list(),
   optimisationDesign = list(),
   optimisationAlgorithmOutputs = list(),
+  name = character(0),
+  modelParameters = list(),
+  modelEquations = list(),
+  modelFromLibrary = list(),
+  modelError = list(),
+  designs = list(),
+  outputs = list(),
+  fimType = character(0),
+  odeSolverParameters = list(),
+  optimizer = character(0),
+  optimizerParameters = list(),
   lambda = 0,
   delta = 0,
   numberOfIterations = 0,
@@ -28,46 +27,87 @@ MultiplicativeAlgorithm(
 )
 }
 \arguments{
-\item{name}{A string giving the name of the design evaluation.}
+\item{optimisationDesign}{A list storing the evaluations (FIM, criteria, SE)
+of both the initial and the optimal design.}
 
-\item{modelEquations}{A list giving the model equations.}
+\item{optimisationAlgorithmOutputs}{A list containing the logs and
+algorithm-specific outputs produced during the optimization process.}
 
-\item{modelFromLibrary}{A list giving the model equations from the library of model.}
+\item{name}{A string representing the name of the project or evaluation study.}
 
-\item{modelParameters}{A list giving the model parameters.}
+\item{modelParameters}{A list defining the fixed effects and random effects (variances) of the model.}
 
-\item{modelError}{A list giving the model error.}
+\item{modelEquations}{A list containing the mathematical equations of the model.}
 
-\item{optimizer}{A string giving the name of the optimization algorithm being used.}
+\item{modelFromLibrary}{A list specifying the pre-defined model selected from the PFIM library.}
 
-\item{optimizerParameters}{A list giving the parameters of the optimization algorithm.}
+\item{modelError}{A list specifying the residual error model (e.g., constant, proportional, or combined).}
 
-\item{outputs}{A list giving the model outputs.}
+\item{designs}{A list of `Design` objects representing the experimental protocols to be evaluated.}
 
-\item{designs}{A list giving the designs to be evaluated.}
+\item{outputs}{A list defining the observation variables or responses of the model.}
 
-\item{fimType}{A string giving the type of Fim being evaluated.}
+\item{fimType}{A string specifying the FIM calculation method.
+Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.}
 
-\item{fim}{A object \code{Fim} giving the Fim.}
+\item{odeSolverParameters}{A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.}
 
-\item{odeSolverParameters}{A list giving the atol and rtol parameters for the ode solver.}
+\item{optimizer}{A character string naming the optimization algorithm.}
 
-\item{optimisationDesign}{A list giving the evaluation of initial and optimal design.}
+\item{optimizerParameters}{A named list of algorithm-specific hyperparameters.}
 
-\item{optimisationAlgorithmOutputs}{A list giving the outputs of the optimization process.}
+\item{lambda}{A \code{numeric} value for the relaxation parameter \code{lambda}
+(typically between 0 and 1).}
 
-\item{lambda}{A numeric giving the parameter lambda.}
+\item{delta}{A \code{numeric} convergence criterion \code{delta}.}
 
-\item{delta}{A numeric giving the parameter delta}
+\item{numberOfIterations}{Maximum \code{integer} number of iterations to perform.}
 
-\item{numberOfIterations}{A numeric giving the number of iterations.}
+\item{weightThreshold}{A \code{numeric} threshold; weights below this value
+are considered zero and effectively removed from the design.}
 
-\item{weightThreshold}{A numeric giving the weight threshold.}
+\item{showProcess}{\code{logical}; if \code{TRUE}, displays the optimization
+progress and convergence status in the console.}
 
-\item{showProcess}{A Boolean for displaying the process or not.}
-
-\item{multiplicativeAlgorithmOutputs}{A list giving the output of the optimization algorithm.}
+\item{multiplicativeAlgorithmOutputs}{A \code{list} storing optimization
+results, including weight history and optimality criterion values.}
 }
 \description{
-The class \code{MultiplicativeAlgorithm} implements the multiplicative algorithm.
+The \code{MultiplicativeAlgorithm} class implements the multiplicative algorithm
+for the continuous optimization of study design weights. This approach iteratively
+updates weights to maximize a specific optimality criterion (e.g., D-optimality).
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+\dontrun{
+# Example from Vignette 1: Initializing the Multiplicative algorithm for population FIM optimization
+
+optimizationMultPopFIM = Optimization(
+  name                = "PKPD_ODE_multi_doses_populationFIM",
+  modelEquations      = modelEquations,
+  modelParameters     = modelParameters,
+  modelError          = modelError,
+  optimizer           = "MultiplicativeAlgorithm",
+  optimizerParameters = list(
+    lambda             = 0.99,    # near-unity: slow but stable weight updates
+    numberOfIterations = 1000,    # maximum multiplicative iterations
+    weightThreshold    = 0.01,    # discard protocols with weight < 1\%
+    delta              = 1e-04,   # stop when D-criterion improvement < 0.01\%
+    showProcess        = TRUE
+  ),
+  designs             = list(designConstraint),
+  fimType             = "population",
+  outputs             = list("RespPK" = "Cc", "RespPD" = "E"),
+  odeSolverParameters = list(atol = 1e-8, rtol = 1e-8)
+)
+
+# Run the optimization and display results
+optimizationResults = run(optimizationMultPopFIM)
+show(optimizationResults)
+}
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

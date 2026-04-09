@@ -1,12 +1,17 @@
-#' ModelAnalyticInfusionSteadyState
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+# ==============================================================================
+#' @title ModelAnalyticInfusionSteadyState Class
+#' @name ModelAnalyticInfusionSteadyState
 #' @description The class \code{ModelAnalyticInfusionSteadyState} is used to defined an analytic model in infusion steady state.
-#' @title ModelAnalyticInfusionSteadyState
 #' @inheritParams ModelInfusion
 #' @param wrapperModelAnalyticInfusion Wrapper for the ode solver.
 #' @param functionArgumentsModelAnalyticInfusion A list giving the functionArguments of the wrapper for the analytic model in infusion.
 #' @param functionArgumentsSymbolModelAnalyticInfusion  A list giving the functionArgumentsSymbol of the wrapper for the analytic model in infusion.
 #' @param solverInputs A list giving the solver inputs.
 #' @include ModelInfusion.R
+#' @template copyright
 #' @export
 
 ModelAnalyticInfusionSteadyState = new_class( "ModelAnalyticInfusionSteadyState", package = "PFIM", parent = ModelInfusion,
@@ -16,11 +21,11 @@ ModelAnalyticInfusionSteadyState = new_class( "ModelAnalyticInfusionSteadyState"
                                                                  functionArgumentsSymbolModelAnalyticInfusion = new_property(class_list, default = list()),
                                                                  solverInputs = new_property(class_list, default = list()) ) )
 
-#' defineModelWrapper: define the model wrapper for the ode solver
+# ==============================================================================
+#' @rdname defineModelWrapper
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelAnalyticInfusionSteadyState} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with wrapperModelAnalyticInfusion, functionArgumentsModelAnalyticInfusion, functionArgumentsSymbolModelAnalyticInfusion, outputNames, outcomesWithAdministration
+#' @export
+# ==============================================================================
 
 method( defineModelWrapper, ModelAnalyticInfusionSteadyState ) = function( model, evaluation ) {
 
@@ -118,12 +123,11 @@ method( defineModelWrapper, ModelAnalyticInfusionSteadyState ) = function( model
   return( model )
 }
 
-#' defineModelAdministration: define the administration
+# ==============================================================================
+#' @rdname defineModelAdministration
 #' @name defineModelAdministration
-#' @param model An object of class \code{ModelAnalyticInfusionSteadyState} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return The model with samplings, solverInputs
 #' @export
+# ==============================================================================
 
 method( defineModelAdministration, ModelAnalyticInfusionSteadyState ) = function( model, arm ) {
 
@@ -185,12 +189,11 @@ method( defineModelAdministration, ModelAnalyticInfusionSteadyState ) = function
   return( model )
 }
 
-#' evaluateModel: evaluate the ModelAnalyticInfusion
+# ==============================================================================
+#' @rdname evaluateModel
 #' @name evaluateModel
-#' @param model An object of class \code{ModelAnalyticInfusionSteadyState} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return A list of dataframes that contains the results for the evaluation of the model.
 #' @export
+# ==============================================================================
 
 method( evaluateModel, ModelAnalyticInfusionSteadyState ) = function( model, arm ) {
 
@@ -356,23 +359,23 @@ method( evaluateModel, ModelAnalyticInfusionSteadyState ) = function( model, arm
   return( evaluationModel )
 }
 
-#' definePKModel
+# ==============================================================================
+#' @rdname definePKModel
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelAnalyticInfusionSteadyState} that defines the PK model in infusion.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
+
 
 method( definePKModel, list( ModelAnalyticInfusionSteadyState, PFIMProject ) ) = function( pkModel, pfimproject ) {
   pkModelEquations = prop( pkModel, "modelEquations")
   return( pkModelEquations )
 }
 
-#' definePKPDModel
+# ==============================================================================
+#' @rdname definePKPDModel
 #' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelAnalyticInfusionSteadyState} that defines the PK model in infusion steady state.
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
 #' @export
+# ==============================================================================
 
 method( definePKPDModel, list( ModelAnalyticInfusionSteadyState, ModelAnalytic, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
 
@@ -383,11 +386,3 @@ method( definePKPDModel, list( ModelAnalyticInfusionSteadyState, ModelAnalytic, 
                     afterInfusion  = c( pkModelEquations$afterInfusion, pdModelEquations ) )
   return( equations )
 }
-
-
-
-
-
-
-
-

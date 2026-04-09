@@ -3,21 +3,20 @@
 %   R/ModelODEInfusion.R
 \name{evaluateInitialConditions}
 \alias{evaluateInitialConditions}
-\title{evaluateInitialConditions: evaluate the initial conditions.}
+\title{evaluate the initial conditions.}
 \arguments{
 \item{arm}{A object of class \code{Arm} giving the arm.}
 
-\item{model}{A object of class \code{ModelODEInfusion} giving the model.}
+\item{model}{A object of class \code{Model} giving the model.}
 
 \item{doseEvent}{A data frame giving the dose event for the ode solver.}
 }
-\value{
-A list giving the evaluated initial conditions.
-}
 \description{
-evaluateInitialConditions: evaluate the initial conditions.
-
-evaluateInitialConditions: evaluate the initial conditions.
-
-evaluateInitialConditions: evaluate the initial conditions.
+evaluate the initial conditions.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

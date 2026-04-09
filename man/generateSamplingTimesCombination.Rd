@@ -2,13 +2,19 @@
 % Please edit documentation in R/Design.R
 \name{generateSamplingTimesCombination}
 \alias{generateSamplingTimesCombination}
-\title{generateSamplingTimesCombination: generate the combination for the samplings.}
+\title{Generate sampling time combinations}
 \arguments{
-\item{design}{An object \code{Design} giving the design.}
+\item{design}{An object \code{Design}.}
 }
 \value{
-samplingTimesCombinations used in the design optimization.
+A list of possible sampling time combinations for each arm.
 }
 \description{
-generateSamplingTimesCombination: generate the combination for the samplings.
+Generate sampling time combinations
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

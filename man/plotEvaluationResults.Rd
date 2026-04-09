@@ -2,25 +2,40 @@
 % Please edit documentation in R/Arm.R
 \name{plotEvaluationResults}
 \alias{plotEvaluationResults}
-\title{plotEvaluationResults: process for the evaluation of the responses.}
+\title{Plot model responses for an arm}
+\usage{
+plotEvaluationResults(
+  arm,
+  evaluationModel,
+  outputNames,
+  samplingData,
+  designName,
+  plotOptions
+)
+}
 \arguments{
-\item{arm}{A object of class \code{Arm} giving the arm.}
+\item{arm}{An object of class \code{Arm}.}
 
-\item{evaluationModel}{A list giving the evaluation of the model.}
+\item{evaluationModel}{A list of data frames from \code{evaluateModel}.}
 
-\item{outputNames}{A list of string giving the output of the evaluation of the model.}
+\item{outputNames}{A list of strings giving the output names.}
 
-\item{samplingData}{A list giving the sampling data from the method getSamplingData.}
-
-\item{unitXAxis}{A list giving the unit of the x-axis.}
-
-\item{unitYAxis}{A list giving the unit of the y-axis.}
+\item{samplingData}{A list from \code{getSamplingData}.}
 
 \item{designName}{A string giving the design name.}
+
+\item{plotOptions}{A list with \code{unitTime} and \code{unitOutcomes}.}
 }
 \value{
-A list giving the plot of the evaluation of the model responses.
+A named list of \code{ggplot} objects.
 }
 \description{
-plotEvaluationResults: process for the evaluation of the responses.
+Generates \code{ggplot2} line plots of model responses, overlaying design
+sampling points in red on the secondary x-axis.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

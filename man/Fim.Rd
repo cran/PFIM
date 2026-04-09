@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fim.R
 \name{Fim}
 \alias{Fim}
-\title{Fim}
+\title{Fisher Information Matrix (FIM) Class}
 \usage{
 Fim(
   fisherMatrix = numeric(0),
@@ -17,18 +17,30 @@ Fim(
 \arguments{
 \item{fisherMatrix}{A matrix giving the numerical values of the Fim.}
 
-\item{fixedEffects}{A matrix giving the numerical values of the fixedEffects of the Fim.}
+\item{fixedEffects}{A matrix giving the numerical values of the fixed effects of the Fim.}
 
-\item{varianceEffects}{A matrix giving the numerical values of varianceEffects of the Fim.}
+\item{varianceEffects}{A matrix giving the numerical values of variance effects of the Fim.}
 
-\item{SEAndRSE}{A data frame giving the value of the SE and RSE.}
+\item{SEAndRSE}{A data frame giving the calculated values of SE and RSE for parameters.}
 
-\item{condNumberFixedEffects}{The conditional number of the fixedEffects of the Fim.}
+\item{condNumberFixedEffects}{The condition number of the fixed effects portion of the Fim.}
 
-\item{condNumberVarianceEffects}{The conditional number of the varianceEffects of the Fim.}
+\item{condNumberVarianceEffects}{The condition number of the variance effects portion of the Fim.}
 
-\item{shrinkage}{A vector giving the shrinkage values.}
+\item{shrinkage}{A vector giving the shrinkage values for the random effects.}
+}
+\value{
+An object of class \code{Fim}.
 }
 \description{
-The class \code{Fim} represents and stores information for the Fim.
+The \code{Fim} class represents the Fisher Information Matrix in the context of
+population pharmacokinetics and pharmacodynamics. It acts as a container for
+the numerical matrix and derived statistical metrics used to evaluate design
+performance, such as parameter precision and shrinkage.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

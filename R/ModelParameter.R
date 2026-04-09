@@ -1,11 +1,41 @@
-#' ModelParameter
-#' @description The class \code{ModelParameter} is used to defined the model parameters.
-#' @title ModelParameter
-#' @param name A string giving the name of the parameter.
-#' @param distribution A string giving the distribution of the parameter.
-#' @param fixedMu A Boolean setting TRUE/FALSE if the mu is estimated or not.
-#' @param fixedOmega A Boolean setting TRUE/FALSE if the omega is estimated or not.
-#' @import Distribution.R
+#' @title ModelParameter Class
+#' @name ModelParameter
+#' @description
+#' The \code{ModelParameter} class defines the characteristics of a model parameter,
+#' including its identifier (name), statistical distribution (mean and variance),
+#' and the estimation status of its components.
+#' @slot name \code{character}. A unique string identifying the parameter.
+#' @slot distribution \code{Distribution}. An object of class \code{Distribution}
+#' defining the statistical law (e.g., Log-Normal, Normal).
+#' @slot fixedMu \code{logical}. If \code{TRUE}, the population mean is
+#' fixed and will not be estimated.
+#' @slot fixedOmega \code{logical}. If \code{TRUE}, the inter-individual
+#' variability (omega) is fixed and will not be estimated.
+#' @param name The parameter name (string).
+#' @param distribution A \code{Distribution} object.
+#' @param fixedMu Logical; indicates if the mean is fixed. Defaults to \code{FALSE}.
+#' @param fixedOmega Logical; indicates if the variance is fixed. Defaults to \code{FALSE}.
+#' @return An object of class \code{ModelParameter}.
+#' @examples
+#' # 1. Clearance with estimated mean and estimated variance (mu and omega)
+#' clEstimated = ModelParameter(
+#'   name         = "Cl",
+#'   distribution = LogNormal(mu = 0.28, omega = 0.456),
+#'   fixedMu      = FALSE,
+#'   fixedOmega   = FALSE
+#' )
+#' print(clEstimated)
+#'
+#' # 2. Clearance with fixed mean and fixed variance
+#' # Useful for parameters known from literature (e.g., mu = log(20) approx 2.99)
+#' clFixed = ModelParameter(
+#'   name         = "Cl",
+#'   distribution = LogNormal(mu = 2.99, omega = 0.1),
+#'   fixedMu      = TRUE,
+#'   fixedOmega   = TRUE
+#' )
+#' print(clFixed)
+#' @template copyright
 #' @export
 
 ModelParameter = new_class( "ModelParameter",
@@ -18,11 +48,27 @@ ModelParameter = new_class( "ModelParameter",
 
 getModelParametersData = new_generic( "getModelParametersData", c( "modelParameter" ) )
 
-#' getModelParametersData: get model parameters data for report.
+# ==============================================================================
+#' @title Extract Model Parameter Data for Reporting
 #' @name getModelParametersData
-#' @param modelParameter An object if class \code{Model} giving the model.
-#' @return A data frame with the data of all the parameters.
+#' @description
+#' The \code{getModelParametersData} function retrieves and summarizes the properties
+#' of all parameters within a \code{Model} object. It compiles their statistical
+#' characteristics—including distribution types, population means, and variability—into
+#' a structured \code{data.frame} suitable for display or export.
+#' @param model A \code{Model} object containing a collection of \code{ModelParameter} instances.
+#' @return A \code{data.frame} with the following columns:
+#' \itemize{
+#'   \item \code{Parameter}: The unique identifier of the parameter (e.g., "Cl", "V").
+#'   \item \code{Distribution}: The statistical law applied (e.g., "Normal", "Log-Normal").
+#'   \item \code{Mu}: The population mean value.
+#'   \item \code{Fixed_Mu}: Logical; \code{TRUE} if the mean is fixed (not estimated).
+#'   \item \code{Omega}: The inter-individual variability (IIV) value.
+#'   \item \code{Fixed_Omega}: Logical; \code{TRUE} if the variance is fixed.
+#' }
+#' @template copyright
 #' @export
+# ==============================================================================
 
 method( getModelParametersData, ModelParameter ) = function( modelParameter ) {
 

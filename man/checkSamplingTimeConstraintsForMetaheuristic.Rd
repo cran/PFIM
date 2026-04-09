@@ -2,19 +2,34 @@
 % Please edit documentation in R/SamplingTimeConstraints.R
 \name{checkSamplingTimeConstraintsForMetaheuristic}
 \alias{checkSamplingTimeConstraintsForMetaheuristic}
-\title{checkSamplingTimeConstraintsForMetaheuristic}
+\title{Validate New Sampling Schedules Against Constraints}
 \arguments{
-\item{samplingTimesConstraints}{An object \code{SamplingTimeConstraints}.}
+\item{samplingTimesConstraints}{An object of class \code{\link{SamplingTimeConstraints}}
+defining the allowed design space.}
 
-\item{arm}{An object \code{Arm}.}
+\item{arm}{An object of class \code{\link{Arm}} representing the experimental
+group being validated.}
 
-\item{newSamplings}{A vector of numeric for the new samplings.}
+\item{newSamplings}{A \code{vector} of numeric values representing the
+candidate sampling times proposed by the algorithm.}
 
-\item{outcome}{A string giving the outcome.}
+\item{outcome}{A \code{string} specifying the model output (e.g., "PK", "PD")
+to which these samples belong.}
 }
 \value{
-A boolean TRUE/FALSE, with a message error if FALSE.
+A \code{logical} value: \code{TRUE} if the design is valid,
+\code{FALSE} otherwise. If \code{FALSE}, a descriptive error message is
+usually printed to the console or stored in the optimization log.
 }
 \description{
-checkSamplingTimeConstraintsForMetaheuristic
+The \code{checkSamplingTimeConstraintsForMetaheuristic} method evaluates
+whether a proposed set of sampling times is feasible. It checks the
+timings against defined windows, fixed points, and minimum intervals
+required for clinical safety or logistical practicality.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

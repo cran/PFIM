@@ -2,13 +2,30 @@
 % Please edit documentation in R/ModelParameter.R
 \name{getModelParametersData}
 \alias{getModelParametersData}
-\title{getModelParametersData: get model parameters data for report.}
+\title{Extract Model Parameter Data for Reporting}
 \arguments{
-\item{modelParameter}{An object if class \code{Model} giving the model.}
+\item{model}{A \code{Model} object containing a collection of \code{ModelParameter} instances.}
 }
 \value{
-A data frame with the data of all the parameters.
+A \code{data.frame} with the following columns:
+\itemize{
+  \item \code{Parameter}: The unique identifier of the parameter (e.g., "Cl", "V").
+  \item \code{Distribution}: The statistical law applied (e.g., "Normal", "Log-Normal").
+  \item \code{Mu}: The population mean value.
+  \item \code{Fixed_Mu}: Logical; \code{TRUE} if the mean is fixed (not estimated).
+  \item \code{Omega}: The inter-individual variability (IIV) value.
+  \item \code{Fixed_Omega}: Logical; \code{TRUE} if the variance is fixed.
+}
 }
 \description{
-getModelParametersData: get model parameters data for report.
+The \code{getModelParametersData} function retrieves and summarizes the properties
+of all parameters within a \code{Model} object. It compiles their statistical
+characteristics—including distribution types, population means, and variability—into
+a structured \code{data.frame} suitable for display or export.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

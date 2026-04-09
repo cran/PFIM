@@ -3,7 +3,7 @@
 \docType{data}
 \name{LibraryOfPKModels}
 \alias{LibraryOfPKModels}
-\title{LibraryOfPKModels}
+\title{LibraryOfPKModels Class}
 \format{
 An object of class \code{PFIM::LibraryOfPKModels} (inherits from \code{PFIM::LibraryOfModels}, \code{S7_object}) of length 1.
 }
@@ -11,6 +11,24 @@ An object of class \code{PFIM::LibraryOfPKModels} (inherits from \code{PFIM::Lib
 LibraryOfPKModels
 }
 \description{
-The class \code{LibraryOfPKModels} represents and stores information for the LibraryOfPKModels.
+The \code{LibraryOfPKModels} class is a specialized container for managing
+and storing Pharmacokinetic (PK) model definitions.
+}
+\details{
+This class inherits from \code{LibraryOfModels}. It is specifically optimized
+to handle PK-specific attributes such as absorption types (e.g., Bolus,
+Infusion, Zero-Order), clearance structures, and compartmental volumes.
+}
+\section{Slots}{
+
+\describe{
+\item{\code{models}}{A named list of PK model structures (e.g., 1-compartment, 2-compartment).}
+}}
+
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }
 \keyword{datasets}

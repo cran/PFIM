@@ -2,7 +2,7 @@
 % Please edit documentation in R/LogNormal.R
 \name{adjustGradient}
 \alias{adjustGradient}
-\title{adjustGradient: adjust the gradient for the log normal distribution.}
+\title{Adjust the gradient for the log normal distribution.}
 \arguments{
 \item{distribution}{An object \code{Distribution} giving the distribution.}
 
@@ -12,5 +12,5 @@
 The adjusted gradient of the model responses.
 }
 \description{
-adjustGradient: adjust the gradient for the log normal distribution.
+Adjust the gradient for the log normal distribution.
 }

@@ -3,23 +3,27 @@
 %   R/PopulationFim.R
 \name{setEvaluationFim}
 \alias{setEvaluationFim}
-\title{setEvaluationFim: set the Fim results.}
+\title{Finalize and Set Population FIM Results}
 \arguments{
-\item{fim}{An object \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{\link{PopulationFim}} to be updated.}
 
-\item{evaluation}{An object \code{Evaluation} giving the evaluation of the model.}
+\item{evaluation}{An object of class \code{Evaluation} containing the
+outputs from the structural model and error engine.}
 }
 \value{
-The object \code{Fim} with its fisherMatrix, fixedEffects, shrinkage, condNumberFixedEffects, SEAndRSE.
-
-The object \code{IndividualFim} with its fisherMatrix, fixedEffects, shrinkage, condNumberFixedEffects, SEAndRSE.
-
-The object \code{PopulationFim} with its fisherMatrix, fixedEffects, shrinkage, condNumberFixedEffects, SEAndRSE.
+The updated \code{\link{PopulationFim}} object, with the following slots
+populated: \code{fisherMatrix}, \code{fixedEffects}, \code{shrinkage},
+\code{condNumberFixedEffects}, and \code{SEAndRSE}.
 }
 \description{
-setEvaluationFim: set the Fim results.
-
-setEvaluationFim: set the Fim results.
-
-setEvaluationFim: set the Fim results.
+The \code{setEvaluationFim} method processes the raw results from a model
+evaluation to populate the detailed statistical slots of a \code{\link{PopulationFim}}
+object. It transforms the Fisher Information Matrix into actionable
+metrics like Standard Errors (SE) and Relative Standard Errors (RSE).
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

@@ -2,17 +2,28 @@
 % Please edit documentation in R/LogNormal.R
 \name{LogNormal}
 \alias{LogNormal}
-\title{LogNormal}
+\title{LogNormal Class}
 \usage{
 LogNormal(name = character(0), mu = 0, omega = 0)
 }
 \arguments{
-\item{name}{A string giving the name of the distribution.}
+\item{name}{A string specifying the distribution type.}
 
-\item{mu}{A double giving the mean mu.}
+\item{mu}{A double representing the fixed effect value.}
 
-\item{omega}{A double giving omega.}
+\item{omega}{A double representing the random effect intensity.}
 }
 \description{
 The class \code{LogNormal} implements the LogNormal distribution.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\examples{
+# Set a Log-Normal distribution for a population parameter
+distribution = LogNormal(mu = 0.74, omega = 0.316)
+print(distribution)
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

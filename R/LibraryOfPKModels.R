@@ -1,6 +1,15 @@
-#' @description The class \code{LibraryOfPKModels} represents and stores information for the LibraryOfPKModels.
-#' @title LibraryOfPKModels
+#' @title LibraryOfPKModels Class
+#' @name LibraryOfPKModels
+#' @description
+#' The \code{LibraryOfPKModels} class is a specialized container for managing
+#' and storing Pharmacokinetic (PK) model definitions.
+#' @details
+#' This class inherits from \code{LibraryOfModels}. It is specifically optimized
+#' to handle PK-specific attributes such as absorption types (e.g., Bolus,
+#' Infusion, Zero-Order), clearance structures, and compartmental volumes.
+#' @slot models A named list of PK model structures (e.g., 1-compartment, 2-compartment).
 #' @include LibraryOfModels.R
+#' @template copyright
 #' @export
 
 LibraryOfPKModels = new_class( "LibraryOfPKModels", package = "PFIM", parent = LibraryOfModels )

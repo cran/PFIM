@@ -3,23 +3,31 @@
 %   R/PopulationFim.R
 \name{tablesForReport}
 \alias{tablesForReport}
-\title{tablesForReport: generate the table for the report.}
+\title{Generate Statistical Tables for Evaluation Reports}
 \arguments{
-\item{fim}{An object \code{PopulationFim} giving the Fim.}
+\item{fim}{An object of class \code{\link{PopulationFim}} containing the
+calculated Fisher Information Matrix and derived statistics.}
 
-\item{evaluation}{An object \code{Evaluation} giving the evaluation of the model.}
+\item{evaluation}{An object of class \code{Evaluation} providing the
+structural model context and output definitions.}
 }
 \value{
-fixedEffectsTable, FIMCriteriaTable, SEAndRSETable.
-
-fixedEffectsTable, FIMCriteriaTable, SEAndRSETable.
-
-fixedEffectsTable, FIMCriteriaTable, SEAndRSETable.
+A \code{list} containing three data frames:
+\describe{
+  \item{\code{fixedEffectsTable}}{Table of parameter names and values.}
+  \item{\code{FIMCriteriaTable}}{Summary of FIM-based optimality criteria.}
+  \item{\code{SEAndRSETable}}{Table of precision metrics (SE and RSE\%).}
+}
 }
 \description{
-tablesForReport: generate the table for the report.
-
-tablesForReport: generate the table for the report.
-
-tablesForReport: generate the table for the report.
+The \code{tablesForReport} method aggregates the results of a PFIM analysis
+into three standardized tables. It provides a structured view of parameter
+estimates, global design criteria, and the precision of the estimation
+(Standard Errors and Relative Standard Errors).
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

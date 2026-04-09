@@ -2,20 +2,33 @@
 % Please edit documentation in R/PopulationFim.R
 \name{computeVMat}
 \alias{computeVMat}
-\title{computeVMat}
+\title{Compute Variance Matrix Component}
 \usage{
 computeVMat(varParam1, varParam2, invCholV)
 }
 \arguments{
-\item{varParam1}{varParam1}
+\item{varParam1}{A numeric vector or matrix representing the first set of
+variance components (typically related to the linearized structural model).}
 
-\item{varParam2}{varParam2}
+\item{varParam2}{A numeric vector or matrix representing the second set of
+variance components (typically the residual error terms).}
 
-\item{invCholV}{invCholV}
+\item{invCholV}{A logical or numeric matrix used for the Inverse Cholesky
+decomposition of \eqn{V}, facilitating faster computation of the FIM and likelihood.}
 }
 \value{
-VMat
+A square, symmetric matrix representing the total variance \code{V}
+for the observations.
 }
 \description{
-computeVMat
+The \code{computeVMat} method calculates the V matrix for a given set of
+model parameters. In the context of population modeling, V represents
+the total variance of the data, integrating both the structural model
+sensitivity to random effects and the residual error components.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

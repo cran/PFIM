@@ -3,21 +3,25 @@
 %   R/PopulationFim.R
 \name{showFIM}
 \alias{showFIM}
-\title{showFIM: show the Fim in the R console.}
+\title{Display FIM Results in the R Console}
 \arguments{
-\item{fim}{An object \code{IndividualFim} giving the Fim.}
+\item{fim}{An object of class \code{IndividualFim} (or \code{PopulationFim})
+containing the computed results.}
 }
 \value{
-The fisherMatrix, fixedEffects, Determinant, condition numbers and D-criterion, Shrinkage and Parameters estimation
-
-The fisherMatrix, fixedEffects, Determinant, condition numbers and D-criterion, Shrinkage and Parameters estimation
-
-The fisherMatrix, fixedEffects, Determinant, condition numbers and D-criterion, Shrinkage and Parameters estimation
+This function returns a formatted summary to the console. It invisibly
+returns a list containing the \code{fisherMatrix}, \code{fixedEffects},
+\code{Determinant}, \code{conditionNumbers}, \code{D-criterion}, and \code{Shrinkage}.
 }
 \description{
-showFIM: show the Fim in the R console.
-
-showFIM: show the Fim in the R console.
-
-showFIM: show the Fim in the R console.
+The \code{showFIM} method provides a comprehensive summary of the Fisher Information
+Matrix (FIM) results. It prints structural and statistical metrics to the console,
+allowing the user to evaluate parameter precision, numerical stability, and
+optimization criteria for a specific design.
+}
+\note{
+Copyright (c) 2026-present Romain Leroux. All rights reserved.
+}
+\author{
+Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }
