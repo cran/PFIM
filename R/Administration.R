@@ -1,61 +1,43 @@
-#' @title Administration Class
-#' @name Administration
-#'
+#' Validate that every element of a list inherits from an S7 class.
+#' @param items List to check (empty lists are OK).
+#' @param class Target S7 class object.
+#' @param label Property path used in error messages.
+#' @param typeName Human-readable class name for the message.
+#' @return \code{NULL} if valid, otherwise an error string for the S7 validator.
+#' @noRd
+#' @keywords internal
+.validateS7List = function( items, class, label, typeName ) {
+  if ( !length( items ) )
+    return( NULL )
+  # Validators run on every prop<-: base inherits() on the S7 class name is
+  # what S7_inherits() checks, without its per-call overhead.
+  className = paste0( prop( class, "package" ), "::", prop( class, "name" ) )
+  isInstance = \( item ) inherits( item, className )
+  if ( every( items, isInstance ) )
+    return( NULL )
+  bad = detect_index( items, \( item ) !isInstance( item ) )
+  sprintf( "%s[[%d]] must be a %s object.", label, bad, typeName )
+}
+
+#' @title Administration
 #' @description
-#' The \code{Administration} class defines the dosing regimen for a specific
-#' model outcome. It stores comprehensive information regarding dose amounts,
-#' administration timings, infusion durations, and dosing intervals (tau).
+#' Dosing regimen for one outcome: dose amounts, times, infusion duration, and
+#' optional inter-dose interval (\code{tau}) for repeated dosing or steady state.
 #'
-#' @slot outcome \code{character}. The name of the model output (e.g., "PK").
-#' @slot timeDose \code{numeric vector}. The time points at which doses are administered.
-#' @slot dose \code{numeric vector}. The amount of drug administered at each time point.
-#' @slot Tinf \code{numeric vector}. The duration of the infusion (defaults to 0 for bolus).
-#' @slot tau \code{numeric}. The dosing interval for repeated doses or steady-state calculations.
-#'
-#' @param outcome A string identifying the target outcome for the administration.
-#' @param timeDose A numeric vector of dosing times.
-#' @param dose A numeric vector of dose amounts.
-#' @param Tinf A numeric vector specifying infusion durations.
-#' @param tau A numeric value representing the dosing interval (for multiple doses).
-#'
-#' @return An object of class \code{Administration}.
-#'
-#' @examples
-#'
-#' # Example 1: Single bolus dose at time 0
-#' administrationRespPK = Administration(
-#'   outcome  = "RespPK",
-#'   timeDose = 0,
-#'   dose     = 0.2
-#' )
-#' print( administrationRespPK )
-#'
-#' # Example 2: Multiple doses at various times
-#' administrationRespPK = Administration(
-#'   outcome  = "RespPK",
-#'   timeDose = c(0, 10, 20),
-#'   dose     = c(0.1, 0.2, 0.3)
-#' )
-#' print( administrationRespPK )
-#'
-#' # Example 3: Multiple doses with a 2-hour infusion duration
-#' administrationRespPK = Administration(
-#'   outcome  = "RespPK",
-#'   timeDose = c(0, 10, 20),
-#'   dose     = c( 0.1, 0.2, 0.3),
-#'   Tinf     = 2.0
-#' )
-#' print( administrationRespPK )
-#'
-#' # Example 4: Repeated dosing with a 5-hour interval (tau)
-#' administrationRespPK = Administration(
-#'   outcome = "RespPK",
-#'   dose    = c(0.1, 0.2, 0.3),
-#'   tau     = 5
-#' )
-#' print( administrationRespPK )
-#'
-#' @template copyright
+#' When \code{timeDose} has length 1 and \code{dose} is longer, solvers treat that
+#' as a shared administration time (see \code{.alignAdministrationDosing}).
+#' @param outcome Character string: model output receiving the dose.
+#'   Library models typically use the catalogue name (typically \code{"RespPK"}).
+#'   An \code{outputs} alias is accepted when it maps to a declared state; the
+#'   dose is applied to that state. User-written ODEs may use the compartment
+#'   name (\code{"Cc"}) or that alias. Sampling times may use either the state
+#'   or the alias.
+#' @param timeDose Numeric vector: administration times.
+#' @param dose Numeric vector: dose amounts (same length as \code{timeDose}, or
+#'   longer when \code{timeDose} has length 1 - replicated for each dose).
+#' @param Tinf Numeric vector: infusion duration (0 or omitted for bolus).
+#' @param tau Numeric: dosing interval for repeated doses or steady-state models.
+#' @return An S7 object of class \code{Administration}.
 #' @export
 
 Administration = new_class("Administration",
@@ -66,4 +48,51 @@ Administration = new_class("Administration",
                              dose = new_property(class_double, default = numeric(0)),
                              Tinf = new_property(class_double, default = numeric(0)),
                              tau = new_property(class_double, default = 0.0)
-                           ))
+                          ),
+                           validator = function( self ) {
+                             o = prop( self, "outcome" )
+                             if ( length( o ) > 1L )
+                               return( "Administration: outcome must be a single string." )
+                             if ( .pfimIsBlankScalar( o ) )
+                               return( "Administration: outcome must be a non-empty string." )
+                             td = prop( self, "timeDose" )
+                             d  = prop( self, "dose" )
+                             if ( length( td ) && any( !is.finite( td ) ) )
+                               return( "Administration: timeDose must be finite." )
+                             if ( length( d ) && any( !is.finite( d ) ) )
+                               return( "Administration: dose must be finite." )
+                             # Allow length(timeDose)==1 with multiple doses (legacy scripts).
+                             if ( length( td ) > 0L && length( d ) > 0L && length( td ) != length( d ) ) {
+                               if ( length( td ) != 1L )
+                                 return( "Administration: length(timeDose) must equal length(dose), unless timeDose has length 1." )
+                             }
+                             tau = prop( self, "tau" )
+                             if ( length( tau ) != 1L || !is.finite( tau ) || tau < 0 )
+                               return( "Administration: tau must be a non-negative finite number." )
+                             tinf = prop( self, "Tinf" )
+                             if ( length( tinf ) && any( !is.finite( tinf ) | tinf < 0 ) )
+                               return( "Administration: Tinf must be finite and non-negative." )
+                             NULL
+                           })
+
+#' Align administration dosing vectors for downstream solvers.
+#'
+#' Legacy PFIM scripts may specify a single \code{timeDose} with multiple
+#' \code{dose} values (e.g. \code{timeDose = 0}, \code{dose = c(200, 100)}).
+#' Replicates \code{timeDose} and \code{Tinf} so all three vectors share length.
+#' @param administration An \code{Administration} object.
+#' @return List with aligned \code{timeDose}, \code{dose}, and \code{Tinf}.
+#' @noRd
+#' @keywords internal
+.alignAdministrationDosing = function( administration ) {
+  timeDose = prop( administration, "timeDose" )
+  dose     = prop( administration, "dose" )
+  Tinf     = prop( administration, "Tinf" )
+
+  if ( length( timeDose ) == 1L && length( dose ) > 1L )
+    timeDose = rep( timeDose, length( dose ) )
+  if ( length( Tinf ) == 1L && length( dose ) > 1L && length( timeDose ) == length( dose ) )
+    Tinf = rep( Tinf, length( dose ) )
+
+  list( timeDose = timeDose, dose = dose, Tinf = Tinf )
+}

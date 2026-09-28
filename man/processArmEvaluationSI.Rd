@@ -2,33 +2,24 @@
 % Please edit documentation in R/Arm.R
 \name{processArmEvaluationSI}
 \alias{processArmEvaluationSI}
-\title{Process arm evaluation for sensitivity index plots}
+\title{Sensitivity-index plots for one arm}
 \usage{
-processArmEvaluationSI(arm, model, fim, designName, plotOptions, ...)
+processArmEvaluationSI(arm, model, fim, ...)
 }
 \arguments{
-\item{arm}{An object of class \code{Arm}.}
+\item{arm}{An \code{Arm} object.}
 
-\item{model}{An object of class \code{Model}.}
+\item{model}{A \code{Model} object.}
 
-\item{fim}{An object of class \code{Fim}.}
+\item{fim}{A \code{Fim} object.}
 
-\item{designName}{A string giving the name of the design.}
-
-\item{plotOptions}{A list with \code{unitTime} and \code{unitOutcomes}.}
-
-\item{...}{Additional arguments}
+\item{...}{Design label and plot options (see methods).}
 }
 \value{
-A named list of \code{ggplot} objects per design, arm, output, and parameter.
+Nested list of sensitivity-index plots by design and arm.
 }
 \description{
-Evaluates model gradients on a dense time grid and generates sensitivity
-index plots (partial derivatives of responses with respect to parameters).
+Re-evaluates gradients on the same dense grid as the response plots.
+Covariate \code{beta_*} columns are omitted from sensitivity plots.
 }
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
-}
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
-}
+\keyword{internal}

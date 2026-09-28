@@ -1,93 +1,278 @@
-#' @title ModelParameter Class
-#' @name ModelParameter
+#' @title ModelParameter
 #' @description
-#' The \code{ModelParameter} class defines the characteristics of a model parameter,
-#' including its identifier (name), statistical distribution (mean and variance),
-#' and the estimation status of its components.
-#' @slot name \code{character}. A unique string identifying the parameter.
-#' @slot distribution \code{Distribution}. An object of class \code{Distribution}
-#' defining the statistical law (e.g., Log-Normal, Normal).
-#' @slot fixedMu \code{logical}. If \code{TRUE}, the population mean is
-#' fixed and will not be estimated.
-#' @slot fixedOmega \code{logical}. If \code{TRUE}, the inter-individual
-#' variability (omega) is fixed and will not be estimated.
-#' @param name The parameter name (string).
-#' @param distribution A \code{Distribution} object.
-#' @param fixedMu Logical; indicates if the mean is fixed. Defaults to \code{FALSE}.
-#' @param fixedOmega Logical; indicates if the variance is fixed. Defaults to \code{FALSE}.
-#' @return An object of class \code{ModelParameter}.
-#' @examples
-#' # 1. Clearance with estimated mean and estimated variance (mu and omega)
-#' clEstimated = ModelParameter(
-#'   name         = "Cl",
-#'   distribution = LogNormal(mu = 0.28, omega = 0.456),
-#'   fixedMu      = FALSE,
-#'   fixedOmega   = FALSE
-#' )
-#' print(clEstimated)
-#'
-#' # 2. Clearance with fixed mean and fixed variance
-#' # Useful for parameters known from literature (e.g., mu = log(20) approx 2.99)
-#' clFixed = ModelParameter(
-#'   name         = "Cl",
-#'   distribution = LogNormal(mu = 2.99, omega = 0.1),
-#'   fixedMu      = TRUE,
-#'   fixedOmega   = TRUE
-#' )
-#' print(clFixed)
-#' @template copyright
+#' One population model parameter: distribution (mu, omega), optional IOV (gamma), and fix flags.
+#' @param name          Character string: name of the parameter.
+#' @param gamma         Numeric: the SD for inter-occasion variability (IOV).
+#'                      \code{gamma^2} is the IOV variance component; \code{0} means no IOV.
+#' @param distribution  An object of class \code{Distribution} for this parameter.
+#' @param fixedMu       Logical: TRUE if \code{mu} is fixed (not estimated).
+#' @param fixedOmega    Logical: TRUE if \code{omega} is fixed (not estimated).
+#' @param value         Reserved (unused); use \code{prop(distribution, "mu")} for reports and FIM.
+#' @include Distribution.R
+#' @include LogNormal.R
+#' @return An S7 object of class \code{ModelParameter}.
 #' @export
 
 ModelParameter = new_class( "ModelParameter",
                             package = "PFIM",
                             properties = list(
-                              name = new_property(class_character, default = character(0)),
-                              distribution =  new_property(Distribution, default = NULL),
-                              fixedMu = new_property(class_logical, default = FALSE),
-                              fixedOmega = new_property(class_logical, default = FALSE)))
+                              name         = new_property(class_character, default = character(0)),
+                              gamma        = new_property(class_double,    default = 0),
+                              distribution = new_property(NULL | Distribution, default = NULL),
+                              fixedMu      = new_property(class_logical,   default = FALSE),
+                              fixedOmega   = new_property(class_logical,   default = FALSE),
+                              value        = new_property(class_double,    default = numeric(0))
+                            ),
+                            validator = function( self ) {
+                              n = prop( self, "name" )
+                              if ( length( n ) > 1L )
+                                return( "ModelParameter: name must be a single string." )
+                              if ( .pfimIsBlankScalar( n ) )
+                                return( "ModelParameter: name must be a non-empty string." )
+                              g = prop( self, "gamma" )
+                              if ( length( g ) && ( is.na( g ) || g < 0 ) )
+                                return( "ModelParameter: gamma must be non-negative." )
+                              d = prop( self, "distribution" )
+                              if ( !is.null( d ) ) {
+                                om = prop( d, "omega" )
+                                if ( length( om ) && ( is.na( om ) || om < 0 ) )
+                                  return( "ModelParameter: omega must be non-negative." )
+                              }
+                              NULL
+                            })
 
-getModelParametersData = new_generic( "getModelParametersData", c( "modelParameter" ) )
-
-# ==============================================================================
-#' @title Extract Model Parameter Data for Reporting
-#' @name getModelParametersData
-#' @description
-#' The \code{getModelParametersData} function retrieves and summarizes the properties
-#' of all parameters within a \code{Model} object. It compiles their statistical
-#' characteristics—including distribution types, population means, and variability—into
-#' a structured \code{data.frame} suitable for display or export.
-#' @param model A \code{Model} object containing a collection of \code{ModelParameter} instances.
-#' @return A \code{data.frame} with the following columns:
-#' \itemize{
-#'   \item \code{Parameter}: The unique identifier of the parameter (e.g., "Cl", "V").
-#'   \item \code{Distribution}: The statistical law applied (e.g., "Normal", "Log-Normal").
-#'   \item \code{Mu}: The population mean value.
-#'   \item \code{Fixed_Mu}: Logical; \code{TRUE} if the mean is fixed (not estimated).
-#'   \item \code{Omega}: The inter-individual variability (IIV) value.
-#'   \item \code{Fixed_Omega}: Logical; \code{TRUE} if the variance is fixed.
-#' }
-#' @template copyright
-#' @export
-# ==============================================================================
-
-method( getModelParametersData, ModelParameter ) = function( modelParameter ) {
-
-  modelParametersData = list(modelParameter) %>%
-    map(function(parameter) {
-      dist = prop(parameter, "distribution")
-      list(
-        Parameters = prop(parameter, "name"),
-        mu = as.character(prop(dist, "mu")),
-        omega2 = as.character(prop(dist, "omega")^2),
-        Distribution = str_remove(class(dist)[1], "PFIM::"),
-        mu_fixed = as.character(prop(parameter, "fixedMu")),
-        omega2_fixed = as.character(prop(parameter, "fixedOmega"))
-      )
-    }) %>%
-    map(~ as.data.frame(.x, stringsAsFactors = FALSE)) %>%
-    list_rbind()
-
-  return( modelParametersData )
-
+#' Read one field from a parameter's distribution slot.
+#' @param parameter A \code{ModelParameter} object.
+#' @param field Character field name (\code{"mu"} or \code{"omega"}).
+#' @return Value of the requested distribution field.
+#' @noRd
+#' @keywords internal
+.paramDist = function( parameter, field ) {
+  prop( prop( parameter, "distribution" ), field )
 }
 
+#' Typical value used when a parameter may be a fixed constant.
+#'
+#' Distribution \code{mu} when a distribution is set; otherwise the \code{value}
+#' slot (\code{ModelParameter(name, value =)}).
+#' @noRd
+#' @keywords internal
+.paramReportedMu = function( parameter ) {
+  d = prop( parameter, "distribution" )
+  if ( is.null( d ) ) {
+    v = prop( parameter, "value" )
+    if ( length( v ) == 1L && is.finite( v ) ) v else NA_real_
+  } else {
+    prop( d, "mu" )
+  }
+}
+
+#' IIV standard deviation; \code{0} for a fixed constant with no distribution.
+#' @noRd
+#' @keywords internal
+.paramReportedOmega = function( parameter ) {
+  d = prop( parameter, "distribution" )
+  if ( is.null( d ) ) 0 else prop( d, "omega" )
+}
+
+#' Whether \code{mu} is estimable (unfixed).
+#'
+#' \code{Normal(mu = 0)} stays estimable. \code{LogNormal(mu = 0)} is degenerate
+#' (\eqn{\theta = 0}) and is treated as non-estimable with a one-shot warning.
+#' @param parameter A \code{ModelParameter} object.
+#' @return Logical scalar.
+#' @noRd
+#' @keywords internal
+.paramMuEstimable = function( parameter ) {
+  if ( isTRUE( prop( parameter, "fixedMu" ) ) ) return( FALSE )
+  d  = prop( parameter, "distribution" )
+  if ( is.null( d ) ) return( FALSE )
+  mu = prop( d, "mu" )
+  if ( S7::S7_inherits( d, LogNormal ) && length( mu ) && isTRUE( mu == 0 ) ) {
+    .pfimWarnOnce(
+      "param.mu.zero.lognormal",
+      "LogNormal(mu = 0) for parameter '", prop( parameter, "name" ),
+      "' is non-estimable (degenerate typical value).",
+      id = prop( parameter, "name" )
+    )
+    return( FALSE )
+  }
+  TRUE
+}
+
+#' Whether \code{mu} is treated as fixed in the FIM.
+#' @param parameter A \code{ModelParameter} object.
+#' @return Logical scalar.
+#' @noRd
+#' @keywords internal
+.paramMuFixed = function( parameter ) {
+  !.paramMuEstimable( parameter )
+}
+
+#' Whether a parameter carries IIV (\eqn{\omega > 0}), ignoring fix flags.
+#'
+#' Population FIM drops \eqn{\mu} via \code{fixedMu} and \eqn{\omega^2} via
+#' \code{fixedOmega} independently. Bayesian MAP still has
+#' \eqn{\eta\sim N(0,\omega^2)} whenever \eqn{\omega>0}.
+#' @noRd
+#' @keywords internal
+.paramHasIiv = function( parameter ) {
+  # Constants given only via value= have no distribution and no IIV.
+  if ( is.null( prop( parameter, "distribution" ) ) ) return( FALSE )
+  .paramDist( parameter, "omega" ) > 0
+}
+
+#' IOV standard deviation \eqn{\gamma} (\code{0} when unset).
+#' @noRd
+#' @keywords internal
+.paramGamma = function( parameter ) {
+  gamma = prop( parameter, "gamma" )
+  if ( length( gamma ) ) gamma else 0
+}
+
+#' IOV standard deviations of a parameter list (unnamed numeric vector).
+#' @noRd
+#' @keywords internal
+.paramGammas = function( parameters ) {
+  map_dbl( unname( parameters ), .paramGamma )
+}
+
+#' IIV standard deviations \eqn{\omega} of a parameter list (all must have a distribution).
+#' @noRd
+#' @keywords internal
+.paramOmegas = function( parameters ) {
+  map_dbl( parameters, \( p ) .paramDist( p, "omega" ) )
+}
+
+#' Whether a parameter carries IOV (\eqn{\gamma > 0}), ignoring fix flags.
+#' @noRd
+#' @keywords internal
+.paramHasIov = function( parameter ) {
+  .paramGamma( parameter ) > 0
+}
+
+#' Bayesian eta-parameter list: every parameter with \eqn{\omega > 0}.
+#' @noRd
+#' @keywords internal
+.pfimBayesianEtaParameters = function( parameters ) {
+  parameters[ map_lgl( parameters, .paramHasIiv ) ]
+}
+
+#' Whether \code{omega} is estimable (\eqn{\omega > 0} and not \code{fixedOmega}).
+#'
+#' Independent of \code{fixedMu}: a typical value may be fixed while its IIV
+#' is still estimated.
+#' @param parameter A \code{ModelParameter} object.
+#' @return Logical scalar.
+#' @noRd
+#' @keywords internal
+.paramOmegaEstimable = function( parameter ) {
+  !isTRUE( prop( parameter, "fixedOmega" ) ) &&
+    .paramHasIiv( parameter )
+}
+
+#' Whether \code{omega} is treated as fixed in the FIM.
+#' @param parameter A \code{ModelParameter} object.
+#' @return Logical scalar.
+#' @noRd
+#' @keywords internal
+.paramOmegaFixed = function( parameter ) {
+  !.paramOmegaEstimable( parameter )
+}
+
+#' Whether \code{gamma} (IOV SD) is estimable.
+#'
+#' Requires \code{gamma > 0} and unfixed omega (IOV shares the omega fix flag).
+#' @param parameter A \code{ModelParameter} object.
+#' @return Logical scalar.
+#' @noRd
+#' @keywords internal
+.paramGammaEstimable = function( parameter ) {
+  .paramHasIov( parameter ) && !isTRUE( prop( parameter, "fixedOmega" ) )
+}
+
+#' Whether any parameter carries positive IOV (\code{gamma > 0}).
+#' @param parameters List of \code{ModelParameter} objects.
+#' @return Logical scalar.
+#' @noRd
+#' @keywords internal
+.hasIovParameters = function( parameters ) {
+  any( .paramGammas( parameters ) > 0 )
+}
+
+#' Names of parameters matching \code{predicate}, with optional prefix.
+#' @param parameters List of \code{ModelParameter} objects.
+#' @param predicate Function returning logical for one parameter.
+#' @param prefix Character prefix (e.g. \code{"mu_"}).
+#' @return Character vector of labelled names.
+#' @noRd
+#' @keywords internal
+.paramLabelNames = function( parameters, predicate, prefix = "" ) {
+  parameters |>
+    keep( predicate ) |>
+    map_chr( \( x ) paste0( prefix, prop( x, "name" ) ) )
+}
+
+#' Names of estimable \code{mu} parameters (\code{prefix} optional: \code{"mu_"}, greek, etc.).
+#' @param parameters List of \code{ModelParameter} objects.
+#' @param prefix Character prefix prepended to each name.
+#' @return Character vector of estimable mu labels.
+#' @noRd
+#' @keywords internal
+.estimableMuNames = function( parameters, prefix = "" ) {
+  .paramLabelNames( parameters, .paramMuEstimable, prefix )
+}
+
+#' IIV variances (\code{omega^2}) for estimable random effects.
+#' @param parameters List of \code{ModelParameter} objects.
+#' @return Numeric vector of omega-squared values.
+#' @noRd
+#' @keywords internal
+.paramOmegaSqValues = function( parameters ) {
+  parameters |>
+    keep( .paramOmegaEstimable ) |>
+    map_dbl( \( x ) .paramDist( x, "omega" )^2 )
+}
+
+#' IOV variances (\code{gamma^2}) for estimable occasion effects.
+#' @param parameters List of \code{ModelParameter} objects.
+#' @return Numeric vector of gamma-squared values.
+#' @noRd
+#' @keywords internal
+.paramGammaSqValues = function( parameters ) {
+  parameters |>
+    keep( .paramGammaEstimable ) |>
+    map_dbl( \( x ) .paramGamma( x )^2 )
+}
+
+#' @rdname getModelParametersData
+#' @usage getModelParametersData(modelParameter, ...)
+#' @param ... Passed to the S7 method.
+#' @export
+getModelParametersData = new_generic( "getModelParametersData", c( "modelParameter" ) )
+
+#' Parameter table for reports (mu, omega2, gamma2, fix flags, distribution)
+#'
+#' @description
+#' Parameter table for reports (mu, omega2, gamma2, fix flags, distribution).
+#' @param modelParameter A \code{ModelParameter} object.
+#' @return A data frame of model parameter values.
+#' @name getModelParametersData
+method( getModelParametersData, ModelParameter ) = function( modelParameter ) {
+
+  list( modelParameter ) |>
+    map( function( parameter ) {
+      dist = prop( parameter, "distribution" )
+      list(
+        Parameters   = prop( parameter, "name"      ),
+        mu           = as.character( .paramReportedMu( parameter ) ),
+        omega2       = as.character( .paramReportedOmega( parameter )^2 ),
+        gamma2       = as.character( prop( parameter, "gamma" )^2 ),
+        Distribution = if ( is.null( dist ) ) "fixed" else str_remove( class( dist )[1], "PFIM::" ),
+        mu_fixed     = as.character( .paramMuFixed( parameter ) ),
+        omega2_fixed = as.character( .paramOmegaFixed( parameter ) )
+      )
+    }) |>
+    map( \( x ) as.data.frame( x, stringsAsFactors = FALSE ) ) |>
+    list_rbind()
+}

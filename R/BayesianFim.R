@@ -1,559 +1,393 @@
-# Copyright (c) 2026-present Romain Leroux. All rights reserved.
-
-#' @title BayesianFim Class
-#' @name BayesianFim
-#'
+#' @title BayesianFim
 #' @description
-#' The \code{BayesianFim} class stores the Bayesian Fisher Information Matrix (FIM).
-#' It extends the standard \code{Fim} class by incorporating Bayesian-specific
-#' metrics, such as the shrinkage of individual parameters.
+#' Bayesian Fisher information matrix with shrinkage on random effects.
 #'
-#' @slot fisherMatrix \code{matrix}. The numerical values of the Bayesian FIM.
-#' @slot shrinkage \code{numeric vector}. The shrinkage values for each random effect.
-#' @slot fixedEffects \code{matrix}. The FIM components related to fixed effects.
-#' @slot varianceEffects \code{matrix}. The FIM components related to variance components (random effects).
-#' @slot SEAndRSE \code{data.frame}. Standard Errors (SE) and Relative Standard Errors (RSE).
-#' @slot condNumberFixedEffects \code{numeric}. The condition number for the fixed effects sub-matrix.
-#' @slot condNumberVarianceEffects \code{numeric}. The condition number for the variance effects sub-matrix.
+#' First-order linearization on the random-effect scale. Covariate \code{beta} is not a
+#' subject parameter (MAP conditions on \eqn{\beta}) and is omitted. Across
+#' strata / arms, subject FIMs keep their prior and are aggregated by averaging
+#' covariances: \eqn{\bar C = \sum w_s M_s^{-1}}, \eqn{M_{\mathrm{eff}}=\bar C^{-1}}.
+#' A positive weight on a non-identifiable protocol yields \code{Inf} SE for the
+#' null-space parameters. This covariance mixture is not comparable to summing
+#' Fisher matrices (PFIM 6 / PopED on this case).
 #'
-#' @param fisherMatrix A numerical matrix representing the FIM.
-#' @param shrinkage A numeric vector representing parameter shrinkage.
-#' @param fixedEffects A matrix representing fixed effects information.
-#' @param varianceEffects A matrix representing variance components information.
-#' @param SEAndRSE A data frame containing calculated SE and RSE values.
-#' @param condNumberFixedEffects A numeric value for the fixed effects condition number.
-#' @param condNumberVarianceEffects A numeric value for the variance effects condition number.
+#' With IOV (\eqn{\gamma>0}), each occasion uses the marginal FO residual
+#' \eqn{V_k = R_k + F_k\,\mathrm{diag}(\gamma^2)\,F_k^\top} on the \eqn{\eta}-scale
+#' (equivalent to the \eqn{\eta} block of the augmented \eqn{(\eta,\kappa)} system).
 #'
+#' @inheritParams Fim
+#' @return A \code{BayesianFim} object (filled by \code{run()}).
+#' @examples
+#' \dontrun{
+#' vignette("Example01")
+#' }
 #' @include Fim.R
-#' @include MultiplicativeAlgorithm.R
-#' @include FedorovWynnAlgorithm.R
-#'
-#' @template copyright
+#' @include pfim-fim-report-render.R
+#' @include PFIMProject.R
 #' @export
 
 BayesianFim = new_class( "BayesianFim",
-                         package = "PFIM",
-                         parent = Fim,
-                         properties = list(
-                           fisherMatrix = new_property(class_double, default = 0.0),
-                           fixedEffects = new_property(class_double, default = 0.0),
-                           varianceEffects = new_property(class_double, default = 0.0),
-                           SEAndRSE = new_property(class_list, default = list()),
-                           condNumberFixedEffects = new_property(class_double, default = 0.0),
-                           condNumberVarianceEffects = new_property(class_double, default = 0.0),
-                           shrinkage = new_property(class_double, default = 0.0)
-                         ))
+                         package    = "PFIM",
+                         parent     = Fim
+)
+S4_register( BayesianFim )
 
-# ==============================================================================
-#' @rdname evaluateFim
-#' @name evaluateFim
-#' @export
-# ==============================================================================
-
-method( evaluateFim, list( BayesianFim, Model, Arm ) ) = function( fim, model, arm ) {
-
-  parameters = prop( model, "modelParameters" )
-  gradient = prop( arm, "evaluationGradients" ) %>% reduce( rbind ) %>% as.matrix()
-
-  # variance for the FIM
-  evaluateVarianceFIM = evaluateVarianceFIM( fim, model, arm )
-  V = evaluateVarianceFIM$V
-
-  # matrix MFBeta
-  MFbeta = crossprod( gradient, chol2inv( chol( V ) ) ) %*% gradient
-
-  # set mu for distribution Normal & LogNormal
-  mu = map_dbl( parameters, ~ { if ( is( prop( .x, "distribution" ), "PFIM::Normal" ) ) 1 else .x@distribution@mu } ) %>%
-    { if(length(.) == 1) as.numeric(.) else diag(.) }
-
-  omega = parameters %>% map_dbl( ~ pluck( .x, "distribution", "omega" ) ) %>% { if(length(.) == 1) as.numeric(.) else diag(.^2) }
-
-  # fixed parameters
-  indexFixedMu = which( map_lgl( parameters, ~ .x@distribution@mu == 0 || prop(.x, "fixedMu") == TRUE ) )
-  indexFixeddOmega = which( map_lgl( parameters, ~ .x@distribution@omega == 0 || prop(.x, "fixedOmega") == TRUE ) )
-  indexFixed = unique( c( indexFixedMu, indexFixeddOmega ) )
-
-  if ( length( indexFixed ) != 0 ) {
-    mu = mu[ -c(indexFixed), -c(indexFixed) ]
-    omega = omega[ -c(indexFixed), -c(indexFixed) ]
-    MFbeta = MFbeta[ -c(indexFixed), -c(indexFixed) ] }
-
-  MFbeta = t( mu ) %*% MFbeta %*% mu + solve( mu %*% omega %*% mu )
-  prop( fim, "fisherMatrix" ) = as.matrix( MFbeta )
-
-  # shrinkage parameters
-  prop( fim, "shrinkage" ) = diag( chol2inv( chol( MFbeta ) ) %*% chol2inv( chol( mu %*% omega %*% mu ) ) ) * 100 %>% as.vector()
-
-  return( fim )
+# Estimable mu names with Greek prefix (setEvaluationFim, plots, ...).
+#' Build estimable parameter labels for Bayesian outputs.
+#' @param parameters List of \code{ModelParameter} objects.
+#' @param greekPrefix Character prefix added to each parameter name.
+#' @return Character vector of estimable parameter labels.
+#' @noRd
+#' @keywords internal
+.bayesianEstimableParamNames = function( parameters, greekPrefix ) {
+  .pfimBayesianEtaParameters( parameters ) |>
+    map_chr( \( x ) prop( x, "name" ) ) |>
+    map_chr( \( x ) paste0( greekPrefix, x ) )
 }
 
-# ==============================================================================
-#' @rdname evaluateVarianceFIM
+#' Prior covariance \eqn{\Omega} on the random-effect (\eqn{\eta}) scale.
+#'
+#' For the Bayesian FIM, \eqn{\Omega = \mathrm{diag}(\omega^2)} even when
+#' the data block is transformed by \eqn{M = \mathrm{diag}(\mu)} (LogNormal).
+#' Always returns a matrix (including the 1x1 case) for \code{.safeSolve()}.
+#' @noRd
+#' @keywords internal
+.bayesianOmega = function( omegaPk ) {
+  n = length( omegaPk )
+  if ( !n )
+    return( matrix( numeric( 0L ), 0L, 0L ) )
+  diag( omegaPk^2, nrow = n )
+}
+
+#' Prior precision \eqn{\Omega^{-1} = \mathrm{diag}(1/\omega^2)}.
+#' Prefer this over \code{.safeSolve(.bayesianOmega(...))} - Omega is diagonal.
+#' @noRd
+#' @keywords internal
+.bayesianOmegaInv = function( omegaPk ) {
+  n = length( omegaPk )
+  if ( !n )
+    return( matrix( numeric( 0L ), 0L, 0L ) )
+  diag( 1 / ( omegaPk^2 ), nrow = n )
+}
+
+#' Shrinkage (%) from PK FIM block and prior covariance on \eqn{\eta}.
+#'
+#' \eqn{W = M_{\mathrm{BF}}^{-1} \Omega^{-1}} (ratio of posterior
+#' to prior variance on the random-effect scale), reported as percent.
+#' @noRd
+.bayesianShrinkageFromPrior = function( MF_pk, priorVariance ) {
+  # priorVariance is Omega (diagonal); invert elementwise rather than via chol.
+  omegaInv = if ( is.matrix( priorVariance ) && nrow( priorVariance ) == ncol( priorVariance ) )
+    diag( 1 / diag( priorVariance ), nrow = nrow( priorVariance ) )
+  else
+    .safeCholInv( priorVariance )
+  # Singular Bayesian FIM: same pseudo-inverse SE path as .fimBuildSeAndRse.
+  MF_inv = tryCatch(
+    .safeCholInv( MF_pk ),
+    error = function( e ) {
+      W = .pfimPsdPseudoInverse( MF_pk )
+      W[ !is.finite( W ) ] = 0
+      0.5 * ( W + t( W ) )
+    }
+  )
+  as.vector( diag( MF_inv %*% omegaInv ) * 100 )
+}
+
+#' @noRd
+.bayesianShrinkageValues = function( shrinkage ) {
+  if ( !is.matrix( shrinkage ) )
+    return( as.numeric( shrinkage ) )
+  if ( nrow( shrinkage ) == 1L )
+    return( as.numeric( shrinkage[ 1L, , drop = TRUE ] ) )
+  if ( ncol( shrinkage ) == 1L )
+    return( as.numeric( shrinkage[ , 1L, drop = TRUE ] ) )
+  as.numeric( shrinkage )
+}
+
+#' Console mu-labels aligned with stored Bayesian shrinkage.
+#' @noRd
+#' @keywords internal
+.bayesianShrinkageMuLabels = function( shrinkage, evaluation ) {
+  muPrefix = .greekConsole[ "mu" ]
+  cols     = character( 0L )
+  if ( is.matrix( shrinkage ) ) {
+    if ( nrow( shrinkage ) == 1L && !is.null( colnames( shrinkage ) ) )
+      cols = colnames( shrinkage )
+    else if ( ncol( shrinkage ) == 1L && !is.null( rownames( shrinkage ) ) )
+      cols = rownames( shrinkage )
+  }
+  if ( !length( cols ) || identical( cols, "Shrinkage" ) ) {
+    n    = length( .bayesianShrinkageValues( shrinkage ) )
+    est  = .bayesianEstimableParamNames( prop( evaluation, "modelParameters" ), muPrefix )
+    fe   = .fimFixedEffectLabels( evaluation )$columnNamesMu
+    cols = if ( length( est ) == n ) est else if ( length( fe ) == n ) fe else est
+  }
+  .stripGreekPrefix( cols, muPrefix )
+}
+
+#' Map one shrinkage label onto an SE/RSE row (exact name, else mu-prefixed bare name).
+#' @noRd
+#' @keywords internal
+.bayesianMatchShrinkageRow = function( name, rn, muPrefix ) {
+  j = match( name, rn )
+  if ( !is.na( j ) )
+    return( j )
+  match( paste0( muPrefix, .stripGreekPrefix( name, muPrefix ) ), rn )
+}
+
+#' Align Bayesian shrinkage values to SE/RSE table rows (mu only; beta stays NA).
+#' @noRd
+#' @keywords internal
+.bayesianShrinkageReportColumn = function( seDF, shrinkage ) {
+  rn     = .pfimSeRownames( seDF, "BayesianFim tablesForReport" )
+  out    = rep( NA_real_, nrow( seDF ) )
+  shVals = .bayesianShrinkageValues( shrinkage )
+  if ( !length( shVals ) )
+    return( out )
+
+  greek   = .greekConsole
+  muIdx   = which( startsWith( rn, greek[ "mu" ] ) )
+  shMat   = as.matrix( shrinkage )
+  shNames = colnames( shMat )
+
+  if ( length( shNames ) == length( shVals ) && length( shNames ) ) {
+    j = map_int( shNames, \( nm ) .bayesianMatchShrinkageRow( nm, rn, greek[ "mu" ] ) )
+    ok = !is.na( j )
+    out[ j[ ok ] ] = shVals[ ok ]
+    unmatched = sum( !ok )
+    if ( unmatched > 0L )
+      .pfimWarn(
+        sprintf(
+          "BayesianFim tablesForReport: %d shrinkage label(s) did not match FIM rows.",
+          unmatched
+        )
+      )
+  } else if ( length( shVals ) == length( muIdx ) ) {
+    out[ muIdx ] = shVals
+  } else {
+    .pfimWarn(
+      sprintf(
+        "BayesianFim tablesForReport: shrinkage length (%d) != mu rows (%d); leaving NA.",
+        length( shVals ), length( muIdx )
+      )
+    )
+  }
+  out
+}
+
+#' @noRd
+.bayesianShrinkageMatrix = function( shrinkage, shrinkageCols ) {
+  matrix(
+    .bayesianShrinkageValues( shrinkage ),
+    nrow = 1L,
+    dimnames = list( "Shrinkage", shrinkageCols )
+  )
+}
+
+#' PK prior covariance and shrinkage from a Bayesian FIM block.
+#' @noRd
+#' @keywords internal
+.bayesianShrinkage = function( fisherMatrix, model ) {
+
+  parameters    = .pfimBayesianEtaParameters( prop( model, "modelParameters" ) )
+  omegaPk       = .paramOmegas( parameters )
+  priorVariance = .bayesianOmega( omegaPk )
+  nEta          = length( omegaPk )
+  MF_pk         = as.matrix( fisherMatrix )
+  if ( nrow( MF_pk ) != nEta || ncol( MF_pk ) != nEta ) {
+    # Legacy layouts with trailing beta / fixed columns: take the leading eta block.
+    if ( nrow( MF_pk ) >= nEta )
+      MF_pk = MF_pk[ seq_len( nEta ), seq_len( nEta ), drop = FALSE ]
+  }
+  .bayesianShrinkageFromPrior( MF_pk, priorVariance )
+}
+
+#' Variance / data block of the Bayesian FIM (mu only; no beta, no sigma).
+#'
+#' Flat: \eqn{G^\top V^{-1} G}. Nested cov/IOV: harmonic mean of subject
+#' FIMs (prior included per stratum).
 #' @name evaluateVarianceFIM
-#' @export
-# ==============================================================================
+#' @keywords internal
 
 method( evaluateVarianceFIM, list( BayesianFim, Model, Arm ) ) = function( fim, model, arm ) {
 
-  parameters = prop( model, "modelParameters")
-  parameterNames = map_chr( prop( model, "modelParameters"), ~ prop( .x, "name" ) )
+  feCols = .pfimBayesianMuCols( model, arm )
 
-  # responses gradient
-  gradient = prop( arm, "evaluationGradients" ) %>% reduce( rbind ) %>% { .[, parameterNames, drop = FALSE ] } %>% as.matrix()
-
-  # evaluation variance & MFBeta
-  evaluationVariance = prop( arm, "evaluationVariance" )
-  V = bdiag( evaluationVariance$errorVariance )
-  MFbeta = crossprod( gradient, chol2inv( chol(V) ) ) %*% gradient
-
-  return( list( MFbeta = MFbeta, V = V ) )
-}
-
-# ==============================================================================
-#' @rdname setOptimalArms
-#' @name setOptimalArms
-#' @export
-# ==============================================================================
-
-method( setOptimalArms, list( BayesianFim, MultiplicativeAlgorithm ) ) = function( fim, optimizationAlgorithm ) {
-
-  # get the parameters of the MultiplicativeAlgorithm
-  multiplicativeAlgorithmOutputs = prop( optimizationAlgorithm, "multiplicativeAlgorithmOutputs" )
-
-  # get the inputs arms and FIMs for the MultiplicativeAlgorithm
-  armFims = multiplicativeAlgorithmOutputs$armFims
-  multiplicativeAlgorithmOutput = multiplicativeAlgorithmOutputs$multiplicativeAlgorithmOutput
-
-  # get the parameters of the MultiplicativeAlgorithm
-  weightThreshold = multiplicativeAlgorithmOutputs$weightThreshold
-
-  # weights: threshold with user threshold and normalization sum = 1
-  weights = multiplicativeAlgorithmOutput[["weights"]]
-  weightsIndex = which( weights > weightThreshold )
-
-  armList = list()
-  for( weightIndex in weightsIndex )
-  {
-    arm = pluck( armFims[[weightIndex]], 1 )
-    prop( arm, "size" ) = 1
-    prop( arm, "name" ) = paste0( "Arm", weightIndex )
-    armList = append( armList, arm )
+  if ( .isNestedArmEvaluation( prop( arm, "evaluationGradients" ) ) ) {
+    harm = .evaluateIndBayesMixtureFim( model, arm, feCols, bayesian = TRUE )
+    return( list( MFbeta = harm$fisherMatrix, V = NULL, complete = TRUE ) )
   }
 
-  # sort by decreasing order
-  sizes = map_dbl( armList, "size" )
-  orderIndices = rev( order( sizes ) )
-  optimalArms = armList[orderIndices]
+  gradient = .gradientMatrix( arm, feCols, model )
+  V        = as.matrix( getArmEvaluationVarianceFlat( arm )$errorVariance )
+  V_inv    = tryCatch(
+    .safeCholInv( V ),
+    error = function( e ) {
+      W = .pfimPsdPseudoInverse( V )
+      W[ !is.finite( W ) ] = 0
+      0.5 * ( W + t( W ) )
+    }
+  )
+  MFbeta   = crossprod( gradient, V_inv ) %*% gradient
 
-  return( optimalArms )
+  list( MFbeta = MFbeta, V = V, complete = FALSE )
 }
 
-# ==============================================================================
-#' @rdname setOptimalArms
-#' @name setOptimalArms
-#' @export
-# ==============================================================================
+#' Compute the Bayesian FIM for one arm.
+#'
+#' FO Bayesian FIM: \eqn{M^\top M_{\mathrm{data}} M + \Omega^{-1}} for every
+#' parameter with \eqn{\omega > 0} (\eqn{\beta} omitted; fix flags do not drop
+#' eta). Shrinkage (\%) uses \eqn{M_{\mathrm{BF}}^{-1}\Omega^{-1}}.
+#' @name evaluateFim
+#' @keywords internal
 
-method( setOptimalArms, list( BayesianFim, FedorovWynnAlgorithm ) ) = function( fim, optimizationAlgorithm ) {
+method( evaluateFim, list( BayesianFim, Model, Arm ) ) = function( fim, model, arm ) {
 
-  # get the parameters
-  FedorovWynnAlgorithmOutputs = prop( optimizationAlgorithm, "FedorovWynnAlgorithmOutputs" )
+  varBlock = evaluateVarianceFIM( fim, model, arm )
+  MFbeta   = as.matrix( varBlock$MFbeta )
+  M        = if ( isTRUE( varBlock$complete ) ) MFbeta else .pfimBayesianSubjectFim( MFbeta, model )
 
-  optimalFrequencies = FedorovWynnAlgorithmOutputs$optimalFrequencies
-  numberOfIndividuals = FedorovWynnAlgorithmOutputs$numberOfIndividuals
-  listArms = FedorovWynnAlgorithmOutputs$listArms
+  parameters    = .pfimBayesianEtaParameters( prop( model, "modelParameters" ) )
+  priorVariance = .bayesianOmega( .paramOmegas( parameters ) )
 
-  optimalArms = imap( listArms, ~ {
-    prop(.x$arm, "name") = paste0("Arm", .y)
-    prop(.x$arm, "size") = 1
-    .x
-  })
-
-  return( optimalArms )
+  set_props( fim, fisherMatrix = M, shrinkage = .bayesianShrinkageFromPrior( M, priorVariance ) )
 }
 
-# ==============================================================================
-#' @rdname setEvaluationFim
+#' Attach evaluated Bayesian FIM results (labels, SE/RSE, shrinkage matrix).
+#'
+#' SE/RSE use \code{.pfimBayesianSeRse}: for LogNormal, SE on \eqn{\theta} is
+#' \eqn{\mu\cdot\mathrm{SE}_\eta} and RSE is \eqn{100\cdot\mathrm{SE}_\eta}.
 #' @name setEvaluationFim
-#' @export
-# ==============================================================================
+#' @keywords internal
 
 method( setEvaluationFim, BayesianFim ) = function( fim, evaluation ) {
 
-  # get parameters names and model error
   parameters = prop( evaluation, "modelParameters" )
-  parametersNames = map_chr( parameters, ~ prop( .x, "name" ) )
-  modelError = prop( evaluation, "modelError" )
+  greek      = .greekConsole
+  allNames   = .bayesianEstimableParamNames( parameters, greek[ "mu" ] )
 
-  # Greek letter for column names
-  greeksLetterForConsole  = c( mu = "\u03bc_", omega = "\u03c9\u00B2_", sigma = "\u03c3" )
+  fisherMatrix = prop( fim, "fisherMatrix" )
+  if ( ncol( fisherMatrix ) != length( allNames ) )
+    .pfimInternalStop( sprintf(
+      "BayesianFim setEvaluationFim: FIM dim %d != %d column names.",
+      ncol( fisherMatrix ), length( allNames )
+    ) )
+  dimnames( fisherMatrix ) = list( allNames, allNames )
 
-  # define the name for the columns and rows for mu, omega and sigma
-  columnNamesMu = parameters %>%
-    discard(~ prop(.x, "fixedMu") == TRUE) %>%          # Remove fixed mu parameters
-    keep(~ pluck(.x, "distribution", "mu") != 0) %>%                 # Keep non-zero mu
-    discard(~ prop(.x, "fixedOmega") == TRUE) %>%       # Remove fixed omega parameters
-    keep(~ pluck(.x, "distribution", "omega") != 0) %>%              # Keep non-zero omega
-    map_chr("name") %>%                                 # Extract names
-    map_chr(~ paste0(greeksLetterForConsole ['mu'], .x)) # Add mu symbol
-
-  # Get mu values
-  muValues = parameters %>%
-    discard(~ prop(.x, "fixedMu") == TRUE) %>%          # Remove fixed mu parameters
-    keep(~ pluck(.x, "distribution", "mu") != 0) %>%                 # Keep non-zero mu
-    discard(~ prop(.x, "fixedOmega") == TRUE ||  pluck(.x, "distribution", "omega") == 0) %>%
-    map_dbl(~ pluck(.x, "distribution", "mu"))          # Extract mu values
-
-  # get fisherMatrix
-  fisherMatrix = prop( fim, "fisherMatrix")
-  colnames( fisherMatrix ) = c( columnNamesMu )
-  rownames( fisherMatrix ) = c( columnNamesMu )
-
-  # fixed effects and variance effects
-  fixedEffects = fisherMatrix[ columnNamesMu, columnNamesMu ]
-
-  # shrinkage
-  shrinkage = prop( fim, "shrinkage")
-
-  # compute SE ans RSE
-  SE = sqrt( diag( chol2inv( chol( fisherMatrix ) ) ) )
-  RSE = SE / muValues * 100
-  SEAndRSE = data.frame( "parametersValues" = muValues, "SE" = SE, "RSE" = RSE )
-  rownames( SEAndRSE ) = rownames( fisherMatrix )
-  SE = data.frame( "parametersValues" = muValues, "SE" = SE )
-  RSE = data.frame( "parametersValues" = muValues, "RSE" = RSE )
-
-  prop( fim, "fisherMatrix" ) = fisherMatrix
-  prop( fim, "fixedEffects" ) = fixedEffects
-  prop( fim, "shrinkage" ) = t(matrix( shrinkage, nrow = 1, dimnames = list( "Shrinkage", columnNamesMu ) ))
-  prop( fim, "condNumberFixedEffects" ) = cond(fixedEffects)
-  prop( fim, "SEAndRSE" ) = list( SE = SE, RSE = RSE, SEAndRSE = SEAndRSE )
-
-  return( fim )
+  shrinkage = .bayesianShrinkageValues( prop( fim, "shrinkage" ) )
+  se        = .pfimBayesianSeRse( fisherMatrix, parameters, allNames )
+  .fimStoreEvaluationResult(
+    fim, fisherMatrix, fisherMatrix, se,
+    shrinkage = .bayesianShrinkageMatrix( shrinkage, allNames )
+  )
 }
 
-# ==============================================================================
-#' @rdname showFIM
+#' Print FIM summaries to the console
 #' @name showFIM
 #' @export
-# ==============================================================================
 
 method( showFIM, BayesianFim ) = function( fim ) {
 
-  SEAndRSE = prop( fim, "SEAndRSE" )
-  fisherMatrix = prop( fim, "fisherMatrix")
-  fixedEffects = prop( fim, "fixedEffects")
-  shrinkage = prop( fim, "shrinkage")
+  fisherMatrix           = prop( fim, "fisherMatrix" )
+  fixedEffects           = prop( fim, "fixedEffects" )
+  shrinkage              = prop( fim, "shrinkage" )
   condNumberFixedEffects = prop( fim, "condNumberFixedEffects" )
-  RSE = SEAndRSE$SE
-  RSE = SEAndRSE$RSE
-  SEAndRSE = SEAndRSE$SEAndRSE
-  Dcriterion = Dcriterion( fim )
+  dcrit                  = Dcriterion( fim )
 
-  cat("\n*************************************** \n")
-  cat(" Bayesian Fisher Matrix \n" )
-  cat("*************************************** \n\n")
+  cat( "\n*************************************** \n Bayesian Fisher Matrix \n*************************************** \n\n" )
   print( fisherMatrix )
-  cat("\n*************************************** \n")
-  cat(" Fixed effects \n" )
-  cat("*************************************** \n\n")
+  cat( "\n*************************************** \n Fixed effects \n*************************************** \n\n" )
   print( fixedEffects )
-  cat("\n*********************************************** \n")
-  cat(" Determinant, condition numbers and D-criterion \n" )
-  cat("*********************************************** \n\n")
-  cat( c( "Determinant:", as.numeric(det(fisherMatrix)) ), "\n")
-  cat( c( "D-criterion:", as.numeric(Dcriterion) ), "\n")
-  cat( c("Condition number of the fixed effects:", as.numeric(condNumberFixedEffects) , "\n") )
-  cat("\n*************************************** \n")
-  cat(" Shrinkage \n" )
-  cat("*************************************** \n\n")
+  cat( "\n*********************************************** \n Determinant, condition numbers and D-criterion \n*********************************************** \n\n" )
+  cat( c( "Determinant:",  as.numeric( .fimDeterminant( fisherMatrix ) ) ), "\n" )
+  cat( c( "D-criterion:",  as.numeric( dcrit              ) ), "\n" )
+  cat( c( "Condition number of the fixed effects:", as.numeric( condNumberFixedEffects ), "\n" ) )
+  cat( "\n*************************************** \n Shrinkage \n*************************************** \n\n" )
   print( shrinkage )
-  cat("\n*************************************** \n")
-  cat(" Parameters estimation \n" )
-  cat("*************************************** \n\n")
-  print( SEAndRSE )
+  cat( "\n*************************************** \n Parameters estimation \n*************************************** \n\n" )
+  .printFimSeAndRse( fim )
+
+  .fimShowSymbolLegend( rownames( fisherMatrix ), muLabel = "\u03bc  = fixed effects" )
+  invisible( fim )
 }
 
-# ==============================================================================
-#' @rdname plotSEFIM
-#' @name plotSEFIM
-#' @export
-# ==============================================================================
-
-method( plotSEFIM, list( BayesianFim, PFIMProject ) ) = function( fim, evaluation ) {
-
-  # get parameter names and model error
-  parameters = prop( evaluation, "modelParameters" )
-  modelError = prop( evaluation, "modelError" )
-
-  # get SEAndRSE
-  fim = prop( evaluation, "fim" )
-  fim = setEvaluationFim( fim, evaluation )
-  standardErrors = prop( fim, "SEAndRSE" )
-
-  # Greek letter for column names
-  greeksLetterForConsole  = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
-
-  parametersMu = parameters %>%
-    discard(~ prop(.x, "fixedMu") == TRUE) %>%          # Remove fixed mu parameters
-    keep(~ pluck(.x, "distribution", "mu") != 0) %>%                 # Keep non-zero mu
-    discard(~ prop(.x, "fixedOmega") == TRUE) %>%       # Remove fixed omega parameters
-    keep(~ pluck(.x, "distribution", "omega") != 0) %>%              # Keep non-zero omega
-    map_chr("name")                               # Extract names
-
-  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForConsole ['mu'] )
-
-  # data for plot
-  data = data.frame( Parameter = c( parametersMu ),
-                     Value = standardErrors$SEAndRSE$parametersValues,
-                     SE = standardErrors$SE,
-                     cat = paste0( "SE ", c(columnNamesMu ) ) )
-
-  colnames( data ) = c("Parameter", "Value", "parametersValues", "SE", "cat")
-
-  # bar plot of the plot SE
-  plotSE = ggplot( data, aes( x = Parameter, y = SE ) ) +
-    geom_bar( stat = "identity", position = "dodge", show.legend = FALSE ) +
-    facet_wrap( ~factor( cat, levels =  paste0( "SE ", c( greeksLetterForConsole ['mu'] ) ) ), scales = "free_x" ) +
-    theme(legend.position = "none",
-          plot.title = element_text(size=16, hjust = 0.5),
-          axis.title.x = element_text(size=16),
-          axis.title.y = element_text(size=16),
-          axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
-          axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
-          strip.text.x = element_text(size=16))
-
-  return( plotSE )
+#' ggplot data for Bayesian SE/RSE barplots (mu and beta facets).
+#' @param evaluation A \code{PFIMProject} object.
+#' @param metric Character scalar, \code{"SE"} or \code{"RSE"}.
+#' @return List with \code{data} (plot-ready \code{data.frame}) and \code{facetLevels}.
+#' @noRd
+#' @keywords internal
+.bayesianSeRsePlotData = function( evaluation, metric ) {
+  fim  = setEvaluationFim( prop( evaluation, "fim" ), evaluation )
+  seDF = prop( fim, "SEAndRSE" )$SEAndRSE
+  # Labels follow FIM rows (omega-estimable mus), not all mu-estimable names.
+  df = .fimSeRseGroupedFrame(
+    seDF, .pfimSeRownames( seDF, "Bayesian SE/RSE plot" ), metric, c( "mu", "beta" )
+  )
+  list( data = df, facetLevels = unique( df$cat ) )
 }
 
-# ==============================================================================
-#' @rdname plotRSEFIM
-#' @name plotRSEFIM
-#' @export
-# ==============================================================================
-
-method( plotRSEFIM, list( BayesianFim, PFIMProject ) ) = function( fim, evaluation ) {
-
-  # get parameter names and model error
-  parameters = prop( evaluation, "modelParameters" )
-
-  # get SEAndRSE
-  fim = prop( evaluation, "fim" )
-  fim = setEvaluationFim( fim, evaluation )
-  standardErrors = prop( fim, "SEAndRSE" )
-
-  # Greek letter for column names
-  greeksLetterForConsole  = c( mu = "\u03bc" )
-
-  parametersMu = parameters %>%
-    discard(~ prop(.x, "fixedMu") == TRUE) %>%          # Remove fixed mu parameters
-    keep(~ pluck(.x, "distribution", "mu") != 0) %>%                 # Keep non-zero mu
-    discard(~ prop(.x, "fixedOmega") == TRUE) %>%       # Remove fixed omega parameters
-    keep(~ pluck(.x, "distribution", "omega") != 0) %>%              # Keep non-zero omega
-    map_chr("name")                               # Extract names
-  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForConsole ['mu'] )
-
-  # data for plot
-  data = data.frame( Parameter = c( parametersMu ),
-                     Value = standardErrors$SEAndRSE$parametersValues,
-                     RSE = standardErrors$RSE,
-                     cat = paste0( "RSE ", c(columnNamesMu ) ) )
-
-  colnames( data ) = c("Parameter", "Value", "parametersValues", "RSE", "cat")
-
-  # bar plot of the plot SE
-  plotRSE = ggplot( data, aes( x = Parameter, y = RSE ) ) +
-    geom_bar( stat = "identity", position = "dodge", show.legend = FALSE ) +
-    facet_wrap( ~factor( cat, levels =  paste0( "RSE ", c( greeksLetterForConsole ['mu'] ) ) ), scales = "free_x" ) +
-    theme(legend.position = "none",
-          plot.title = element_text(size=16, hjust = 0.5),
-          axis.title.x = element_text(size=16),
-          axis.title.y = element_text(size=16),
-          axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
-          axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
-          strip.text.x = element_text(size=16))
-
-  return( plotRSE )
+.bayesianSeRseBarPlot = function( evaluation, metric ) {
+  px = .bayesianSeRsePlotData( evaluation, metric )
+  .fimSeRseBarPlot( px$data, metric, px$facetLevels )
 }
 
-# ==============================================================================
-#' @title Bar plot of the Bayesian shrinkage
+method( plotSEFIM, list( BayesianFim, PFIMProject ) ) = function( fim, evaluation )
+  .bayesianSeRseBarPlot( evaluation, "SE" )
+
+method( plotRSEFIM, list( BayesianFim, PFIMProject ) ) = function( fim, evaluation )
+  .bayesianSeRseBarPlot( evaluation, "RSE" )
+
+#' Default method for \code{BayesianFim}.
+#' @param fim First argument of generic.
+#' @param evaluation \code{PFIMProject} providing model parameter labels.
+#' @return \code{ggplot} object showing Bayesian shrinkage by parameter.
 #' @name plotShrinkage
-#' @param fim An object of class \code{BayesianFim} giving the Fim.
-#' @param evaluation An object of class \code{PFIMProject} giving the evaluation.
-#' @return A \code{ggplot2} object representing the shrinkage bar plot.
-#' @template copyright
 #' @export
-# ==============================================================================
+method( plotShrinkage, list( BayesianFim, PFIMProject ) ) = function( fim, evaluation ) {
+  fim         = setEvaluationFim( prop( evaluation, "fim" ), evaluation )
+  shrinkage   = prop( fim, "shrinkage" )
+  paramLabels = .bayesianShrinkageMuLabels( shrinkage, evaluation )
+  shrinkVals  = .bayesianShrinkageValues( shrinkage )
 
-method( plotShrinkage, list( BayesianFim, PFIMProject ) ) = function(  fim, evaluation ) {
-
-  # get parameter names and model error
-  parameters = prop( evaluation, "modelParameters" )
-
-  # get shrinkage
-  shrinkage = prop( fim, "shrinkage" )
-
-  # Greek letter for column names
-  greeksLetterForConsole  = c( mu = "\u03bc", omega = "\u03c9\u00B2", sigma = "\u03c3" )
-
-  parametersMu = parameters %>%
-    discard(~ prop(.x, "fixedMu") == TRUE) %>%          # Remove fixed mu parameters
-    keep(~ pluck(.x, "distribution", "mu") != 0) %>%                 # Keep non-zero mu
-    discard(~ prop(.x, "fixedOmega") == TRUE) %>%       # Remove fixed omega parameters
-    keep(~ pluck(.x, "distribution", "omega") != 0) %>%              # Keep non-zero omega
-    map_chr("name")                               # Extract names
-
-  columnNamesMu = parametersMu %>% map_chr(~  greeksLetterForConsole ['mu'] )
-
-  # data for plot
-  data = data.frame( Parameter = c( parametersMu ), shrinkage = shrinkage )
-  colnames( data ) = c("Parameter", "Shrinkage")
-
-  # bar plot of the plot Sh
-  plotSh = ggplot( data, aes( x = Parameter, y = Shrinkage ) ) +
-    geom_bar( stat = "identity", position = "dodge", show.legend = FALSE ) +
-    theme(legend.position = "none",
-          plot.title = element_text(size=16, hjust = 0.5),
-          axis.title.x = element_text(size=16),
-          axis.title.y = element_text(size=16),
-          axis.text.x = element_text(size=16, angle = 90, vjust = 0.5),
-          axis.text.y = element_text(size=16, angle = 0, vjust = 0.5, hjust=0.5),
-          strip.text.x = element_text(size=16))
-
-  return( plotSh )
+  data = data.frame( Parameter = paramLabels, Shrinkage = shrinkVals )
+  ggplot( data, aes( x = .data$Parameter, y = .data$Shrinkage ) ) +
+    geom_col( show.legend = FALSE, width = .pfimBarWidth, fill = "grey35" ) +
+    labs( x = "Parameter", y = "Shrinkage (%)" ) +
+    .pfimBaseTheme()
 }
 
-# ==============================================================================
-#' @rdname tablesForReport
+#' FIM tables for HTML reports
 #' @name tablesForReport
-#' @export
-# ==============================================================================
+#' @keywords internal
 
 method( tablesForReport, list( BayesianFim, PFIMProject ) ) = function( fim, evaluation ) {
 
-  SEAndRSE = prop( fim, "SEAndRSE" )
-  fisherMatrix = prop( fim, "fisherMatrix")
-  fixedEffects = prop( fim, "fixedEffects")
-  shrinkage = prop( fim, "shrinkage" )
+  fim = setEvaluationFim( fim, evaluation )
+
+  SEAndRSE               = prop( fim, "SEAndRSE" )$SEAndRSE
+  fisherMatrix           = prop( fim, "fisherMatrix" )
+  fixedEffects           = as.matrix( prop( fim, "fixedEffects" ) )
+  shrinkage              = prop( fim, "shrinkage" )
   condNumberFixedEffects = prop( fim, "condNumberFixedEffects" )
-  Dcriterion = Dcriterion( fim )
-  determinant = det( fisherMatrix )
-  SEAndRSE = SEAndRSE$SEAndRSE
-  parameters = prop( evaluation, "modelParameters" )
-  modelError = prop( evaluation, "modelError" )
 
-  # Greek letter for column names
-  greeksLetterForConsole  = c( mu = "$\\mu_{", omega = "$\\omega^2_{", sigma = "${\\sigma_" )
+  columnNamesFe = .fimFixedEffectLatexLabels( evaluation, fixedEffects = fixedEffects )
+  colnames( fixedEffects ) = columnNamesFe
+  rownames( fixedEffects ) = columnNamesFe
+  shrinkCol = .bayesianShrinkageReportColumn( SEAndRSE, shrinkage )
 
-  # define the name for the columns and rows for mu, omega and sigma
-  columnNamesMu = parameters %>%
-    discard(~ prop(.x, "fixedMu") == TRUE) %>%          # Remove fixed mu parameters
-    keep(~ pluck(.x, "distribution", "mu") != 0) %>%                 # Keep non-zero mu
-    discard(~ prop(.x, "fixedOmega") == TRUE) %>%       # Remove fixed omega parameters
-    keep(~ pluck(.x, "distribution", "omega") != 0) %>%              # Keep non-zero omega
-    map_chr("name") %>%                                 # Extract names
-    map_chr(~ paste0(greeksLetterForConsole ['mu'], .x,"}$")) # Add mu symbol
-
-  fixedEffects = as.matrix( fixedEffects )
-  colnames( fixedEffects ) = columnNamesMu
-  rownames( fixedEffects ) = columnNamesMu
-
-  fixedEffectsTable = fixedEffects %>% kbl() %>% kable_styling( bootstrap_options = c("hover"), full_width = FALSE, position = "center", font_size = 13 )
-
-  FIMCriteria = data.frame( Determinant = determinant, Dcriterion = Dcriterion, FixedEffects = condNumberFixedEffects )
-
-  FIMCriteriaTable = kbl( FIMCriteria,
-                          col.names = c("", "", "Fixed effects"),
-                          align = c("c", "c", "c", "c"),
-                          format = "html" ) %>%
-    add_header_above(c( "Determinant" = 1, "D-criterion" = 1, "Condition number" = 1 )) %>%
-    kable_styling( bootstrap_options = c("hover"), full_width = FALSE, position = "center", font_size = 13 )
-
-  # SEAndRSE table
-  SEAndRSE = data.frame( c( columnNamesMu ), round(SEAndRSE,3), shrinkage )
-  row.names( SEAndRSE ) = NULL
-
-  SEAndRSETable = kbl(
-    SEAndRSE,
-    col.names = c("Parameters", "Parameter values", "SE", "RSE (%)", "Shrinkage"),
-    align = c("c", "c", "c", "c") ) %>%
-    kable_styling( bootstrap_options = c("hover"), full_width = FALSE, position = "center", font_size = 13 )
-
-  fimTables = list( fixedEffectsTable = fixedEffectsTable, FIMCriteriaTable = FIMCriteriaTable, SEAndRSETable =  SEAndRSETable)
-
-  return( fimTables )
+  list(
+    fixedEffectsTable = .kblReportStyled( fixedEffects ),
+    FIMCriteriaTable  = .fimCriteriaKable(
+      .fimDeterminant( fisherMatrix ), Dcriterion( fim ), condNumberFixedEffects
+    ),
+    SEAndRSETable     = .fimSeRseKable( columnNamesFe, SEAndRSE, shrinkCol )
+  )
 }
 
-# ==============================================================================
-#' @rdname generateReportEvaluation
+# Report rendering methods
+
+#' Render the evaluation HTML report
 #' @name generateReportEvaluation
-#' @export
-# ==============================================================================
-
-method( generateReportEvaluation, BayesianFim ) = function( fim, tablesForReport, outputPath, outputFile ) {
-
-  path = system.file(package = "PFIM")
-  path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "EvaluationBayesianFim.Rmd" )
-
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath,
-                     params = list( #plotOptions = "plotOptions",
-                       #projectName = "projectName",
-                       tablesForReport = "tablesForReport" ) )
-}
-
-
-# ==============================================================================
-#' @rdname generateReportOptimization
-#' @name generateReportOptimization
-#' @export
-# ==============================================================================
-
-
-
-method( generateReportOptimization, list( BayesianFim, MultiplicativeAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
-
-  path = system.file(package = "PFIM")
-  path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationMultiplicativeAlgorithmPopulationFIM.Rmd" )
-
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
-}
-
-method( generateReportOptimization, list( BayesianFim, FedorovWynnAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
-
-  path = system.file(package = "PFIM")
-  path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationFedorovWynnAlgorithmPopulationFIM.Rmd" )
-
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
-}
-
-method( generateReportOptimization, list( BayesianFim, SimplexAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
-
-  path = system.file(package = "PFIM")
-  path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationSimplexAlgorithmPopulationFIM.Rmd" )
-
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
-
-}
-
-method( generateReportOptimization, list( BayesianFim, PSOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
-
-  path = system.file(package = "PFIM")
-  path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPSOAlgorithmPopulationFIM.Rmd" )
-
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
-}
-
-method( generateReportOptimization, list( BayesianFim, PGBOAlgorithm ) ) = function( fim, optimizationAlgorithm, tablesForReport, outputPath, outputFile ) {
-
-  path = system.file(package = "PFIM")
-  path = paste0( path, "/rmarkdown/templates/skeleton/" )
-  nameInputFile = paste0( path, "OptimizationPGBOAlgorithmPopulationFIM.Rmd" )
-
-  rmarkdown::render( input = nameInputFile, output_file = outputFile, output_dir = outputPath, params = list( tablesForReport = tablesForReport ) )
-}
+#' @keywords internal
+method( generateReportEvaluation, BayesianFim ) =
+  .renderEvalReport( "EvaluationBayesianFIM.Rmd" )

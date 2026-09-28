@@ -1,421 +1,145 @@
-#' @title PGBOAlgorithm Class
-#' @name PGBOAlgorithm
+#' @title PGBOAlgorithm
 #' @description
-#' The \code{PGBOAlgorithm} class implements a stochastic optimization routine based
-#' on population genetics principles. It is designed to navigate complex design
-#' spaces by simulating mutation, selection, and purging processes to maximize
-#' the Fisher Information Matrix (FIM) criteria.
-#' @include Optimization.R
-#' @inheritParams Optimization
-#' @param N A numeric value specifying the population size (number of individuals)
-#' per generation.
-#' @param muteEffect A numeric value (0-1) representing the mutation rate or the
-#' intensity of the genetic mutation effect.
-#' @param maxIteration An integer specifying the maximum number of generations
-#' before the algorithm terminates.
-#' @param purgeIteration An integer defining the frequency (in iterations) at
-#' which "weak" individuals are removed from the population to maintain genetic fitness.
-#' @param seed A numeric value for the random number generator to ensure
-#' reproducibility of the optimization results.
-#' @param showProcess A logical value; if \code{TRUE}, the algorithm prints
-#' progress updates and fitness scores to the console.
+#' Population-based global optimization for sampling times (Rcpp kernel).
+#' Pass \code{N}, \code{muteEffect}, \code{maxIteration}, \code{purgeIteration}, and
+#' \code{seed} via \code{optimizerParameters} on \code{\link{Optimization}}.
+#' \code{muteEffect} is an additive mutation scale in the same time unit as the
+#' sampling windows (e.g. hours), not a ratio in \eqn{[0,1]}.
+#' Search starts from each outcome's \code{initialSamplings}; \code{seed} controls
+#' mutation draws only.
+#' Optional \code{fitBase} (default \code{0.03}) and \code{cauchyProb} (default \code{0.8},
+#' probability of a Cauchy jump vs Gaussian group mutation).
+#' Optional \code{tolerance} (default \code{0}, stall stop disabled ->
+#' \code{converged = NA}) and \code{stallIterations}
+#' (default \code{5}) enable early stopping when \code{tolerance > 0}.
+#' @param optimizerOutputs List filled by \code{optimizeDesign()} (optimal arms, etc.).
+#' @return A \code{PGBOAlgorithm} specification object.
 #' @examples
 #' \dontrun{
-#'
-#' # Examples from Vignette 2
-#'
-#' # Initializing the PGBO algorithm for population FIM optimization
-#' optimizationPGBOPopFIM = Optimization(
-#'   name                = "optimizationExamplePGBO",
-#'   modelFromLibrary    = modelFromLibrary,
-#'   modelParameters     = modelParameters,
-#'   modelError          = modelError,
-#'   optimizer           = "PGBOAlgorithm",
-#'   optimizerParameters = list(
-#'     N              = 30,    # population of 30 candidate designs
-#'     muteEffect     = 0.65,  # mutation amplitude (65% of window width)
-#'     maxIteration   = 1000,  # total evolutionary steps
-#'     purgeIteration = 200,  # reinitialize worst solutions every 200 steps
-#'     seed           = 42,
-#'     showProcess    = FALSE
-#'   ),
-#'   designs             = list(design2),
-#'   fimType             = "population",
-#'   outputs             = list("RespPK")
-#' )
-#'
-#' # Run the PGBO optimization and display the results
-#' resultsPGBOPopFIM = run(optimizationPGBOPopFIM)
-#' show(resultsPGBOPopFIM)
-#'
+#' vignette("Example02")
 #' }
-#' @template copyright
+#' @include Optimization.R
 #' @export
 
-PGBOAlgorithm = new_class(
-  "PGBOAlgorithm",
-  package = "PFIM",
-  parent  = .Optimization_S7,
-  properties = list(
-    N              = new_property( class_double,  default = 30 ),
-    muteEffect     = new_property( class_double,  default = 0.65 ),
-    maxIteration   = new_property( class_double,  default = 1000 ),
-    purgeIteration = new_property( class_double,  default = 200 ),
-    seed           = new_property( class_double,  default = 42 ),
-    showProcess    = new_property( class_logical, default = FALSE )
-  ),
-  constructor = function(
-    # ── PGBO-specific properties ─────────────────────────────────────────────
-    N              = 30,
-    muteEffect     = 0.65,
-    maxIteration   = 1000,
-    purgeIteration = 200,
-    seed           = 42,
-    showProcess    = FALSE,
-    # ── Inherited Optimization properties (forwarded from the factory) ──────
-    optimisationDesign           = list(),
-    optimisationAlgorithmOutputs = list(),
-    name                         = character(0),
-    modelParameters              = list(),
-    modelEquations               = list(),
-    modelFromLibrary             = list(),
-    modelError                   = list(),
-    designs                      = list(),
-    outputs                      = list(),
-    fimType                      = character(0),
-    odeSolverParameters          = list()
-  ) {
-    new_object(
-      .parent = .Optimization_S7(
-        optimisationDesign           = optimisationDesign,
-        optimisationAlgorithmOutputs = optimisationAlgorithmOutputs,
-        name                         = name,
-        modelParameters              = modelParameters,
-        modelEquations               = modelEquations,
-        modelFromLibrary             = modelFromLibrary,
-        modelError                   = modelError,
-        designs                      = designs,
-        outputs                      = outputs,
-        fimType                      = fimType,
-        odeSolverParameters          = odeSolverParameters
-      ),
-      N              = N,
-      muteEffect     = muteEffect,
-      maxIteration   = maxIteration,
-      purgeIteration = purgeIteration,
-      seed           = seed,
-      showProcess    = showProcess
-    )
-  }
-)
+PGBOAlgorithm = new_class( "PGBOAlgorithm", package = "PFIM",
+                           properties = list(
+                             optimizerOutputs = new_property( class_list, default = list() )
+                           ) )
+S4_register( PGBOAlgorithm )
 
-# ==============================================================================
-#' @rdname optimizeDesign
+#' Population Genetics Based Optimization kernel (Rcpp).
+#'
+#' Compiled implementation in \code{src/PGBOAlgorithm.cpp}. R=>C++ contract:
+#' \code{sorting_groups} are 1-based; mutations are per group.
+#' \code{check_valid_group(trial, group_1based)} is the feasibility gate
+#' (no \code{windows_list} clamp - unlike PSO). \code{eval_d} returns D
+#' (not 1/D); the kernel minimises \code{1/D}.
+#'
+#' @name pgbo_optimize_Rcpp
+#' @return A list of optimization results.
+#' @keywords internal
+NULL
+
+#' PGBO continuous D-optimal design (delegates to multi-design driver).
+#'
+#' @param optimizationObject An \code{\link{Optimization}} project.
+#' @param optimizationAlgorithm A \code{PGBOAlgorithm} instance.
+#' @return Updated \code{Optimization} after optimizing each design in turn.
 #' @name optimizeDesign
-#' @export
-# ==============================================================================
+#' @keywords internal
 
-method( optimizeDesign, list( .Optimization_S7, PGBOAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
-
-  results = list()
-  # designs
-
-  designs = prop( optimizationObject, "designs" )
-  design = pluck( designs, 1 )
-
-  # check validity of the samplingTimesConstraints
-  checkValiditySamplingConstraint( design )
-
-  # in case of partial sampling constraints set the new arms with the sampling constraints
-  design = setSamplingConstraintForOptimization( design )
-
-  # get the arms
-  arms = prop( design, "arms" )
-
-  # get arm outcomes
-  outcomes = map( set_names( arms, map_chr( arms, ~ prop( .x, 'name' ) ) ), ~ {
-    map_chr( prop( .x, "samplingTimesConstraints" ), ~ prop( .x, "outcome") )
-  })
-
-  # set size for checking the constraints
-  numberOfArms = length( arms )
-  numberOutcomesArmsInConstraints = sum( lengths( outcomes ) )
-
-  # initialize best design
-  initialDesign = design
-  designA = design
-  best = design
-
-  # get pgbo parameters
-  optimizerParameters = prop( optimizationObject, "optimizerParameters")
-  N = optimizerParameters$N
-  muteEffect = optimizerParameters$muteEffect
-  maxIteration = optimizerParameters$maxIteration
-  purgeIteration = optimizerParameters$purgeIteration
-  showProcess = optimizerParameters$showProcess
-  seed = optimizerParameters$seed
-  set.seed( seed )
-
-  # Generate the initial solution
-  samplingInitialSolution = list()
-
-  # Generate the initial solution
-  armsList = list()
-
-  for ( arm in arms )
-  {
-    # Extract values from the arm object
-    armName = prop( arm, 'name' )
-    samplingTimes = prop( arm, "samplingTimes" )
-    samplingTimesConstraints = prop( arm, "samplingTimesConstraints" )
-
-    for ( samplingTimesConstraint in samplingTimesConstraints )
-    {
-      # Generate samplings based on samplingConstraints
-      outcome = prop( samplingTimesConstraint, "outcome" )
-      samplingInitialSolution[[ armName ]][[ outcome ]]  = generateSamplingsFromSamplingConstraints( samplingTimesConstraint )
-
-      # Set initial position for the outcome
-      samplingTimes = samplingTimes %>%
-        modify_at(
-          .at = which( map_chr(., ~ prop( .x, "outcome" ) ) == outcome ),
-          .f = ~ {
-            prop(.x, "samplings") = samplingInitialSolution[[ armName ]][[ outcome ]]
-            .x
-          })
-    }
-    prop( arm, "samplingTimes" ) = samplingTimes
-    armsList = append( armsList, arm )
-  }
-
-  # set new arms
-  prop( design, "arms" ) = armsList
-
-  # evaluate the FIMs
-  evaluationFIM = Evaluation( name = "internalFimEvaluation",
-                              modelEquations = prop( optimizationObject, "modelEquations" ),
-                              modelParameters = prop( optimizationObject, "modelParameters" ),
-                              modelError = prop( optimizationObject, "modelError" ),
-                              fimType = prop( optimizationObject, "fimType" ),
-                              outputs = prop( optimizationObject, "outputs" ),
-                              designs = list( design ),
-                              odeSolverParameters = prop( optimizationObject, "odeSolverParameters" ) )
-
-  evaluationFIM = run( evaluationFIM )
-
-  fim = prop( evaluationFIM, "fim" )
-
-  d = 1/Dcriterion( fim )
-
-  if ( is.finite(d) == FALSE )
-  {
-    d = 10e6
-  }
-
-  # set the PGBO parameters
-  fitBase = 0.03
-  theta = -log10( fitBase ) / d
-  fitA = 10**( -theta * d )
-  fitBest = fitA
-
-  # Run PGBO
-  arms = prop( designA, "arms" )
-
-  samplingTimesArms = list()
-
-  for ( iteration in 1:maxIteration )
-  {
-    # Boolean checking constraints in for while
-    foundSamplingWithConstraints = FALSE
-
-    while ( foundSamplingWithConstraints == FALSE )
-    {
-      # select arm
-      indexArm = sample( numberOfArms, 1 )
-      arm = arms[[indexArm]]
-      armName = prop( arm, "name" )
-
-      # sampling constraints
-      samplingTimesConstraints = prop( arm, "samplingTimesConstraints" )
-
-      # get samplings
-      numberOfOutcome = length( outcomes[[armName]] )
-      indexOutcome = sample( numberOfOutcome, 1 )
-      outcome = outcomes[[armName]][indexOutcome]
-
-      samplings = prop( arm, "samplingTimes" ) %>%
-        keep( ~ prop( .x, "outcome" ) == outcome ) %>%
-        pluck(1) %>%
-        prop( "samplings" )
-
-      # sampling time mutation
-      indexSamplings = sample( length( samplings ), 1 )
-
-      if ( runif( 1 ) < 0.8 )
-      {
-        samplings[indexSamplings] = samplings[indexSamplings] + rcauchy(1)*muteEffect
-      } else{
-        samplings = samplings + rnorm( length( samplings ) )*muteEffect
-      }
-
-      samplings = sort( samplings )
-
-      # check sampling time constraints
-      samplingTimesConstraint = keep( samplingTimesConstraints, ~ prop( .x,"outcome" ) == outcome ) %>% pluck(1)
-      samplingConstraintsForMetaheuristic = checkSamplingTimeConstraintsForMetaheuristic( samplingTimesConstraint, arm, samplings, outcome )
-
-      if( all( unlist( samplingConstraintsForMetaheuristic ) ) == TRUE )
-      {
-        samplingTime = prop( arm, "samplingTimes" ) %>% keep( ~ prop( .x, "outcome" ) == outcome ) %>% pluck(1)
-        prop( samplingTime, "samplings" ) = samplings
-        samplingTimesArms[[armName]][[outcome]] = samplingTime
-      }
-
-      # check if all constraints TRUE and number of constraints = nb Arm * nb Response
-      if ( length( unlist( samplingTimesArms ) ) == numberOutcomesArmsInConstraints )
-      {
-        foundSamplingWithConstraints = TRUE
-      }
-    } # end while
-
-    armsList = list()
-    for ( arm in arms )
-    {
-      armName = prop(arm, 'name')
-      samplingTimes = prop(arm, "samplingTimes")
-
-      for ( outcome in outcomes[[armName]] )
-      {
-        samplingTimes = samplingTimes %>%
-          modify_at(
-            .at = which( map_chr(., ~ prop( .x, "outcome" ) ) == outcome),
-            .f = ~ {
-              prop(.x, "samplings") = prop( samplingTimesArms[[armName]][[outcome]], "samplings")
-              .x
-            })
-      }
-      prop(arm, "samplingTimes") = samplingTimes
-      armsList = append( armsList, arm )
-    }
-
-    prop( designA, "arms" ) = armsList
-
-    # Evaluation
-    designB = designA
-
-    evaluationFIM = Evaluation( name = "internalFimEvaluation",
-                                modelEquations = prop( optimizationObject, "modelEquations" ),
-                                modelParameters = prop( optimizationObject, "modelParameters" ),
-                                modelError = prop( optimizationObject, "modelError" ),
-                                fimType = prop( optimizationObject, "fimType" ),
-                                outputs = prop( optimizationObject, "outputs" ),
-                                designs = list( designB ),
-                                odeSolverParameters = prop( optimizationObject, "odeSolverParameters" ) )
-
-    evaluationFIM = run( evaluationFIM )
-
-    # set the cost
-    fim = prop( evaluationFIM, "fim" )
-
-    d = 1/Dcriterion( fim )
-
-    if ( is.finite(d) == FALSE )
-    {
-      d = 10e6
-    }
-
-    fitB = 10**( -theta * d )
-
-    # Update
-    if ( !is.nan(fitB) && fitB > 0 )
-    {
-      if ( fitA == fitB )
-      {
-        proba = 1/N
-      }
-      else
-      {
-        f = fitA/fitB
-        proba = 1 - f**2
-        proba = proba / (1 - f**( 2*N ) )
-
-        if ( is.nan(proba) )
-        {
-          proba = 0
-        }
-      }
-
-      if (runif(1) < proba)
-      {
-        fitA = fitB
-        designA = designB
-
-        if ( fitBest < 1/d )
-        {
-          fitBest = 1/d
-          best = designA
-
-          if ( showProcess == TRUE )
-          {
-            # iteration and Dcriteria
-            message( paste0('Iteration = ',iteration))
-            message( paste0('Criterion = ',1/d))
-          }
-        }
-      }
-    }
-
-    # Purge
-    if ( iteration%%purgeIteration == 0 )
-    {
-      d = - log10( fitA ) / theta
-      theta = -log10( fitBase ) / d
-      fitA = fitBase
-    }
-
-  } # end iteration
-
-  # evaluate the optimal design
-  evaluationOptimalDesign = Evaluation( name = "internalFimEvaluation",
-                                        modelEquations = prop( optimizationObject, "modelEquations" ),
-                                        modelParameters = prop( optimizationObject, "modelParameters" ),
-                                        modelError = prop( optimizationObject, "modelError" ),
-                                        designs = list( best ),
-                                        fimType = prop( optimizationObject, "fimType" ),
-                                        outputs = prop( optimizationObject, "outputs" ),
-                                        odeSolverParameters = prop( optimizationObject, "odeSolverParameters" ) )
-
-  evaluationOptimalDesign = run( evaluationOptimalDesign )
-
-  # evaluate the initial design
-  evaluationInitialDesign = Evaluation( name = "internalFimEvaluation",
-                                        modelEquations = prop( optimizationObject, "modelEquations" ),
-                                        modelParameters = prop( optimizationObject, "modelParameters" ),
-                                        modelError = prop( optimizationObject, "modelError" ),
-                                        designs = list( initialDesign ),
-                                        fimType = prop( optimizationObject, "fimType" ),
-                                        outputs = prop( optimizationObject, "outputs" ),
-                                        odeSolverParameters = prop( optimizationObject, "odeSolverParameters" ) )
-
-  evaluationInitialDesign = run( evaluationInitialDesign )
-
-  # set the results in evaluation
-  prop( optimizationObject, "optimisationDesign" ) = list( evaluationInitialDesign = evaluationInitialDesign, evaluationOptimalDesign = evaluationOptimalDesign )
-  prop( optimizationObject, "optimisationAlgorithmOutputs" ) = list( "optimizationAlgorithm" = optimizationAlgorithm, "optimalArms" = armsList )
-  return( optimizationObject )
+method( optimizeDesign, list( Optimization, PGBOAlgorithm ) ) = function( optimizationObject, optimizationAlgorithm ) {
+  .pfimOptimizeDesigns( optimizationObject, optimizationAlgorithm, .optimizePGBOOneDesign )
 }
 
-# ==============================================================================
-#' @rdname constraintsTableForReport
-#' @name constraintsTableForReport
-#' @export
-# ==============================================================================
+#' Run PGBO on a single design: flat sampling vector, C++ population genetics loop.
+#'
+#' Sets the RNG from \code{optimizerParameters$seed} and restores
+#' \code{.Random.seed} on exit (\code{NULL} seed leaves the stream unchanged).
+#' \code{eval_d} returns the D-criterion (invalid designs map to a tiny sentinel
+#' inside the flat-design helper); the C++ kernel minimises \code{1/D}.
+#' @param optimizationObject Parent \code{Optimization}.
+#' @param optimizationAlgorithm \code{PGBOAlgorithm} instance.
+#' @return List with optimal arms / design pieces for the continuous driver.
+#' @noRd
+#' @keywords internal
+.optimizePGBOOneDesign = function( optimizationObject, optimizationAlgorithm ) {
 
-method( constraintsTableForReport, PGBOAlgorithm ) = function( optimizationAlgorithm, arms  )
-{
-  armsConstraints = map( pluck( arms, 1 ) , ~ getArmConstraints( .x, optimizationAlgorithm ) )
-  armsConstraints = map_dfr( armsConstraints, ~ map_dfr(.x, ~ as.data.frame(.x, stringsAsFactors = FALSE)))
-  colnames( armsConstraints ) = c( "Arms name" , "Number of subjects", "Outcome", "Initial samplings", "Samplings windows", "Number of times by windows","Min sampling" )
-  armsConstraintsTable = kbl( armsConstraints, align = c( "l","c","c","c","c","c","c") ) %>% kable_styling( bootstrap_options = c( "hover" ), full_width = FALSE, position = "center", font_size = 13 )
-  return( armsConstraintsTable )
+  optimizerParameters = projectProp( optimizationObject, "optimizerParameters" )
+  restoreSeed = .pfimLocalSeed( optimizerParameters$seed )
+  on.exit( restoreSeed(), add = TRUE )
+
+  prep   = .pfimPrepareContinuousDesign( optimizationObject )
+  design = prep$design
+  arms   = prep$arms
+
+  initialDesign = design
+
+  layout       = .buildFlatSamplingLayout( design )
+  evalTemplate = .evaluationFromOptimization( optimizationObject, initialDesign, name = "" )
+  evalCtx      = .pfimMetaheuristicEvalContext( evalTemplate, initialDesign, arms )
+
+  evalDcriterion = function( flatPos ) {
+    .pfimFlatDesignDcriterion( evalTemplate, initialDesign, arms, flatPos, ctx = evalCtx )
+  }
+
+  cauchyProb = optimizerParameters$cauchyProb %||% 0.8
+
+  # muteEffect is in the same time unit as the windows (hours, etc.), not a fraction.
+  # check_valid_group: C++ passes 1-based groupId matching sorting_groups order.
+  resCpp = pgbo_optimize_Rcpp(
+    initial_pos       = layout$initialFlat,
+    sorting_groups    = layout$sortingGroups,
+    max_iteration     = as.integer( optimizerParameters$maxIteration ),
+    N                 = as.integer( optimizerParameters$N ),
+    mute_effect       = optimizerParameters$muteEffect,
+    purge_iteration   = as.integer( optimizerParameters$purgeIteration ),
+    fit_base          = optimizerParameters$fitBase %||% 0.03,
+    max_attempts      = 10000L,
+    cauchy_prob       = cauchyProb,
+    show_process      = optimizerParameters$showProcess,
+    eval_d            = evalDcriterion,
+    check_valid_group = function( flatPos, groupId ) {
+      .checkFlatValidGroup( layout, flatPos, groupId )
+    },
+    ftol             = optimizerParameters$tolerance %||% 0,
+    stall_iterations = as.integer( optimizerParameters$stallIterations %||% 5L )
+  )
+
+  finalArms     = .applyFlatToArms( resCpp$bestDesign, arms )
+  optimalDesign = .pfimOptimalDesignFrom( initialDesign, finalArms )
+
+  tol = optimizerParameters$tolerance %||% 0
+  .pfimWarnIfNotConverged(
+    "PGBOAlgorithm", tol, resCpp$converged,
+    extra = paste0(
+      " within maxIteration = ", optimizerParameters$maxIteration,
+      " (tolerance = ", tol, ")"
+    )
+  )
+  algoOut = .pfimContinuousAlgoOutputs(
+    list(
+      bestD      = resCpp$bestD,
+      initialD   = resCpp$initialD,
+      converged  = resCpp$converged,
+      iterations = resCpp$iterations,
+      improved   = resCpp$improved
+    ),
+    tolerance = tol
+  )
+
+  .pfimStoreContinuousOptimization(
+    optimizationObject, optimizationAlgorithm,
+    initialDesign, optimalDesign,
+    optimizerOutputs = c( list( optimalArms = finalArms ), algoOut ),
+    finalArms = finalArms
+  )
+}
+
+#' Constraint tables for optimization reports
+#' @name constraintsTableForReport
+#' @keywords internal
+
+method( constraintsTableForReport, PGBOAlgorithm ) = function( optimizationAlgorithm, arms ) {
+  .pfimConstraintsTableContinuous( optimizationAlgorithm, arms )
 }

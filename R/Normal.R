@@ -1,19 +1,21 @@
-#' @title Normal Class
-#' @name Normal
-#' @description The class \code{Normal} implements the Normal distribution.
+#' @title Normal
+#' @description Normal distribution for model parameters (identity link on the mean).
 #' @inheritParams Distribution
 #' @include Distribution.R
-#' @examples
-#' # Set the Normal distribution for a parameter
-#' normalDistribution = Normal(
-#'   mu    = 0.74,
-#'   omega = 0.316
-#' )
-#' # Display distribution summary
-#' print(normalDistribution)
-#' @template copyright
+#' @return An S7 object of class \code{Normal}.
 #' @export
 
 Normal = new_class( "Normal", package = "PFIM", parent = Distribution )
 
-method( adjustGradient, Normal ) = function( distribution, gradient ) { return( gradient ) }
+#' Identity-link gradient adjustment (no scaling).
+#'
+#' For a normal random-effect model, \eqn{\partial f / \partial \eta = \partial f / \partial \theta}.
+#' @param distribution First argument of generic.
+#' @param gradient Numeric gradient vector before distribution adjustment.
+#' @param thetaValue Numeric parameter value (unused for normal link).
+#' @return Unchanged numeric gradient vector.
+#' @name adjustGradient
+#' @keywords internal
+method( adjustGradient, Normal ) = function( distribution, gradient, thetaValue ) {
+  return( gradient )
+}

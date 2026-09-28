@@ -2,99 +2,65 @@
 % Please edit documentation in R/Arm.R
 \name{Arm}
 \alias{Arm}
-\title{Arm Class}
+\title{Arm}
 \usage{
 Arm(
   name = character(0),
   size = numeric(0),
   administrations = list(),
   initialConditions = list(),
+  initialCondition = NULL,
   samplingTimes = list(),
   administrationsConstraints = list(),
   samplingTimesConstraints = list(),
   evaluationModel = list(),
   evaluationGradients = list(),
   evaluationVariance = list(),
-  evaluationFim = Fim()
+  evaluationFim = NULL
 )
 }
 \arguments{
-\item{name}{A string giving the name of the arm.}
+\item{name}{Character string: arm identifier.}
 
-\item{size}{An integer giving the number of subjects in the arm.}
+\item{size}{Numeric: number of subjects in the arm.}
 
-\item{administrations}{A list of \code{Administration} objects defining the dosing.}
+\item{administrations}{List of \code{Administration} objects.}
 
-\item{initialConditions}{A named list of numeric values for ODE initial states.}
+\item{initialConditions}{List of ODE initial conditions (name = state).
+Values may be numeric or a character expression in typical values and
+\code{dose_<state>} (e.g. \code{"dose_Cc/V"}). Expressions are evaluated
+in a sealed environment (no session symbols). List order does not set
+the deSolve state order (that follows \code{Deriv_*} declaration).
+In event-based bolus mode the value for a compartment dosed at \code{t = 0}
+is replaced by 0: the dose mass enters through the event table.}
 
-\item{samplingTimes}{A list of \code{SamplingTimes} objects defining the observations.}
+\item{initialCondition}{Alias of \code{initialConditions}.}
 
-\item{administrationsConstraints}{A list of \code{AdministrationsConstraints} objects.}
+\item{samplingTimes}{List of \code{SamplingTimes} objects.}
 
-\item{samplingTimesConstraints}{A list of \code{SamplingTimesConstraints} objects.}
+\item{administrationsConstraints}{List of \code{AdministrationConstraints} objects.}
 
-\item{evaluationModel}{A list containing the evaluation of the responses.}
+\item{samplingTimesConstraints}{List of \code{SamplingTimeConstraints} objects.}
 
-\item{evaluationGradients}{A list containing the evaluation of the gradients.}
+\item{evaluationModel}{Model predictions at sampling times (filled by \code{evaluateArm}).}
 
-\item{evaluationVariance}{A list containing the evaluation of the variance.}
+\item{evaluationGradients}{Gradients of responses w.r.t. parameters (nested if covariates/IOV).}
 
-\item{evaluationFim}{An object of class \code{Fim} representing the Fisher Information Matrix.}
+\item{evaluationVariance}{Residual variance structure for the arm.}
+
+\item{evaluationFim}{FIM object after \code{evaluateFim}.}
 }
 \value{
-An object of class \code{Arm}.
+An S7 object of class \code{Arm}.
 }
 \description{
-The \code{Arm} class represents an experimental group within a study. It
-integrates all components of the design for that group, including the
-sample size, dosing regimens, sampling schedules, and initial conditions
-for ODE models.
-}
-\section{Slots}{
-
-\describe{
-\item{\code{name}}{\code{character}. The unique identifier for the arm.}
-
-\item{\code{size}}{\code{numeric}. The number of subjects assigned to this arm.}
-
-\item{\code{administrations}}{\code{list}. A list of \code{Administration} objects.}
-
-\item{\code{initialConditions}}{\code{list}. A named list where keys are variable names
-(strings) and values are their initial states (numeric).}
-
-\item{\code{samplingTimes}}{\code{list}. A list of \code{SamplingTimes} objects.}
-}}
-
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+One experimental arm: subjects, dosing, sampling times, and slots filled during
+design evaluation (model predictions, gradients, variance, FIM).
 }
 \examples{
-
-# Note: The 'initialConditions' slot is strictly used for ODE-based model arms.
-# For analytic (closed-form) solutions, this slot is ignored as the
-# initial state is implicitly defined by the model equations.
-
-# 1. Define sampling times for PK and PD outcomes
-samplingTimesRespPK = SamplingTimes(outcome = "RespPK",
-                                     samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
-
-samplingTimesRespPD = SamplingTimes(outcome = "RespPD",
-                                     samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
-
-# 2. Define the administration (Dose of 20 at t=0)
-adminRespPK = Administration(outcome = "RespPK", timeDose = 0, dose = 20)
-
-# 3. Define the study arm "0.2mg"
-# Outcomes are linked to state variables: RespPK to Cc, RespPD to E.
-arm = Arm(name = "0.2mg",
-           size = 6,
-           administrations = list(adminRespPK),
-           samplingTimes   = list(samplingTimesRespPK, samplingTimesRespPD),
-           initialConditions = list("Cc" = 0, "E" = 100))
-
-print(arm)
-
+\donttest{
+source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+arm = prop(prop(ev, "designs")[[1L]], "arms")[[1L]]
+length(prop(prop(arm, "samplingTimes")[[1L]], "samplings"))
 }
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

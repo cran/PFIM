@@ -1,31 +1,28 @@
-#' @title SamplingTimes Class
-#' @name SamplingTimes
+#' @title SamplingTimes
 #' @description
-#' The \code{SamplingTimes} class defines the specific time points at which
-#' observations are collected for a given model outcome. In multi-response
-#' models, this class allows each outcome (e.g., PK and PD) to have its own
-#' independent sampling schedule.
-#' @slot outcome \code{character}. The name of the model output (e.g., "RespPK").
-#' @slot samplings \code{numeric vector}. The sequence of observation time points.
-#' @param outcome A \code{string} specifying the name of the model output
-#' (e.g., "RespPK", "Metabolite").
-#' @param samplings A \code{numeric vector} representing the sampling schedule.
-#' @return An object of class \code{SamplingTimes}.
-#' @examples
-#' # Define a PK sampling schedule
-#' samplingTimesRespPK = SamplingTimes(
-#'   outcome   = "RespPK",
-#'   samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4)
-#' )
+#' Observation times for one outcome within an arm.
 #'
-#' # Display the sampling schedule summary
-#' print(samplingTimesRespPK)
-#' @template copyright
+#' Times are in the model's time unit (often hours). Multiple
+#' \code{SamplingTimes} objects on an arm cover multi-response designs.
+#' @param outcome Character string: outcome name.
+#' @param samplings Numeric vector: sampling times (hours or model time unit).
+#' @return An S7 object of class \code{SamplingTimes}.
 #' @export
 
-SamplingTimes = new_class("SamplingTimes",
-                          package = "PFIM",
+SamplingTimes = new_class("SamplingTimes", package = "PFIM",
+
                           properties = list(
                             outcome = new_property(class_character, default = character(0)),
                             samplings = new_property(class_double, default = numeric(0))
-                          ))
+                          ),
+                          validator = function( self ) {
+                            s = prop( self, "samplings" )
+                            if ( length( s ) && any( !is.finite( s ) ) )
+                              return( "SamplingTimes: samplings must be finite." )
+                            o = prop( self, "outcome" )
+                            if ( length( o ) > 1L )
+                              return( "SamplingTimes: outcome must be a single string." )
+                            if ( .pfimIsBlankScalar( o ) )
+                              return( "SamplingTimes: outcome must be a non-empty string." )
+                            NULL
+                          })

@@ -2,7 +2,7 @@
 % Please edit documentation in R/PopulationFim.R
 \name{PopulationFim}
 \alias{PopulationFim}
-\title{PopulationFim Class}
+\title{PopulationFim}
 \usage{
 PopulationFim(
   fisherMatrix = numeric(0),
@@ -11,40 +11,44 @@ PopulationFim(
   SEAndRSE = list(),
   condNumberFixedEffects = 0,
   condNumberVarianceEffects = 0,
-  shrinkage = numeric(0)
+  shrinkage = numeric(0),
+  singularFim = FALSE
 )
 }
 \arguments{
-\item{fisherMatrix}{A matrix giving the numerical values of the Fim.}
+\item{fisherMatrix}{Labelled FIM matrix.}
 
-\item{fixedEffects}{A matrix giving the numerical values of the fixed effects of the Fim.}
+\item{fixedEffects}{Fixed-effects sub-block.}
 
-\item{varianceEffects}{A matrix giving the numerical values of variance effects of the Fim.}
+\item{varianceEffects}{Variance-effects sub-block.}
 
-\item{SEAndRSE}{A data frame giving the calculated values of SE and RSE for parameters.}
+\item{SEAndRSE}{List with \code{SE}, \code{RSE}, and combined tables.}
 
-\item{condNumberFixedEffects}{The condition number of the fixed effects portion of the Fim.}
+\item{condNumberFixedEffects}{Condition number of the fixed-effects block.}
 
-\item{condNumberVarianceEffects}{The condition number of the variance effects portion of the Fim.}
+\item{condNumberVarianceEffects}{Condition number of the variance-effects block.}
 
-\item{shrinkage}{A vector giving the shrinkage values for the random effects.}
+\item{shrinkage}{Named shrinkage (percent) per parameter (Bayesian FIM).}
+
+\item{singularFim}{\code{TRUE} when SE/RSE used a pseudo-inverse (singular FIM).
+Set in \code{.fimStoreEvaluationResult} from \code{.fimBuildSeAndRse}; D-criterion
+/ log-det still use the raw matrix (may be 0 / \code{-Inf} when singular).}
+}
+\value{
+A \code{PopulationFim} object (filled by \code{run()}).
 }
 \description{
-The \code{PopulationFim} class is a child of the \code{Fim} class. It is
-specifically designed to store and manage the Fisher Information Matrix
-calculated for population-level analyses. Unlike individual FIMs, it
-incorporates the variance-covariance components of the random effects,
-providing a measure of the information content regarding both structural
-and statistical parameters.
-\itemize{
-  \item Determining the Standard Errors (SE) of population parameters.
-  \item Calculating the Relative Standard Errors (RSE\%).
-  \item Evaluating and optimizing designs for clinical trials.
+Population Fisher information matrix for nonlinear mixed-effects models.
 }
+\details{
+The population FIM has fixed-effects (\eqn{\mu}, \eqn{\beta}) and variance-effects
+(\eqn{\omega^2}, \eqn{\gamma^2}, \eqn{\sigma}) blocks:
+\deqn{M_P = \mathrm{bdiag}(N \cdot M_\mu,\; N \cdot M_\lambda)}
+where \eqn{N} is the arm size and \eqn{M_\mu = G_\mu^\top V^{-1} G_\mu}.
 }
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+\examples{
+\donttest{
+source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+S7::S7_inherits(prop(ev, "fim"), PopulationFim)
 }
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

@@ -2,30 +2,16 @@
 % Please edit documentation in R/Model.R
 \name{evaluateModelVariance}
 \alias{evaluateModelVariance}
-\title{Evaluate Model Variance and Sigma Derivatives}
+\title{Residual variance at sampling times for an arm}
+\usage{
+evaluateModelVariance(model, ...)
+}
 \arguments{
-\item{model}{An object of class \code{\link{Model}} defining the structural
-and residual error models.}
+\item{model}{A \code{Model} object.}
 
-\item{arm}{An object of class \code{\link{Arm}} defining the design (sampling
-times and doses) for a specific group.}
-}
-\value{
-A \code{list} containing:
-\itemize{
-  \item \code{errorVariance}: A numeric vector or matrix representing the
-  evaluated residual variance.
-  \item \code{sigmaDerivatives}: The derivatives of the variance with
-  respect to the \eqn{\sigma} parameters.
-}
+\item{...}{Arm passed to methods.}
 }
 \description{
-Evaluates the residual error variance of the model and computes the
-partial derivatives with respect to the variance parameters (\eqn{\sigma}).
+Residual variance at sampling times for an arm
 }
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
-}
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
-}
+\keyword{internal}

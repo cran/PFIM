@@ -1,307 +1,382 @@
-# ==============================================================================
-# ==============================================================================
-#' @title ModelODEInfusionDoseInEquation Class
-#' @name ModelODEInfusionDoseInEquation
-#' @description
-#' The \code{ModelODEInfusionDoseInEquation} class is designed for infusion models
-#' where the differential equations transition between different states
-#' depending on whether the infusion is currently active or has ended.
+#' @title ModelODEInfusionDoseInEquation
+#' @description ODE infusion model with dose terms in the equations.
 #' @inheritParams ModelODEInfusion
-#' @param modelODE A \code{function} representing the complete ODE system.
-#' @param wrapperModelInfusion A \code{list} containing two distinct sets of
-#' equations: \code{duringInfusion} (for active drug delivery) and
-#' \code{afterInfusion} (for the post-infusion phase).
-#' @param solverInputs A \code{list} of pre-calculated inputs for the numerical
-#' solver, including infusion start times, doses, and durations.
+#' @param modelODE              An object \code{modelODE}.
+#' @param wrapperModelInfusion  Wrapper for solver.
+#' @param solverInputs          A list with the solver inputs.
 #' @include ModelODEInfusion.R
-#' @template copyright
+#' @return An S7 object of class \code{ModelODEInfusionDoseInEquation}.
 #' @export
 
 ModelODEInfusionDoseInEquation = new_class( "ModelODEInfusionDoseInEquation",
-                                            package = "PFIM",
-                                            parent = ModelODEInfusion,
-
+                                            package    = "PFIM",
+                                            parent     = ModelODEInfusion,
                                             properties = list(
-                                              modelODE = new_property(class_function, default = NULL ),
-                                              wrapperModelInfusion = new_property(class_list, default = list()),
-                                              solverInputs = new_property(class_list, default = list())
+                                              modelODE             = new_property(class_function, default = NULL),
+                                              wrapperModelInfusion = new_property(class_list,     default = list()),
+                                              solverInputs         = new_property(class_list,     default = list())
                                             ))
 
-# ==============================================================================
-#' @rdname defineModelWrapper
+
+
+#' Store during/after infusion equations and output mapping on the model.
+#'
+#' Does not compile wrappers yet; compilation happens in
+#' \code{defineModelAdministration} once arm dosing is known.
+#' @return Updated model with wrapper metadata.
 #' @name defineModelWrapper
-#' @export
-# ==============================================================================
-
+#' @keywords internal
 method( defineModelWrapper, ModelODEInfusionDoseInEquation ) = function( model, evaluation ) {
-
-  # outcomes with administration
-  outcomesWithAdministration = evaluation %>%
-    pluck( "designs" ) %>%
-    map( ~ pluck( .x, "arms" ) ) %>%
-    unlist() %>%
-    map( ~ pluck( .x, "administrations" ) ) %>%
-    unlist()%>%
-    map( ~ pluck( .x, "outcome" ) ) %>%
-    unlist()
-
-  prop( model, "outcomesWithAdministration") = outcomesWithAdministration
-  prop( model, "wrapperModelInfusion" ) = prop( evaluation, "modelEquations" )
-  outputs = prop( evaluation, "outputs")
-  prop( model, "outputFormula") = outputs
-  prop( model, "outputNames") = names( outputs )
-
-  return( model )
+  equations = prop( evaluation, "modelEquations" )
+  outputs   = prop( evaluation, "outputs" )
+  model     = set_props(
+    model,
+    outcomesWithAdministration = .getOutcomesFromEvaluation( evaluation ),
+    variableNames              = .pfimOdeCompartmentNames( equations$duringInfusion %||% equations ),
+    wrapperModelInfusion       = equations,
+    outputNames                = names( outputs )
+  )
+  .setModelOutputFormulas( model, outputs )
 }
 
-# ==============================================================================
-#' @rdname defineModelAdministration
-#' @name defineModelAdministration
-#' @export
-# ==============================================================================
 
-method( defineModelAdministration, ModelODEInfusionDoseInEquation ) = function( model, arm ) {
+#' Build infusion ODE RHS closure from precompiled wrappers and current mu.
+#'
+#' At each \code{deSolve} step, selects during- vs after-infusion wrapper based
+#' on whether \code{t} falls inside any administration window
+#' (\eqn{[t_{\mathrm{dose}},\, t_{\mathrm{dose}}+T_{\mathrm{inf}})} - same
+#' half-open convention as analytic infusion), and exposes \code{dose_*},
+#' \code{Tinf_*}, and relative \code{t_*} for each outcome.
+#' @return Function suitable as \code{deSolve::ode} RHS.
+#' @noRd
+#' @keywords internal
+.odeInfusionModelOde = function(
+    mu, wrapperDuring, wrapperAfter, argsDuring, argsAfter,
+    variableNames, outcomesWithAdministration, outputFormula ) {
+  # Built once per closure; the RHS below runs at every solver step.
+  muList       = as.list( mu )
+  doseVarNames = map( outcomesWithAdministration, \( outcome ) paste0( c( "dose_", "Tinf_", "t_" ), outcome ) )
 
-  # model wrapper
-  wrapperModelInfusion = prop( model, "wrapperModelInfusion" )
-  wrapperModelDuringInfusion = wrapperModelInfusion$duringInfusion
-  wrapperModelAfterInfusion = wrapperModelInfusion$afterInfusion
+  function( t, y, parms ) {
+    state = set_names( as.list( y ), variableNames )
 
-  # variable derivative names
-  variableDerivativeNames = names( wrapperModelDuringInfusion )
+    # Active dose index: prefer current infusion window, else last started dose.
+    doseTimeVars = map2( outcomesWithAdministration, doseVarNames, \( outcome, varNames ) {
+      aTime = parms[[ outcome ]]$administrationTime
+      idxInf = which( t >= aTime[, 1L] & t < aTime[, 2L] )
+      idxDose = which( t >= aTime[, 1L] )
+      idx = if ( length( idxInf ) > 0L ) idxInf[1L] else if ( length( idxDose ) > 0L ) idxDose[ length( idxDose ) ] else 1L
+      set_names(
+        list( parms[[ outcome ]]$dose[ idx ], parms[[ outcome ]]$Tinf[ idx ], t - aTime[ idx, 1L ] ),
+        varNames
+      )
+    }) |> .pfimFlatten()
 
-  #model parameters
-  parameters = prop( model, "modelParameters" )
-  parameterNames = map_chr( parameters, "name" )
+    # Any administered outcome currently inside [t_dose, t_dose + Tinf).
+    inInfusion = any( map_lgl( outcomesWithAdministration, \( outcome ) {
+      aTime = parms[[ outcome ]]$administrationTime
+      any( t >= aTime[, 1L] & t < aTime[, 2L] )
+    } ) )
 
-  # administrations and outcome
-  outcomesWithAdministration =  prop( model, "outcomesWithAdministration" )
+    # Wrapper arguments and output formulas both read mu, states and dose/time vars.
+    variables = c( muList, state, doseTimeVars )
+    evaluationModel = if ( inInfusion )
+      do.call( wrapperDuring, variables[ argsDuring ] )
+    else
+      do.call( wrapperAfter, variables[ argsAfter ] )
+    env = list2env( variables, parent = baseenv() )
+    evaluationOutputs = map( outputFormula, \( x ) eval( x, envir = env ) )
+    c( evaluationModel, evaluationOutputs )
+  }
+}
 
-  # number of equation for wrapper
-  numberOfEquationsWithAdmin = length( outcomesWithAdministration )
-  numberOfEquations = length( wrapperModelDuringInfusion  )
+#' Build infusion dose windows passed to \code{deSolve::ode}.
+#'
+#' For \code{tau != 0}, expands doses onto a regular grid up to the last
+#' sampling time. Each outcome stores \code{administrationTime} as
+#' \code{[t_dose, t_dose + Tinf)} plus dose/Tinf vectors.
+#' @param model \code{ModelODEInfusionDoseInEquation} object.
+#' @param arm \code{Arm} object with administrations and sampling times.
+#' @return Named list of per-outcome dosing windows plus function argument metadata.
+#' @noRd
+#' @keywords internal
+.odeInfusionSolverInputsFromArm = function( model, arm ) {
+  samplingTimes     = prop( arm, "samplingTimes" )
+  maxSampling       = max( unlist( map( samplingTimes, \( x ) prop( x, "samplings" ) ) ) )
+  parameterNames    = map_chr( prop( model, "modelParameters" ), "name" )
+  initialConditions = evaluateInitialConditions( model, arm )
+  variableNames     = .pfimOdeStateNames( model )
+  if ( !length( variableNames ) )
+    variableNames = names( initialConditions )
+  initialConditions = .pfimAlignOdeStates( initialConditions, variableNames )
+  outcomesWithAdministration = prop( model, "outcomesWithAdministration" )
+  doseNames = paste0( "dose_", outcomesWithAdministration )
+  tinfNames = paste0( "Tinf_", outcomesWithAdministration )
+  timeNames = paste0( "t_", outcomesWithAdministration )
 
-  # sampling times
-  samplingTimes = prop( arm, "samplingTimes" )
+  solverInputs = map( prop( arm, "administrations" ), function( adm ) {
+    outcome  = prop( adm, "outcome" )
+    tau      = prop( adm, "tau" )
+    dosing   = .alignAdministrationDosing( adm )
+    timeDose = dosing$timeDose
+    dose     = dosing$dose
+    Tinf     = dosing$Tinf
 
-  # define the sampling for all response
-  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% unlist() %>% sort() %>% unique()
-  samplings = unique( c( 0, samplings ) )
-
-  # max values of the sampling times
-  maxSampling = map_dbl( samplingTimes, ~ max( prop( .x ,"samplings" ) ) ) %>% max()
-  # model outputs
-  outputNames = prop( model, "outputNames" )
-  outputFormula = prop( model, "outputFormula" )
-  outputFormula = map( outputFormula, ~ parse( text=.x ) )
-  outcomesWithAdministration =  prop( model, "outcomesWithAdministration" )
-
-  # administration time
-  administrationTime = list()
-  administrations = prop( arm, "administrations" )
-  solverInputs = map( administrations, ~ {
-
-    outcome = prop( .x, "outcome" )
-    timeDose = prop( .x, "timeDose" )
-    tau = prop( .x, "tau" )
-    dose = prop( .x, "dose" )
-    Tinf = prop( .x, "Tinf")
-
+    # Steady-state / multi-dose: replicate the unit infusion every tau.
     if ( tau != 0 ) {
       timeDose = seq( 0, maxSampling, tau )
-      administrationTime = cbind( timeDose[ -length( timeDose ) ], timeDose[-1] )
-      dose = rep( dose, length( timeDose ) )
-      Tinf = rep( Tinf, length( timeDose ) )
+      dose     = rep( dose, length( timeDose ) )
+      Tinf     = rep( Tinf, length( timeDose ) )
     }
+    administrationTime = cbind( timeDose, timeDose + Tinf ) |> unname()
+    set_names( list( list( administrationTime = administrationTime, dose = dose, Tinf = Tinf ) ), outcome )
+  }) |> list_flatten()
 
-    administrationTime = cbind( timeDose, timeDose + Tinf ) %>% unname()
+  functionArguments = unique( c( doseNames, tinfNames, timeNames, parameterNames, variableNames ) )
+  solverInputs$functionArguments        = functionArguments
+  solverInputs$functionArgumentsSymbols = map( functionArguments, as.symbol )
+  solverInputs
+}
 
-    setNames( list( list( administrationTime = administrationTime, dose = dose, Tinf = Tinf ) ), outcome )
-  })  %>% flatten()
+#' Compile during/after infusion ODE wrappers and administration inputs for one arm.
+#'
+#' Substitutes bare \code{t} with \code{t_<outcome>}, builds executable during/after
+#' wrappers, and constructs the deSolve RHS closure with current mu.
+#' @param model \code{ModelODEInfusionDoseInEquation} object.
+#' @param arm \code{Arm} object.
+#' @return Named list of administration parts (IC, samplings, wrappers, RHS, ...).
+#' @noRd
+#' @keywords internal
+.odeInfusionAdminParts = function( model, arm ) {
+  wrapperModelInfusion       = prop( model, "wrapperModelInfusion" )
+  wrapperModelDuringInfusion = wrapperModelInfusion$duringInfusion
+  wrapperModelAfterInfusion  = wrapperModelInfusion$afterInfusion
+  variableDerivativeNames    = names( wrapperModelDuringInfusion )
 
+  parameters                 = prop( model, "modelParameters" )
+  parameterNames             = map_chr( parameters, "name" )
+  outcomesWithAdministration = prop( model, "outcomesWithAdministration" )
 
-  # evaluate the initial conditions
+  samplingTimes = prop( arm, "samplingTimes" )
+  samplings     = map( samplingTimes, \( x ) prop( x, "samplings" ) ) |>
+    unlist() |> sort() |> unique() |> (\(s) unique( c( 0, s ) ))()
+
+  outputFormula     = .getOutputFormulaParsed( model )
+  solverInputs      = .odeInfusionSolverInputsFromArm( model, arm )
   initialConditions = evaluateInitialConditions( model, arm )
+  mu                = .extractMu( parameters )
 
-  # Assign the values to variables in the current environment
-  # Assign the values to the parameters in the current environment
-  mu = set_names(
-    map(parameters, ~ .x@distribution@mu),
-    map(parameters, ~ .x@name)
+  variableNames = .pfimOdeStateNames( model )
+  if ( !length( variableNames ) )
+    variableNames = str_remove( variableDerivativeNames, "Deriv_" )
+  initialConditions = .pfimAlignOdeStates( initialConditions, variableNames )
+  prop( model, "variableNames" ) = variableNames
+  doseNames     = paste0( "dose_", outcomesWithAdministration )
+  tinfNames     = paste0( "Tinf_", outcomesWithAdministration )
+  timeNames     = paste0( "t_",    outcomesWithAdministration )
+
+  wrapperModelDuringInfusion = .odeSubstituteBareT(
+    wrapperModelDuringInfusion, outcomesWithAdministration
+  )
+  wrapperModelAfterInfusion = .odeSubstituteBareT(
+    wrapperModelAfterInfusion, outcomesWithAdministration
   )
 
-  list2env( mu, envir = environment() )
+  argsDuring    = unique( c( doseNames, tinfNames, timeNames, parameterNames, variableNames ) )
+  argsAfter     = argsDuring
+  wrapperDuring = .pfimEquationFunction(
+    argsDuring, unlist( wrapperModelDuringInfusion ), variableDerivativeNames
+  )
+  wrapperAfter = .pfimEquationFunction(
+    argsAfter, unlist( wrapperModelAfterInfusion ), variableDerivativeNames
+  )
 
-  # arguments for function evaluation model
-  variableNames = names( initialConditions )
-  doseNames = paste( "dose_", outcomesWithAdministration, sep = "" )
-  tinfNames = paste( "Tinf_", outcomesWithAdministration, sep = "" )
+  modelODE = .odeInfusionModelOde(
+    mu, wrapperDuring, wrapperAfter, argsDuring, argsAfter,
+    variableNames, outcomesWithAdministration, outputFormula
+  )
 
-  functionArguments = c( doseNames, tinfNames, parameterNames, variableNames )
-  solverInputs$functionArguments = unique( functionArguments )
-  solverInputs$functionArgumentsSymbols = map( functionArguments, ~ as.symbol(.x) )
-
-  # outcome without administration
-  outcomesWithoutAdministration = setdiff( variableNames, outcomesWithAdministration )
-
-  # function to evaluate the model: create the wrapper with equations during/after infusion
-  # define the equations without administration
-  equationsWithAdministration = keep( wrapperModelDuringInfusion, ~ str_detect( ., "dose_") )
-  equationsWithoutAdministration = keep( wrapperModelDuringInfusion, ~ !str_detect( ., "dose_") )
-
-  modelODEInfusion = function( samplingTimes, initialConditions, solverInputs )
-  {
-    with( c( samplingTimes, initialConditions, solverInputs ),{
-
-      # define the equations
-      equation = list()
-      equations = map2( outcomesWithAdministration, seq_along( outcomesWithAdministration ), function( outcomeWithAdministration,iter ) {
-
-        equationArguments = list()
-
-        # administration and index for infusion during/after
-        administrationTime = solverInputs[[outcomeWithAdministration]]$administrationTime
-        indexTime = which( samplingTimes >= administrationTime[, 1] & samplingTimes < administrationTime[, 2] )
-
-        if ( length( indexTime ) != 0 )
-        {
-          # equations during infusion
-          equation[[iter]] = wrapperModelDuringInfusion[[iter]]
-          equationArguments[[iter]] = unique( c( doseNames, tinfNames, parameterNames, variableNames ) )
-        }else
-        {
-          # equations after infusion
-          equation[[iter]] = wrapperModelAfterInfusion[[iter]]
-          equationArguments[[iter]] = c( parameterNames, variableNames )
-        }
-        return( list( equation = equation, equationArguments = equationArguments )  )
-      })
-
-      # model equation
-      equation = map( equations, ~.x$equation ) %>% unlist()
-      names( equation ) = names(equationsWithAdministration)
-      equation = c( equation, equationsWithoutAdministration )
-
-      # argument of model equation
-      equationArguments = map( equations, ~.x$equationArguments ) %>% unlist() %>% unique()
-      equationArgumentsSymbols = map( equationArguments, ~ as.symbol(.x) )
-
-      # # create model wrapper
-      equationsBody = map_chr( names( equation ), ~ sprintf( "%s = %s", .x, equation[[.x]] ) )
-      functionBody = paste( equationsBody, collapse = "\n" )
-      functionBody = sprintf( "%s\nreturn(list(c(%s)))", functionBody, paste( variableDerivativeNames, collapse = ", " ) )
-      functionDefinition = sprintf( "function(%s) { %s }", paste( equationArguments, collapse = ", " ), functionBody )
-      wrapper = eval( parse( text = functionDefinition ) )
-
-      # evaluate wrapper
-      for( outcomeWithAdministration in outcomesWithAdministration )
-      {
-        administrationTime = solverInputs[[outcomeWithAdministration]]$administrationTime
-        indexTime = which( samplingTimes >= administrationTime[, 1] & samplingTimes < administrationTime[, 2] )
-
-        if ( length( indexTime ) != 0 )
-        {
-          # equations during infusion
-          doseNames = paste( "dose_", outcomeWithAdministration, sep = "" )
-          tinfNames = paste( "Tinf_", outcomeWithAdministration, sep = "" )
-
-          dose = solverInputs[[outcomeWithAdministration]]$dose
-          Tinf = solverInputs[[outcomeWithAdministration]]$Tinf
-
-          assign( doseNames, dose[indexTime] )
-          assign( tinfNames, Tinf[indexTime] )
-        }
-      }
-      evaluationModel = do.call( wrapper, setNames( equationArgumentsSymbols, equationArguments ) )
-      evaluationOutputs  = map( outputFormula, ~ eval( .x ) )
-
-      return( c( evaluationModel, evaluationOutputs ) )
-    })
-  }
-
-  prop( model, "initialConditions" ) = initialConditions
-  prop( model, "samplings" ) = samplings
-  prop( model, "modelODE" ) = modelODEInfusion
-  prop( model, "solverInputs" ) = solverInputs
-
-  return( model )
+  list(
+    initialConditions = initialConditions,
+    samplings = samplings,
+    solverInputs = solverInputs,
+    modelODE = modelODE,
+    wrapperDuring = wrapperDuring,
+    wrapperAfter = wrapperAfter,
+    argsDuring = argsDuring,
+    argsAfter = argsAfter,
+    variableNames = variableNames,
+    variableDerivativeNames = variableDerivativeNames,
+    outcomesWithAdministration = outcomesWithAdministration,
+    outputFormula = outputFormula
+  )
 }
 
-# ==============================================================================
-#' @rdname evaluateModel
-#' @name evaluateModel
-#' @export
-# ==============================================================================
+#' Apply compiled infusion administration slots to a model.
+#' @noRd
+#' @keywords internal
+.odeInfusionApplyParts = function( model, parts ) {
+  set_props(
+    model,
+    initialConditions = parts$initialConditions,
+    samplings         = parts$samplings,
+    modelODE          = parts$modelODE,
+    solverInputs      = parts$solverInputs
+  )
+}
 
-method( evaluateModel, ModelODEInfusionDoseInEquation ) = function( model, arm ) {
+#' Cacheable infusion administration entry (compiled wrappers + arm layout).
+#' @noRd
+#' @keywords internal
+.pfimInfusionAdminEntryFromParts = function( parts ) {
+  list(
+    type = "infusionDoseInEq",
+    samplings = parts$samplings,
+    wrapperDuring = parts$wrapperDuring,
+    wrapperAfter = parts$wrapperAfter,
+    argsDuring = parts$argsDuring,
+    argsAfter = parts$argsAfter,
+    variableDerivativeNames = parts$variableDerivativeNames,
+    outcomesWithAdministration = parts$outcomesWithAdministration
+  )
+}
 
-  initialConditions = prop( model, "initialConditions" )
-  samplings = prop( model, "samplings" )
-  modelODE = prop( model, "modelODE" )
-  solverInputs = prop( model, "solverInputs" )
+#' Apply cached infusion administration parts with refreshed mu.
+#' @noRd
+#' @keywords internal
+.odeInfusionApplyAdminEntry = function( model, arm, entry ) {
+  mu = .extractMu( prop( model, "modelParameters" ) )
+  variableNames = .pfimOdeStateNames( model )
+  if ( !length( variableNames ) )
+    variableNames = str_remove( entry$variableDerivativeNames, "Deriv_" )
+  initialConditions = .pfimAlignOdeStates(
+    evaluateInitialConditions( model, arm ), variableNames
+  )
+  model = set_props( model, variableNames = variableNames, initialConditions = initialConditions )
+  set_props(
+    model,
+    samplings    = entry$samplings,
+    solverInputs = .odeInfusionSolverInputsFromArm( model, arm ),
+    modelODE     = .odeInfusionModelOde(
+      mu,
+      entry$wrapperDuring, entry$wrapperAfter,
+      entry$argsDuring, entry$argsAfter,
+      variableNames, entry$outcomesWithAdministration,
+      .getOutputFormulaParsed( model )
+    )
+  )
+}
+
+
+#' Compile infusion wrappers and bind arm dosing to the model.
+#' @return Updated model with ODE solver function and inputs.
+#' @name defineModelAdministration
+#' @keywords internal
+method( defineModelAdministration, ModelODEInfusionDoseInEquation ) = function( model, arm ) {
+  .odeInfusionApplyParts( model, .odeInfusionAdminParts( model, arm ) )
+}
+
+
+#' Integrate ODE infusion trajectories and extract outputs at sampling times.
+#' @param model \code{ModelODEInfusionDoseInEquation} object.
+#' @param arm \code{Arm} object used for evaluation.
+#' @return Named list of output data frames at requested sampling times.
+#' @noRd
+#' @keywords internal
+.odeInfusionEvaluateModelCore = function( model, arm ) {
+
   odeSolverParameters = prop( model, "odeSolverParameters" )
-  atol = odeSolverParameters$atol
-  rtol = odeSolverParameters$rtol
-  samplingTimes = prop( arm, "samplingTimes" )
-  outputNames = prop( model, "outputNames" )
+  outputNames         = prop( model, "outputNames" )
+  samplingTimes       = prop( arm,   "samplingTimes" )
+  tol                 = .pfimDeSolveTolerances( odeSolverParameters )
 
-  # model evaluation
-  evaluationModelTmp = ode( initialConditions, samplings, modelODE, solverInputs, hmax = 0.0, atol = atol, rtol = rtol )
-  evaluationModelTmp = evaluationModelTmp %>% as.data.frame()
+  # RHS switches during/after infusion using solverInputs administration windows.
+  evaluationModelTmp = ode(
+    prop( model, "initialConditions" ),
+    prop( model, "samplings" ),
+    prop( model, "modelODE" ),
+    prop( model, "solverInputs" ),
+    hmax = 0.0,
+    atol = tol$atol,
+    rtol = tol$rtol
+  ) |> as.data.frame()
 
-  # filter sampling time
-  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% set_names( outputNames )
-
-  evaluationModel = list()
-  for ( outputName in outputNames )
-  {
-    time = evaluationModelTmp$time %in% samplings[[outputName]]
-    evaluationModel[[outputName]] = evaluationModelTmp[ time , c( "time", outputName ) ]
-  }
-
-  return( evaluationModel )
+  .odeExtractOutputAtSamplingTimes(
+    evaluationModelTmp, samplingTimes, outputNames, .getModelOutputFormulas( model )
+  )
 }
 
-# ==============================================================================
-#' @rdname definePKModel
-#' @name definePKModel
-#' @export
-# ==============================================================================
 
+#' Dispatch: covariate/occasion structure -> specialised path; else core evaluator.
+#' @return Named list of output data frames at requested sampling times.
+#' @name evaluateModel
+#' @keywords internal
+method( evaluateModel, ModelODEInfusionDoseInEquation ) = function( model, arm ) {
+  if ( usesCovariateOccasionStructure( model ) )
+    evaluateModelWithCovariates( model, arm, .odeInfusionEvaluateModelCore )
+  else
+    .odeInfusionEvaluateModelCore( model, arm )
+}
+
+
+#' Remap library ODE infusion PK equations onto project compartments.
+#' @param pkModel First argument of generic.
+#' @param pfimproject \code{PFIMProject} used for compartment remapping.
+#' @return List of remapped PK equations for infusion ODE models.
+#' @name definePKModel
+#' @keywords internal
 method( definePKModel, list( ModelODEInfusionDoseInEquation, PFIMProject ) ) = function( pkModel, pfimproject ) {
 
-  # get the initial conditions to get variable names
-  designs = prop( pfimproject, "designs" )
-  variablesNames = designs %>% map(~ map( prop(.x,"arms"), ~ prop(.x,"initialConditions"))) %>% unlist() %>% names() %>% unique()
-  variablesNamesToChange =  c("C1", "C2")
+  pkModelEquations = prop( pkModel, "modelEquations" )
+  nPk = length( pkModelEquations$duringInfusion )
+  derivNames = .derivativeNamesFromCompartments(
+    pfimproject, nPk, names( pkModelEquations$duringInfusion )
+  )
 
-  pkModelEquations = prop( pkModel, "modelEquations")
-  pkModelEquations$duringInfusion = pkModelEquations$duringInfusion %>% imap(~reduce2(variablesNamesToChange, variablesNames, replaceVariablesLibraryOfModels, .init = .x))
-  pkModelEquations$afterInfusion = pkModelEquations$afterInfusion %>% imap(~reduce2(variablesNamesToChange, variablesNames, replaceVariablesLibraryOfModels, .init = .x))
+  # Remap C1/C2 tokens and rename to Deriv_<compartment> for during and after.
+  pkModelEquations$duringInfusion = remapOdePkLibraryEquations(
+    pkModelEquations$duringInfusion, pfimproject
+  ) |> set_names( derivNames )
 
-  pkModelEquations$duringInfusion =  pkModelEquations$duringInfusion %>% set_names( paste0( "Deriv_",variablesNames))
-  pkModelEquations$afterInfusion =  pkModelEquations$afterInfusion %>% set_names( paste0( "Deriv_",variablesNames))
+  pkModelEquations$afterInfusion = remapOdePkLibraryEquations(
+    pkModelEquations$afterInfusion, pfimproject
+  ) |> set_names( derivNames )
 
-  return( pkModelEquations )
+  pkModelEquations
 }
 
-# ==============================================================================
-#' @rdname definePKPDModel
+
+#' Combine remapped infusion PK with ODE PD for during and after phases.
+#' @param pkModel First argument of generic.
+#' @param pdModel ODE PD model.
+#' @param pfimproject \code{PFIMProject} used for equation remapping.
+#' @return List with combined PK/PD equations for during and after infusion.
 #' @name definePKPDModel
-#' @export
-# ==============================================================================
+#' @keywords internal
+method( definePKPDModel, list( ModelODEInfusionDoseInEquation, ModelODE, PFIMProject ) ) =
+  function( pkModel, pdModel, pfimproject ) {
 
-method( definePKPDModel, list( ModelODEInfusionDoseInEquation, class_any, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
+    pkOrig = prop( pkModel, "modelEquations" )
+    pdOrig = prop( pdModel, "modelEquations" )
+    catalog = c( names( pkOrig$duringInfusion ), names( pdOrig ) )
+    if ( is.null( catalog ) || !length( catalog ) )
+      catalog = names( pkOrig )
+    pkModelEquations = remapOdePkLibraryEquations(
+      pkOrig,
+      pfimproject
+    )
+    pdEq = remapPkpdLibraryEquations(
+      pdOrig,
+      pfimproject
+    )
+    derivNames = .derivativeNamesFromCompartments( pfimproject, 2L, catalog )
 
-  pkModelEquations = prop( pkModel, "modelEquations")
-  pdModelEquations = prop( pdModel, "modelEquations")
-  equations = c( pkModelEquations, pdModelEquations )
-  pdModelEquations = str_replace_all( pdModelEquations, "E", paste0( "C", length( equations ) ) )
-  pdModelEquations = str_replace_all( pdModelEquations, "RespPK", "C1" )
-  names( pdModelEquations ) = paste0("Deriv_C",length( equations ) )
-
-  equations = list( "duringInfusion" = c( pkModelEquations$duringInfusion, pdModelEquations ),
-                    "afterInfusion" =  c( pkModelEquations$afterInfusion, pdModelEquations ) )
-
-  return( equations )
-}
+    list(
+      duringInfusion = .combineInfusionPkPdEquations(
+        pkModelEquations$duringInfusion, pdEq, derivNames
+      ),
+      afterInfusion = .combineInfusionPkPdEquations(
+        pkModelEquations$afterInfusion, pdEq, derivNames
+      )
+    )
+  }

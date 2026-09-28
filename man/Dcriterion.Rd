@@ -2,21 +2,17 @@
 % Please edit documentation in R/Fim.R
 \name{Dcriterion}
 \alias{Dcriterion}
-\title{Dcriterion}
-\arguments{
-\item{fim}{An object of class \code{Fim}.}
-}
+\title{D-criterion}
 \value{
-A double giving the D-criterion of the Fim.
+Numeric D-optimality criterion value.
 }
 \description{
-Computes the D-criterion of the Fisher Information Matrix. The D-criterion is
-calculated as the determinant of the FIM raised to the power of 1 over the
-number of parameters.
+D-criterion
 }
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+\examples{
+\donttest{
+source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+PFIM:::Dcriterion(prop(ev, "fim"))
 }
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }
+\keyword{internal}

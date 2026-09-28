@@ -1,57 +1,24 @@
-#' @title Design Class
-#' @name Design
-#'
+#' @title Design
 #' @description
-#' The \code{Design} class represents a full clinical trial design. It acts as a
-#' container for multiple \code{Arm} objects and stores the population-level
-#' Fisher Information Matrix (FIM) and evaluation results for the entire study.
-#'
-#' @slot name \code{character}. The name of the design.
-#' @slot size \code{numeric}. Total number of subjects across all arms.
-#' @slot arms \code{list}. A list containing the \code{Arm} objects.
-#' @slot numberOfArms \code{numeric}. The count of arms in the design.
-#' @slot fim \code{Fim}. The global Fisher Information Matrix for the design.
-#'
-#' @param name A string giving the name of the design.
-#' @param size A numeric value representing the total number of subjects.
-#' @param arms A list of \code{Arm} objects defining the different groups.
-#' @param numberOfArms An integer giving the number of arms.
-#' @param evaluationArms A list containing the evaluation results for each arm.
-#' @param fim An object of class \code{Fim} giving the global FIM of the design.
-#'
-#' @return An object of class \code{Design}.
-#'
+#' Experimental design: one or more arms, each with dosing and sampling schedules.
+#' Filled by \code{evaluateDesign()} with per-arm FIM results.
+#' @param name Character string: design name.
+#' @param size Total number of subjects (sum of arm sizes).
+#' @param arms List of \code{Arm} objects.
+#' @param numberOfArms Optional total study size for discrete designs (historical
+#'   CRAN field; Mult/FW prefer \code{size} / arm sizes / \code{numberOfSubjects}).
+#'   Not the count of \code{Arm} objects.
+#' @param evaluationArms Evaluated arms after \code{evaluateDesign()}.
+#' @param fim Aggregated \code{Fim} for the design.
 #' @include Fim.R
-#'
+#' @include Arm.R
+#' @return An S7 object of class \code{Design}.
 #' @examples
-#'
-#' # 1. Define sampling times for PK and PD outcomes
-#' samplingTimesRespPK = SamplingTimes(outcome   = "RespPK",
-#'                                      samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
-#'
-#' samplingTimesRespPD = SamplingTimes(outcome   = "RespPD",
-#'                                      samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
-#'
-#' # 2. Define the administration (Dose of 20 at t=0)
-#' adminRespPK = Administration(outcome = "RespPK", timeDose = 0, dose = 20)
-#'
-#' # 3. Define the study arm "0.2mg"
-#' # Outcomes are linked to state variables: RespPK to Cc, RespPD to E.
-#' arm02mg = Arm(name = "0.2mg",
-#'                size = 6,
-#'                administrations   = list(adminRespPK),
-#'                samplingTimes     = list(samplingTimesRespPK, samplingTimesRespPD),
-#'                initialConditions = list("Cc" = 0, "E" = 100))
-#'
-#' # 4. Create the Design object
-#' # The arm defined above is included in the 'arms' list.
-#' design1 = Design(name = "Design1",
-#'                   arms = list(arm02mg))
-#'
-#' # Display the design summary
-#' print(design1)
-#'
-#' @template copyright
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' design = prop(ev, "designs")[[1L]]
+#' prop(prop(design, "arms")[[1L]], "size")
+#' }
 #' @export
 
 Design = new_class("Design", package = "PFIM",
@@ -61,211 +28,381 @@ Design = new_class("Design", package = "PFIM",
                      arms = new_property(class_list, default = list()),
                      evaluationArms = new_property(class_list, default = list()),
                      numberOfArms = new_property(class_double, default = 0.0),
-                     fim = new_property(Fim, default = NULL)
-                   ))
+                     fim = new_property(NULL | Fim, default = NULL)
+                   ),
+                   validator = function( self ) {
+                     n = prop( self, "name" )
+                     if ( length( n ) > 1L )
+                       return( "Design: name must be a single string." )
+                     if ( .pfimIsBlankScalar( n ) )
+                       return( "Design: name must be a non-empty string." )
+                     size = prop( self, "size" )
+                     if ( length( size ) == 1L && ( !is.finite( size ) || size < 0 ) )
+                       return( "Design: size must be non-negative." )
+                     nArms = prop( self, "numberOfArms" )
+                     if ( length( nArms ) == 1L && ( !is.finite( nArms ) || nArms < 0 ) )
+                       return( "Design: numberOfArms must be non-negative." )
+                     msg = .validateS7List(
+                       prop( self, "arms" ), Arm, "Design:arms", "Arm"
+                     )
+                     if ( !is.null( msg ) )
+                       return( msg )
+                     msg = .validateS7List(
+                       prop( self, "evaluationArms" ), Arm, "Design:evaluationArms", "Arm"
+                     )
+                     if ( !is.null( msg ) )
+                       return( msg )
+                     NULL
+                   })
 
 
-evaluateDesign = new_generic( "evaluateDesign", c( "design" ) )
-generateDosesCombination = new_generic( "generateDoseCombination", c( "design" ) )
-generateSamplingTimesCombination = new_generic( "generateSamplingTimesCombination", c( "design" ) )
-checkValiditySamplingConstraint = new_generic( "checkValiditySamplingConstraint", c( "design" ) )
-setSamplingConstraintForOptimization = new_generic( "setSamplingConstraintForOptimization", c( "design" ) )
-
-# ==============================================================================
-#' @title Evaluation of a clinical design
-#' @name evaluateDesign
-#' @param design An object \code{Design} to evaluate.
-#' @param model An object \code{Model} used for evaluation.
-#' @param fim An object \code{Fim} to store results.
-#' @return The \code{Design} object with evaluated arms and aggregated global FIM.
-#' @template copyright
-#' @export
-# ==============================================================================
-
-method( evaluateDesign, Design ) = function( design, model, fim ) {
-
-  # evaluate the arms of each design
-  arms = prop( design, "arms")
-  prop( design, "evaluationArms") = arms %>% map( ~ evaluateArm( .x , model, fim ) )
-
-  evaluationDesign = pluck( prop( design, "evaluationArms"),1)
-  evaluationFim = prop( evaluationDesign, "evaluationFim" )
-
-  prop( fim, "fisherMatrix" ) = prop( design, "evaluationArms" ) %>% map( ~ prop( prop( .x, "evaluationFim" ), "fisherMatrix" ) ) %>% reduce(`+`)
-  prop( fim, "shrinkage" ) = prop( evaluationFim, "shrinkage" )
-  prop( design, "fim" ) = fim
-
-  return( design )
+#' Sampling times for one outcome on an arm.
+#' @param samplingTimes List of \code{SamplingTimes} objects.
+#' @param outcome Character outcome name.
+#' @return Numeric vector of sampling times.
+#' @noRd
+#' @keywords internal
+.samplingsForOutcome = function( samplingTimes, outcome ) {
+  keep( samplingTimes, \( x ) prop( x, "outcome" ) == outcome ) |>
+    map( \( x ) prop( x, "samplings" ) ) |>
+    unlist()
 }
 
-# ==============================================================================
-#' @title Generate dose combinations for optimization
+
+#' Arm sizes for design FIM mixture weights (\code{<= 0} -> drop).
+#' @noRd
+#' @keywords internal
+.designArmSizes = function( evaluationArms ) {
+  map_dbl( evaluationArms, function( arm ) {
+    s = prop( arm, "size" )
+    if ( length( s ) != 1L || !is.finite( s ) ) 0 else as.numeric( s )
+  } )
+}
+
+#' Assemble the design-level FIM from evaluated arms.
+#'
+#' \strong{Population:} arm FIMs are already \eqn{\times n_a}; the design matrix is
+#' their sum.
+#'
+#' \strong{Individual / Bayesian:} each arm stores a \emph{per-subject} FIM
+#' (Bayesian arms keep their prior). Across arms, average covariances then invert:
+#' \deqn{\bar C = \sum_a (n_a / N)\, M_a^{-1},\quad M_{\mathrm{eff}} = \bar C^{-1}.}
+#' Arms with \code{size <= 0} are ignored. Shrinkage uses \eqn{M_{\mathrm{eff}}}.
+#' @noRd
+#' @keywords internal
+.assembleDesignFim = function( fimPrototype, evaluationArms, model = NULL ) {
+
+  designFim = .duplicateFim( fimPrototype )
+  if ( !length( evaluationArms ) ) {
+    prop( designFim, "fisherMatrix" ) = matrix( numeric( 0L ), 0L, 0L )
+    return( designFim )
+  }
+
+  sizes = .designArmSizes( evaluationArms )
+  keep  = sizes > 0
+  # If every size is missing/zero (malformed design), fall back to equal weights.
+  if ( !any( keep ) ) {
+    keep  = rep( TRUE, length( evaluationArms ) )
+    sizes = rep( 1, length( evaluationArms ) )
+  }
+  evaluationArms = evaluationArms[ keep ]
+  sizes          = sizes[ keep ]
+  N              = sum( sizes )
+  weights        = sizes / N
+
+  fisherBlocks = map(
+    evaluationArms,
+    \( x ) prop( prop( x, "evaluationFim" ), "fisherMatrix" )
+  )
+
+  isBayes = S7::S7_inherits( fimPrototype, BayesianFim )
+  isPop   = S7::S7_inherits( fimPrototype, PopulationFim )
+
+  if ( isPop ) {
+    # Population: each arm FIM is already x n_a.
+    M = reduce( fisherBlocks, `+` )
+  } else {
+    # Individual / Bayesian: arms keep prior; aggregate by covariance mixture.
+    M = .pfimHarmonicMeanFim( fisherBlocks, weights )$fisherMatrix
+  }
+
+  if ( is.matrix( M ) && nrow( M ) == ncol( M ) && length( M ) )
+    M = 0.5 * ( M + t( M ) )
+  prop( designFim, "fisherMatrix" ) = M
+
+  # Shrinkage from the design FIM (same matrix as SE/RSE).
+  if ( isBayes && !is.null( model ) )
+    prop( designFim, "shrinkage" ) = .bayesianShrinkage( M, model )
+
+  designFim
+}
+
+#' Evaluate a design for a model and FIM type
+#' @param design A \code{Design} object.
+#' @param ... Method-specific arguments. For \code{Design}, \code{model} and \code{fim} objects.
+#' @usage evaluateDesign(design, ...)
+#' @return The updated \code{Design} object after evaluation.
+#' @examples
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' length(prop(ev, "evaluationDesign"))
+#' }
+#' @name evaluateDesign
+#' @keywords internal
+evaluateDesign = new_generic( "evaluateDesign", c( "design" ) )
+
+#' Enumerate dose combinations under design constraints
+#' @param design A \code{Design} object.
+#' @param ... Optional method arguments.
 #' @name generateDosesCombination
-#' @param design An object \code{Design}.
-#' @return A list containing the combinations of doses and the total count.
-#' @template copyright
-#' @export
-# ==============================================================================
+#' @return A list or matrix of generated dose combinations.
+#' @keywords internal
+generateDosesCombination = new_generic( "generateDosesCombination", c( "design" ) )
+
+#' Enumerate sampling-time combinations under constraints
+#' @param design A \code{Design} object.
+#' @param ... Optional method arguments.
+#' @name generateSamplingTimesCombination
+#' @return A list or matrix of generated sampling-time combinations.
+#' @keywords internal
+generateSamplingTimesCombination = new_generic( "generateSamplingTimesCombination", c( "design" ) )
+
+#' Hard cap on discrete dose/sampling Cartesian products.
+#'
+#' Enumerating \code{combn()} / \code{expand.grid()} without a bound can exhaust
+#' memory on large constraint grids. This limit applies to the *enumeration*
+#' step only; it is independent of \code{constraints.maxTasks}, which only
+#' subsamples FIM evaluations *after* the grid exists.
+#' @noRd
+#' @keywords internal
+.pfimMaxCombinationCount = 1000000L
+
+#' Stop when a discrete enumeration would exceed \code{.pfimMaxCombinationCount}.
+#'
+#' @param count Number of combinations about to be materialised (must be
+#'   \code{nrow} for dose grids, or product of per-outcome list lengths for
+#'   sampling grids - never \code{prod(dim(...))}).
+#' @param context Short label included in the error (e.g. \code{"Dose enumeration"}).
+#' @noRd
+#' @keywords internal
+.pfimStopIfCombinationOverflow = function( count, context ) {
+  if ( !is.finite( count ) || count <= .pfimMaxCombinationCount )
+    return( invisible( NULL ) )
+  .pfimStop(
+    context, " would enumerate ", format( count, scientific = FALSE ), " combinations ",
+    "(limit ", format( .pfimMaxCombinationCount, scientific = FALSE ), "). ",
+    "Reduce the number of candidate doses or sampling times."
+  )
+}
+
+#' Validate generated sampling constraints for feasibility
+#' @param design A \code{Design} object.
+#' @param ... Optional method arguments.
+#' @name checkValiditySamplingConstraint
+#' @return Logical value indicating whether sampling constraints are valid.
+#' @keywords internal
+checkValiditySamplingConstraint = new_generic( "checkValiditySamplingConstraint", c( "design" ) )
+
+#' Apply sampling constraints for optimization algorithms
+#' @param design A \code{Design} object.
+#' @param ... Optional method arguments.
+#' @name setSamplingConstraintForOptimization
+#' @return The modified \code{Design} object.
+#' @keywords internal
+setSamplingConstraintForOptimization = new_generic( "setSamplingConstraintForOptimization", c( "design" ) )
+
+#' Evaluate every arm and assemble the design-level FIM.
+#'
+#' Runs \code{evaluateArm()} on each arm, then \code{.assembleDesignFim()}.
+#' @return The same \code{Design} with \code{evaluationArms} and \code{fim} set.
+#' @name evaluateDesign
+#' @usage NULL
+method( evaluateDesign, Design ) = function( design, model, fim ) {
+
+  arms = prop( design, "arms" )
+  prop( design, "evaluationArms" ) = map(
+    arms,
+    function( arm ) evaluateArm( arm, model, fim )
+  )
+  prop( design, "fim" ) = .assembleDesignFim( fim, prop( design, "evaluationArms" ), model )
+
+  design
+}
+
+#' Enumerate dose levels under administration constraints.
+#'
+#' Builds the Cartesian product of dose lists across arms/outcomes, guarded by
+#' \code{.pfimMaxCombinationCount}. Returns a nested list keyed by arm and
+#' outcome, plus \code{numberOfDoses}.
+#' @name generateDosesCombination
+#' @keywords internal
 
 method( generateDosesCombination, Design ) = function( design ) {
 
   arms = prop( design, "arms" )
-  armNames = map_chr( arms, ~ prop( .x, "name" ) )
-  outcomes = map( arms, ~ map_chr(prop( .x, "administrationsConstraints" ), ~ prop( .x,"outcome" ) ) )
 
-  # combination of the doses
-  dosesForFIMsTmp = map( arms, ~ {
-    administrationsConstraints = prop( .x, "administrationsConstraints" )
-    armName = prop( .x, "name" )
-    doses = map( administrationsConstraints, ~ {
-      doses = prop( .x, "doses" )
-    })
-  }) %>% flatten() %>% expand.grid()
+  # Cartesian product of dose levels across administrations (one row = one combo).
+  # Missing AdministrationConstraints: singleton grid from the arm's current doses
+  # (optimize sampling times only).
+  dosesForFIMsTmp = map( arms, function( arm ) {
+    cons = prop( arm, "administrationsConstraints" )
+    adms = prop( arm, "administrations" )
+    if ( length( cons ) ) {
+      if ( length( cons ) != length( adms ) )
+        .pfimStop(
+          "Arm '", prop( arm, "name" ),
+          "': administrationsConstraints must have one entry per Administration (",
+          length( adms ), " administration(s), ", length( cons ), " constraint(s))."
+        )
+      return( map( cons, \( x ) prop( x, "doses" ) ) )
+    }
+    map( adms, function( adm ) {
+      d = as.numeric( prop( adm, "dose" ) )
+      if ( !length( d ) || any( !is.finite( d ) ) )
+        .pfimStop(
+          "Arm '", prop( arm, "name" ),
+          "': Administration(outcome = \"", prop( adm, "outcome" ),
+          "\") has no finite dose. Set dose= or add AdministrationConstraints."
+        )
+      as.list( d[[ 1L ]] )
+    } )
+  } ) |> flatten()
 
-  # assign arm and responses names to each combination
-  dosesForFIMs = list()
-  iter = 1
-  for ( arm in arms ) {
-    administrations = prop( arm, "administrations")
-    armName = prop( arm, "name")
-    for ( administration in administrations ) {
-      outcome = prop( administration, "outcome")
-      dosesForFIMs[[armName]][[outcome]] = unlist(dosesForFIMsTmp[,iter])
-      iter = iter + 1 } }
-  return( c( dosesForFIMs, numberOfDoses = dim(dosesForFIMsTmp)[1] ) )
+  if ( !length( dosesForFIMsTmp ) )
+    .pfimStop(
+      "Fedorov-Wynn / Multiplicative: no doses to enumerate. ",
+      "Add Administration() on the arm, or AdministrationConstraints(doses = ...)."
+    )
+
+  dosesForFIMsTmp = expand.grid( dosesForFIMsTmp )
+
+  # Guard uses nrow (= number of dose combinations), not prod(dim) = nrow*ncol.
+  .pfimStopIfCombinationOverflow(
+    nrow( dosesForFIMsTmp ),
+    "Dose enumeration"
+  )
+
+  adminSpecs = map( arms, function( arm ) {
+    armName = prop( arm, "name" )
+    map( prop( arm, "administrations" ), function( administration ) {
+      list( armName = armName, outcome = prop( administration, "outcome" ) )
+    } )
+  } ) |> flatten()
+
+  dosesForFIMs = reduce(
+    imap( adminSpecs, \( x, y ) list( spec = x, col = y ) ),
+    function( acc, item ) {
+      acc[[ item$spec$armName ]][[ item$spec$outcome ]] =
+        unlist( dosesForFIMsTmp[, item$col, drop = TRUE ] )
+      acc
+    },
+    .init = list()
+  )
+  c( dosesForFIMs, numberOfDoses = dim( dosesForFIMsTmp )[1L] )
 }
 
-# ==============================================================================
-#' @title Generate sampling time combinations
+#' Enumerate sampling-time combinations under sampling constraints.
+#'
+#' For each arm and outcome: \code{combn} of free times plus fixed times, then
+#' \code{expand.grid} across outcomes (guarded before materialising). Returns a
+#' named list of arms -> list of sampling schedules for FIM evaluation.
 #' @name generateSamplingTimesCombination
-#' @param design An object \code{Design}.
-#' @return A list of possible sampling time combinations for each arm.
-#' @template copyright
-#' @export
-# ==============================================================================
+#' @keywords internal
 
 method( generateSamplingTimesCombination, Design ) = function( design ) {
 
   arms = prop( design, "arms" )
-  armNames = map_chr( arms, ~ prop( .x, "name" ) )
 
   armResults = map( arms, function( arm ) {
 
-    # Extract the relevant properties for each arm
     armName = prop( arm, "name" )
     samplingTimesConstraints = prop( arm, "samplingTimesConstraints" )
     samplingTimes = prop( arm, "samplingTimes")
-    outcomeNames = map_chr( samplingTimesConstraints, ~ prop( .x, "outcome" ) )
+    outcomeNames = map_chr( samplingTimesConstraints, \( x ) prop( x, "outcome" ) )
 
-    # Generate all combinations of sampling times for the arm
+    # Per outcome: choose k free times from the candidate grid (+ fixed times).
     samplingTimesCombinations = map( samplingTimesConstraints, function( samplingTimesConstraint ) {
       initialSamplings = prop( samplingTimesConstraint, "initialSamplings" )
       fixedTimes = prop( samplingTimesConstraint, "fixedTimes" )
-      numberOfSamplingsOptimisable = prop( samplingTimesConstraint, "numberOfSamplingsOptimisable" )
+      numberOfsamplingsOptimisable = prop( samplingTimesConstraint, "numberOfsamplingsOptimisable" )
       availableSamplings = setdiff( initialSamplings, fixedTimes )
-      combinations = combn( availableSamplings, numberOfSamplingsOptimisable - length( fixedTimes ), simplify = FALSE )
-
-      # Generate all combinations of sampling times
-      map( combinations, ~ c( fixedTimes, .x ) )
+      outcome = prop( samplingTimesConstraint, "outcome" )
+      k = as.integer( numberOfsamplingsOptimisable - length( fixedTimes ) )
+      if ( k < 0L )
+        .pfimStop(
+          "numberOfsamplingsOptimisable cannot be less than the number of fixed times for outcome ",
+          outcome, "."
+        )
+      if ( k > length( availableSamplings ) )
+        .pfimStop(
+          "Not enough available sampling times for outcome ", outcome,
+          " (need ", k, ", have ", length( availableSamplings ), ")."
+        )
+      combinations = if ( k == 0L ) list( fixedTimes ) else combn( availableSamplings, k, simplify = FALSE )
+      map( combinations, \( x ) c( fixedTimes, x ) )
     })
 
-    # Flatten the list and convert to a data frame
+    # Guard before expand.grid (Cartesian product across outcomes).
+    nCombinations = prod( lengths( samplingTimesCombinations ) )
+    .pfimStopIfCombinationOverflow(
+      nCombinations,
+      paste0( "Sampling enumeration for arm '", armName, "'" )
+    )
+
     samplingTimesCombinations = expand.grid( samplingTimesCombinations )
     colnames( samplingTimesCombinations ) = outcomeNames
+    samplingTimesCombinations = pmap( samplingTimesCombinations, list )
 
-    # Convert to a list of named lists
-    samplingTimesCombinations = pmap( samplingTimesCombinations, ~ list( ... ) )
-
-    # Map the sampling times combinations to the sampling times for each outcome
-    samplingsForFIM = map( samplingTimesCombinations, function( samplingTimeCombination ) {
+    # Materialise SamplingTimes copies with the chosen times (sorted).
+    map( samplingTimesCombinations, function( samplingTimeCombination ) {
       map2( samplingTimes, outcomeNames, function( samplingTime, outcomeName ) {
-        prop( samplingTime, "samplings" ) = sort( samplingTimeCombination[[outcomeName]] )
-        samplingTime
-      })
-    })
-  })
-  set_names( armResults, armNames )
+        set_props( samplingTime, samplings = sort( samplingTimeCombination[[ outcomeName ]] ) )
+      } )
+    } )
+  } )
+  set_names( armResults, map_chr( arms, \( x ) prop( x, "name" ) ) )
 }
 
-# ==============================================================================
-#' @title Validate optimization constraints
+#' Fail fast if window counts / spacing cannot fit the arm's sampling times.
+#'
+#' Same slack test as \code{generateSamplingsFromSamplingConstraints}:
+#' \code{max - min - (n-1)*delta >= 0}. Also requires
+#' \code{sum(numberOfTimesByWindows) == length(samplings)} per outcome, and
+#' that the current sampling times actually occupy the declared windows
+#' (counts and \code{minSampling}).
 #' @name checkValiditySamplingConstraint
-#' @param design An object \code{Design}.
-#' @return Returns nothing if valid, or stops with an error message if
-#' the sampling window/delta constraints are mathematically impossible.
-#' @template copyright
-#' @export
-#' ===================================================================
+#' @keywords internal
 
 method( checkValiditySamplingConstraint, Design ) = function( design ) {
-
-  arms = prop( design, "arms" )
-
-  walk ( arms, function( arm ) {
-    armName = prop( arm, "name" )
-
-    # get the outcomes
-    samplingTimesConstraints = prop( arm, "samplingTimesConstraints" )
-    outcomes = map( samplingTimesConstraints, ~ prop( .x, "outcome" ) ) %>% unlist()
-
-    # get samplings window constraints
-    samplingsWindow = map( samplingTimesConstraints, ~ prop( .x, "samplingsWindows" ) ) %>% setNames( outcomes )
-
-    # get numberOfTimesByWindows constraints
-    numberOfTimesByWindows = map( samplingTimesConstraints, ~ prop( .x, "numberOfTimesByWindows" ) ) %>% setNames( outcomes )
-
-    # get minimal time step for each windows
-    minSampling = map( samplingTimesConstraints, ~ prop( .x, "minSampling" ) ) %>% setNames( outcomes )
-
-    inputRandomSpaced = list()
-    samplingTimesArms = list()
-
-    walk ( outcomes, function( outcome ) {
-      intervalsConstraints = list()
-
-      # get samplingTimes and samplings
-      samplingTimes = prop( arm, "samplingTimes")
-      samplings = map( samplingTimes, ~ if ( prop( .x, "outcome") == outcome ) prop(.x ,"samplings" ) ) %>% compact() %>% unlist()
-
-      minSamplingAndNumberOfTimesByWindows = as.data.frame( list( minSampling[[outcome]], numberOfTimesByWindows[[outcome]] ) )
-      tmp = t( as.data.frame(samplingsWindow[[outcome]] ) )
-      inputRandomSpaced[[outcome]] = as.data.frame( do.call( "cbind", list( tmp, minSamplingAndNumberOfTimesByWindows ) ) )
-
-      colnames( inputRandomSpaced[[outcome]] ) = c("min","max","delta","n")
-      rownames( inputRandomSpaced[[outcome]] ) = NULL
-
-      if ( sum( numberOfTimesByWindows[[outcome]] ) != length( samplings ) ) {
-        print ( " ==================================================================================================== ")
-        print( paste0( " The sampling times constraint is not possible for arm ", armName, " and outcome ", outcome ) )
-        print ( " ==================================================================================================== ")
-        stop() }
-
-      walk( seq_len( length( inputRandomSpaced[[outcome]]$n)), function( iter ) {
-        min = inputRandomSpaced[[outcome]]$min[iter]
-        max = inputRandomSpaced[[outcome]]$max[iter]
-        delta = inputRandomSpaced[[outcome]]$delta[iter]
-        n = inputRandomSpaced[[outcome]]$n[iter]
-
-        distance = max-min-(n-1)*delta
-
-        if ( distance < 0 ) {
-          print ( " ==================================================================================================== ")
-          print( paste0( " The sampling times constraint is not possible for arm ", armName, " and outcome ", outcome ) )
-          print ( " ==================================================================================================== ")
-          stop() }
-      })
-    })
-  })
+  walk( prop( design, "arms" ), function( arm ) {
+    armName       = prop( arm, "name" )
+    samplingTimes = prop( arm, "samplingTimes" )
+    walk( prop( arm, "samplingTimesConstraints" ), function( constraint ) {
+      outcome   = prop( constraint, "outcome" )
+      samplings = .samplingsForOutcome( samplingTimes, outcome )
+      windows   = .pfimSamplingWindowsTable( constraint )
+      # Counts must partition the sampling vector; negative slack means n points
+      # cannot fit with minimal gap delta inside [min, max].
+      slack = windows$max - windows$min - ( windows$n - 1 ) * windows$delta
+      if ( sum( windows$n ) != length( samplings ) || any( slack < 0 ) )
+        .pfimStop(
+          "The sampling times constraint is not possible for arm ",
+          armName, " and outcome ", outcome, "."
+        )
+      occ = .pfimTimesWindowError( constraint, samplings, label = "sampling times" )
+      if ( !is.null( occ ) )
+        .pfimStop( "arm '", armName, "', outcome '", outcome, "': ", occ )
+    } )
+  } )
 }
 
-# ==============================================================================
-#' @title Initialize sampling constraints
+#' Fill missing sampling constraints from the arm's current sampling times.
+#'
+#' Outcomes that have \code{SamplingTimes} but no \code{SamplingTimeConstraints}
+#' get a single window \code{[min, max]}, all points free (\code{minSampling = 0}).
+#' Optimizers then see one constraint object per sampled outcome.
 #' @name setSamplingConstraintForOptimization
-#' @param design An object \code{Design}.
-#' @return The \code{Design} object with updated \code{samplingTimesConstraints}.
-#' @template copyright
-#' @export
-# ==============================================================================
+#' @keywords internal
 
 method( setSamplingConstraintForOptimization, Design ) = function( design ) {
 
@@ -273,37 +410,36 @@ method( setSamplingConstraintForOptimization, Design ) = function( design ) {
 
   arms = map ( arms, function( arm )
   {
-    # get the outcomes in the sampling times
     samplingTimes = prop( arm, "samplingTimes" )
-    outcomes = map_chr( samplingTimes, ~ prop( .x, "outcome" ) )
+    outcomes = map_chr( samplingTimes, \( x ) prop( x, "outcome" ) )
 
-    # set the sampling time constraints for missing outcomes ie from its sampling times
     samplingTimesConstraints = prop( arm, "samplingTimesConstraints" )
-    outcomesSamplingTimesConstraints = map_chr( samplingTimesConstraints, ~ prop( .x, "outcome" ) )
+    outcomesSamplingTimesConstraints = map_chr( samplingTimesConstraints, \( x ) prop( x, "outcome" ) )
     outcomesSamplingNotInTimesConstraints = outcomes[!outcomes %in% outcomesSamplingTimesConstraints]
 
     if ( length( outcomesSamplingNotInTimesConstraints ) !=0 )
     {
-      samplingTimesConstraints = map( outcomesSamplingNotInTimesConstraints, function( outcomeSamplingNotInTimesConstraints )
-      {
-        samplings = map( samplingTimes, ~ if ( prop( .x, "outcome") == outcomeSamplingNotInTimesConstraints ) prop(.x ,"samplings" ) ) %>% compact() %>% unlist()
-
-        newSamplingTimeConstraints  = SamplingTimeConstraints( outcome = outcomeSamplingNotInTimesConstraints,
-                                                               initialSamplings = samplings,
-                                                               samplingsWindows = list( c( min( samplings ), max( samplings ) ) ),
-                                                               numberOfTimesByWindows = length( samplings ),
-                                                               minSampling = 0 )
-
-        samplingTimesConstraints = append( samplingTimesConstraints, newSamplingTimeConstraints )
-      }) %>% reduce(c(.))
+      samplingTimesConstraints = reduce(
+        outcomesSamplingNotInTimesConstraints,
+        function( stc, outcomeSamplingNotInTimesConstraints ) {
+          samplings = .samplingsForOutcome( samplingTimes, outcomeSamplingNotInTimesConstraints )
+          # Default: one window over the existing times, no min-gap (fully free).
+          newSamplingTimeConstraints = SamplingTimeConstraints( outcome = outcomeSamplingNotInTimesConstraints,
+                                                                initialSamplings = samplings,
+                                                                samplingsWindows = list( c( min( samplings ), max( samplings ) ) ),
+                                                                numberOfTimesByWindows = length( samplings ),
+                                                                minSampling = 0 )
+          append( stc, newSamplingTimeConstraints )
+        },
+        .init = samplingTimesConstraints
+      )
     }
     prop( arm, "samplingTimesConstraints" ) = samplingTimesConstraints
-    return(arm)
+    arm
   })
 
-  # set the design with arms
   prop( design, "arms" ) = arms
-  return( design )
+  design
 }
 
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/IndividualFim.R
 \name{IndividualFim}
 \alias{IndividualFim}
-\title{Individual Fisher Information Matrix (IndividualFim) Class}
+\title{IndividualFim}
 \usage{
 IndividualFim(
   fisherMatrix = numeric(0),
@@ -11,41 +11,55 @@ IndividualFim(
   SEAndRSE = list(),
   condNumberFixedEffects = 0,
   condNumberVarianceEffects = 0,
-  shrinkage = numeric(0)
+  shrinkage = numeric(0),
+  singularFim = FALSE
 )
 }
 \arguments{
-\item{fisherMatrix}{A matrix giving the numerical values of the Fim.}
+\item{fisherMatrix}{Labelled FIM matrix.}
 
-\item{fixedEffects}{A matrix giving the numerical values of the fixed effects of the Fim.}
+\item{fixedEffects}{Fixed-effects sub-block.}
 
-\item{varianceEffects}{A matrix giving the numerical values of variance effects of the Fim.}
+\item{varianceEffects}{Variance-effects sub-block.}
 
-\item{SEAndRSE}{A data frame giving the calculated values of SE and RSE for parameters.}
+\item{SEAndRSE}{List with \code{SE}, \code{RSE}, and combined tables.}
 
-\item{condNumberFixedEffects}{The condition number of the fixed effects portion of the Fim.}
+\item{condNumberFixedEffects}{Condition number of the fixed-effects block.}
 
-\item{condNumberVarianceEffects}{The condition number of the variance effects portion of the Fim.}
+\item{condNumberVarianceEffects}{Condition number of the variance-effects block.}
 
-\item{shrinkage}{A vector giving the shrinkage values for the random effects.}
+\item{shrinkage}{Named shrinkage (percent) per parameter (Bayesian FIM).}
+
+\item{singularFim}{\code{TRUE} when SE/RSE used a pseudo-inverse (singular FIM).
+Set in \code{.fimStoreEvaluationResult} from \code{.fimBuildSeAndRse}; D-criterion
+/ log-det still use the raw matrix (may be 0 / \code{-Inf} when singular).}
+}
+\value{
+An \code{IndividualFim} object (filled by \code{run()}).
 }
 \description{
-The \code{IndividualFim} class represents and stores the Fisher Information Matrix (FIM)
-calculated for a single individual's design. In contrast to a population FIM,
-it focuses solely on the precision of the fixed parameters (or individual
-parameters) without considering inter-individual variability.
-}
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
-}
-\section{Methods}{
+Individual (subject-level) Fisher information matrix.
 
-\describe{
-  \item{\code{calculateDcriterion}}{Computes the D-optimality criterion.}
-  \item{\code{calculateEfficiency}}{Compares the efficiency of two individual designs.}
-}
-}
+Across covariate strata (and arms at design level), subject FIMs are combined
+by averaging covariances:
+\eqn{\bar C = \sum_s w_s M_s^{-1}}, \eqn{M_{\mathrm{eff}} = \bar C^{-1}}.
+A positive weight on a non-identifiable protocol yields \code{Inf} SE.
+This mixture is not comparable to summing Fisher matrices (PFIM 6 / PopED).
+Covariate \code{beta} effects are not subject parameters and are omitted.
+With IOV, each occasion uses
+\eqn{V_k = R_k + F_k\,\mathrm{diag}(\gamma^2)\,F_k^\top} for the
+\eqn{\mu} and residual \eqn{\sigma} blocks.
 
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
+Arm-level matrices are per-subject.
+}
+\details{
+Block-diagonal structure for a single stratum:
+\deqn{M_I = \mathrm{bdiag}(M_\mu, M_\sigma)}
+where \eqn{M_\mu = G^\top V^{-1} G} and \eqn{M_\sigma} is the residual
+variance-effects block (with the same \eqn{V} under IOV).
+}
+\examples{
+\donttest{
+source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+}
 }

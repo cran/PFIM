@@ -2,7 +2,7 @@
 % Please edit documentation in R/Design.R
 \name{Design}
 \alias{Design}
-\title{Design Class}
+\title{Design}
 \usage{
 Design(
   name = character(0),
@@ -10,76 +10,35 @@ Design(
   arms = list(),
   evaluationArms = list(),
   numberOfArms = 0,
-  fim = Fim()
+  fim = NULL
 )
 }
 \arguments{
-\item{name}{A string giving the name of the design.}
+\item{name}{Character string: design name.}
 
-\item{size}{A numeric value representing the total number of subjects.}
+\item{size}{Total number of subjects (sum of arm sizes).}
 
-\item{arms}{A list of \code{Arm} objects defining the different groups.}
+\item{arms}{List of \code{Arm} objects.}
 
-\item{evaluationArms}{A list containing the evaluation results for each arm.}
+\item{evaluationArms}{Evaluated arms after \code{evaluateDesign()}.}
 
-\item{numberOfArms}{An integer giving the number of arms.}
+\item{numberOfArms}{Optional total study size for discrete designs (historical
+CRAN field; Mult/FW prefer \code{size} / arm sizes / \code{numberOfSubjects}).
+Not the count of \code{Arm} objects.}
 
-\item{fim}{An object of class \code{Fim} giving the global FIM of the design.}
+\item{fim}{Aggregated \code{Fim} for the design.}
 }
 \value{
-An object of class \code{Design}.
+An S7 object of class \code{Design}.
 }
 \description{
-The \code{Design} class represents a full clinical trial design. It acts as a
-container for multiple \code{Arm} objects and stores the population-level
-Fisher Information Matrix (FIM) and evaluation results for the entire study.
-}
-\section{Slots}{
-
-\describe{
-\item{\code{name}}{\code{character}. The name of the design.}
-
-\item{\code{size}}{\code{numeric}. Total number of subjects across all arms.}
-
-\item{\code{arms}}{\code{list}. A list containing the \code{Arm} objects.}
-
-\item{\code{numberOfArms}}{\code{numeric}. The count of arms in the design.}
-
-\item{\code{fim}}{\code{Fim}. The global Fisher Information Matrix for the design.}
-}}
-
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+Experimental design: one or more arms, each with dosing and sampling schedules.
+Filled by \code{evaluateDesign()} with per-arm FIM results.
 }
 \examples{
-
-# 1. Define sampling times for PK and PD outcomes
-samplingTimesRespPK = SamplingTimes(outcome   = "RespPK",
-                                     samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
-
-samplingTimesRespPD = SamplingTimes(outcome   = "RespPD",
-                                     samplings = c(0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4))
-
-# 2. Define the administration (Dose of 20 at t=0)
-adminRespPK = Administration(outcome = "RespPK", timeDose = 0, dose = 20)
-
-# 3. Define the study arm "0.2mg"
-# Outcomes are linked to state variables: RespPK to Cc, RespPD to E.
-arm02mg = Arm(name = "0.2mg",
-               size = 6,
-               administrations   = list(adminRespPK),
-               samplingTimes     = list(samplingTimesRespPK, samplingTimesRespPD),
-               initialConditions = list("Cc" = 0, "E" = 100))
-
-# 4. Create the Design object
-# The arm defined above is included in the 'arms' list.
-design1 = Design(name = "Design1",
-                  arms = list(arm02mg))
-
-# Display the design summary
-print(design1)
-
+\donttest{
+source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+design = prop(ev, "designs")[[1L]]
+prop(prop(design, "arms")[[1L]], "size")
 }
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

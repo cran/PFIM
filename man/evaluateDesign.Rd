@@ -2,23 +2,27 @@
 % Please edit documentation in R/Design.R
 \name{evaluateDesign}
 \alias{evaluateDesign}
-\title{Evaluation of a clinical design}
+\title{Evaluate a design for a model and FIM type}
+\usage{
+evaluateDesign(design, ...)
+}
 \arguments{
-\item{design}{An object \code{Design} to evaluate.}
+\item{design}{A \code{Design} object.}
 
-\item{model}{An object \code{Model} used for evaluation.}
-
-\item{fim}{An object \code{Fim} to store results.}
+\item{...}{Method-specific arguments. For \code{Design}, \code{model} and \code{fim} objects.}
 }
 \value{
-The \code{Design} object with evaluated arms and aggregated global FIM.
+The updated \code{Design} object after evaluation.
+
+The same \code{Design} with \code{evaluationArms} and \code{fim} set.
 }
 \description{
-Evaluation of a clinical design
+Runs \code{evaluateArm()} on each arm, then \code{.assembleDesignFim()}.
 }
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+\examples{
+\donttest{
+source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+length(prop(ev, "evaluationDesign"))
 }
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }
+\keyword{internal}

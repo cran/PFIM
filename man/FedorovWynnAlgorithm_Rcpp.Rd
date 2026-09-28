@@ -2,50 +2,39 @@
 % Please edit documentation in R/FedorovWynnAlgorithm.R
 \name{FedorovWynnAlgorithm_Rcpp}
 \alias{FedorovWynnAlgorithm_Rcpp}
-\title{FedorovWynnAlgorithm with Rcpp}
-\usage{
-FedorovWynnAlgorithm_Rcpp(
-  protocols_input,
-  ndimen_input,
-  nbprot_input,
-  numprot_input,
-  freq_input,
-  nbdata_input,
-  vectps_input,
-  fisher_input,
-  nok_input,
-  protdep_input,
-  freqdep_input
-)
-}
+\title{Fedorov-Wynn algorithm in Rcpp.}
 \arguments{
-\item{protocols_input}{List of protocol definitions.}
+\item{protocols}{List of elementary protocols.}
 
-\item{ndimen_input}{Dimensions of the problem.}
+\item{ndimen}{Integer vector of dimensions.}
 
-\item{nbprot_input}{Number of protocols.}
+\item{nbprot}{Integer vector of protocol counts.}
 
-\item{numprot_input}{Protocol indices.}
+\item{numprot}{Integer vector of protocol indices.}
 
-\item{freq_input}{Frequencies of protocols.}
+\item{freq}{Numeric vector of frequencies.}
 
-\item{nbdata_input}{Data point counts.}
+\item{nbdata}{Integer vector of data counts.}
 
-\item{vectps_input}{Sampling times vector.}
+\item{vectps}{Numeric vector of sampling times.}
 
-\item{fisher_input}{Fisher matrix inputs.}
+\item{fisher}{Numeric vector of Fisher information values.}
 
-\item{nok_input}{Error code/status.}
+\item{error}{Integer error/status code.}
 
-\item{protdep_input}{Initial protocol indices.}
+\item{protdep}{Integer protocol-dependence flags.}
 
-\item{freqdep_input}{Initial frequencies.}
+\item{freqdep}{Numeric frequency-dependence values.}
+
+\item{show_process}{Logical; print cycle progress.}
+
+\item{delta}{Relative optimality gap: stop when
+\eqn{\max_i \mathrm{Tr}(F^{-1} F_i) \le p(1+\delta)} (default \code{1e-4}).}
 }
 \value{
-A list containing optimal frequencies, sampling times, and the resulting FIM.
+A list with the results of the Fedorov-Wynn algorithm.
 }
 \description{
-Implementation of the Fedorov-Wynn algorithm in C++
-via Rcpp. This function handles the heavy matrix computations and
-exchange logic required for D-optimal design.
+Fedorov-Wynn algorithm in Rcpp.
 }
+\keyword{internal}

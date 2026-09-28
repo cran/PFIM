@@ -2,43 +2,21 @@
 % Please edit documentation in R/Arm.R
 \name{plotEvaluationSI}
 \alias{plotEvaluationSI}
-\title{Plot sensitivity indices for an arm}
+\title{ggplot of parameter sensitivities over time}
 \usage{
-plotEvaluationSI(
-  arm,
-  evaluationModelGradient,
-  parametersNames,
-  outputNames,
-  samplingData,
-  designName,
-  plotOptions
-)
+plotEvaluationSI(arm, ...)
 }
 \arguments{
-\item{arm}{An object of class \code{Arm}.}
+\item{arm}{An \code{Arm} object.}
 
-\item{evaluationModelGradient}{A list of data frames from \code{evaluateModelGradient}.}
-
-\item{parametersNames}{A character vector of parameter names.}
-
-\item{outputNames}{A list of strings giving the output names.}
-
-\item{samplingData}{A list from \code{getSamplingData}.}
-
-\item{designName}{A string giving the design name.}
-
-\item{plotOptions}{A list with \code{unitTime} and \code{unitOutcomes}.}
+\item{...}{Method-specific sensitivity-index plotting inputs (see methods).}
 }
 \value{
-A named list of \code{ggplot} objects per output and parameter.
+Nested list of ggplot objects for sensitivity indices.
 }
 \description{
-Generates \code{ggplot2} line plots of the partial derivatives of model
-responses with respect to population parameters (sensitivity indices).
+ggplot of parameter sensitivities over time
+
+Default method for \code{Arm}.
 }
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
-}
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
-}
+\keyword{internal}

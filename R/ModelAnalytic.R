@@ -1,365 +1,288 @@
-# Copyright (c) 2026-present Romain Leroux. All rights reserved.
-
-#' @title ModelAnalytic Class
-#' @name ModelAnalytic
-#' @description The class \code{ModelAnalytic} is used to defined an analytic model.
-#' @param wrapperModelAnalytic Wrapper for the ode solver.
+#' @title ModelAnalytic
+#' @description Closed-form (non-ODE) PK/PD model with bolus or explicit dosing.
+#' @param wrapperModelAnalytic                   Wrapper for the analytic solver.
 #' @inheritParams Model
-#' @param functionArgumentsModelAnalytic A list giving the functionArguments of the wrapper for the analytic model.
-#' @param functionArgumentsSymbolModelAnalytic A list giving the functionArgumentsSymbol of the wrapper for the analytic model
-#' @param solverInputs A list giving the solver inputs.
+#' @param functionArgumentsModelAnalytic         A list with the function arguments of the wrapper.
+#' @param functionArgumentsSymbolModelAnalytic   A list with the function argument symbols.
+#' @param solverInputs                           A list with the solver inputs.
+#' @inheritParams Model
 #' @include Model.R
 #' @include ModelODE.R
-#' @template copyright
+#' @return An S7 object of class \code{ModelAnalytic}.
 #' @export
 
 ModelAnalytic = new_class(
   "ModelAnalytic",
-  package = "PFIM",
-  parent = Model,
-
+  package    = "PFIM",
+  parent     = Model,
   properties = list(
-    wrapperModelAnalytic = new_property(class_list, default = list()),
-    functionArgumentsModelAnalytic = new_property(class_list, default = list()),
+    wrapperModelAnalytic                 = new_property(class_list, default = list()),
+    functionArgumentsModelAnalytic       = new_property(class_list, default = list()),
     functionArgumentsSymbolModelAnalytic = new_property(class_list, default = list()),
-    solverInputs = new_property(class_list, default = list())
+    solverInputs                         = new_property(class_list, default = list())
   ))
 
-convertPKModelAnalyticToPKModelODE = new_generic( "convertPKModelAnalyticToPKModelODE", c( "pkModel" ) )
+#' Convert analytic PK equations to ODE-compatible form
+#' @param pkModel A PK model object.
+#' @param ... Optional method arguments.
+#' @name convertPKModelAnalyticToPKModelODE
+#' @keywords internal
+convertPKModelAnalyticToPKModelODE = new_generic( "convertPKModelAnalyticToPKModelODE", c("pkModel") )
 
-# ==============================================================================
-#' @title define the model wrapper for the ode solver
+# Compile analytic equations into an R function (equations, args, timeNames, returnNames).
+#' Build executable wrapper for analytic equations.
+#' @param equations Named character vector of analytic equations.
+#' @param functionArguments Character vector of function argument names.
+#' @param timeNames Character vector of time variable names.
+#' @param returnNames Character vector of returned output names.
+#' @return Function evaluating analytic equations.
+#' @noRd
+#' @keywords internal
+.buildAnalyticWrapper = function( equations, functionArguments, timeNames, returnNames ) {
+  if ( length( equations ) == 0L ) return( function(...) NULL )
+
+  # Map bare "t" to the per-equation time variable (t_<this outcome>).
+  eqNames = names( equations )
+  timed = map_chr( seq_along( eqNames ), function( i ) {
+    nm = eqNames[[ i ]]
+    tVar = if ( length( timeNames ) >= i &&
+                 .pfimIsNonEmptyScalar( timeNames[[ i ]] ) ) {
+      timeNames[[ i ]]
+    } else {
+      paste0( "t_", nm )
+    }
+    rhs = str_replace_all( equations[[ nm ]], "\\bt\\b", tVar )
+    if ( grepl( "\\bt\\b", rhs, perl = TRUE ) )
+      .pfimStop( "Bare time variable 't' remains in analytic equation for '", nm, "'." )
+    rhs
+  })
+  .pfimEquationFunction( functionArguments, set_names( timed, eqNames ), returnNames )
+}
+
+
+#' Compile analytic wrappers for administered and passive outcomes.
+#'
+#' Splits library equations into outcomes that receive dosing versus those that
+#' do not (e.g. PD linked to PK), then builds two R functions via
+#' \code{.buildAnalyticWrapper}. Administered wrappers take \code{dose_*} /
+#' \code{t_*}; passive wrappers take the administered outcome values as inputs.
+#' @return Updated model with compiled analytic wrappers.
 #' @name defineModelWrapper
-#' @param model An object of class \code{ModelAnalytic} that defines the model.
-#' @param evaluation An object of class Evaluation that defines the evaluation
-#' @return The model with wrapperModelAnalytic, functionArgumentsModelAnalytic, functionArgumentsSymbolModelAnalytic, outputNames, outcomesWithAdministration
-#' @template copyright
-#' @export
-# ==============================================================================
-
+#' @keywords internal
 method( defineModelWrapper, ModelAnalytic ) = function( model, evaluation ) {
 
-  # outcomes with administration
-  outcomesWithAdministration = evaluation %>%
-    pluck( "designs" ) %>%
-    map( ~ pluck( .x, "arms" ) ) %>%
-    unlist() %>%
-    map( ~ pluck( .x, "administrations" ) ) %>%
-    unlist()%>%
-    map( ~ pluck( .x, "outcome" ) ) %>%
-    unlist() %>% unique()
+  # Outcomes that receive dosing (from design administrations).
+  outcomesWithAdministration = .getOutcomesFromEvaluation( evaluation )
 
-  # arguments for the function
-  parameters = prop( evaluation, "modelParameters" )
+  # Formal names injected into each analytic wrapper: dose_*, t_*, params.
+  parameters     = prop( evaluation, "modelParameters" )
   parameterNames = map_chr( parameters, "name" )
-  doseNames = paste( "dose_", outcomesWithAdministration, sep = "" )
-  timeNames = paste( "t_", outcomesWithAdministration, sep = "" )
+  doseNames      = paste0( "dose_", outcomesWithAdministration )
+  timeNamesAdmin = paste0( "t_",    outcomesWithAdministration )
 
-  # names of the equations with admin and no admin
-  equations = prop( evaluation, "modelEquations" )
-  equationsWithAdmin = equations[ names( equations ) %in% outcomesWithAdministration ]
-  equationsWithNoAdmin = equations[ !( names( equations ) %in% outcomesWithAdministration ) ]
+  # Split equations into administered vs passive (no-admin) outcomes.
+  equations            = prop( evaluation, "modelEquations" )
+  equationsWithAdmin   = equations[  names( equations ) %in% outcomesWithAdministration ]
+  equationsWithNoAdmin = equations[ !names( equations ) %in% outcomesWithAdministration ]
 
-  # output
-  outputs = names( equations )
-  outputNames = unlist( outputs )
+  outputAdmin      = names( equationsWithAdmin )
+  outputNoAdmin    = names( equationsWithNoAdmin )
+  timeNamesNoAdmin = .libraryEquationTimeNames( evaluation, outputNoAdmin )
 
-  # outputs with / without admin
-  indexOutputNoAdmin = which( !( names( equations ) %in% outcomesWithAdministration ) )
-  outputNoAdmin = outputNames[ indexOutputNoAdmin ] %>% unlist()
+  # Passive wrappers also receive administered outcome values (e.g. Conc for PD)
+  # and their own t_<outcome>, not t_<administered>.
+  # tau is the dosing interval. Bind it when an equation names it and it is not
+  # already a model parameter (steady-state class does this on its own path).
+  tauFormal = if ( .equationsContainPattern( equations, "\\btau\\b" ) &&
+                   !( "tau" %in% parameterNames ) ) "tau" else character()
+  functionArgumentsWithAdmin    = unique( c( doseNames, parameterNames, timeNamesAdmin, tauFormal ) )
+  functionArgumentsWithNoAdmin  = unique( c( outcomesWithAdministration, parameterNames, timeNamesNoAdmin, tauFormal ) )
 
-  # outputForEvaluation
-  outputsForEvaluation = prop( evaluation, "outputs" )
-  # pk model
-  if ( length(outputsForEvaluation ) == 1 )
-  {
-    outputAdmin = unlist(outputsForEvaluation[1])
-    outputNoAdmin = c()
-    # pkpd model
-  }else if ( length(outputsForEvaluation ) == 2 )
-  {
-    outputAdmin = unlist(outputsForEvaluation[1])
-    outputNoAdmin = unlist(outputsForEvaluation[2])
-  }
+  functionArgumentsSymbolWithAdmin   = map( functionArgumentsWithAdmin,   as.symbol )
+  functionArgumentsSymbolWithNoAdmin = map( functionArgumentsWithNoAdmin, as.symbol )
 
-  # wrapper for function with outcome administration
-
-  # args for function with admin
-  functionArgumentsWithAdmin = unique( c( doseNames, parameterNames, timeNames ) )
-  functionArgumentsSymbolWithAdmin = map( functionArgumentsWithAdmin, ~ as.symbol(.x) )
-
-  # create function with admin
-  equationsBodyWithAdmin = map_chr( names( equationsWithAdmin ), ~ sprintf( "%s = %s", .x, equationsWithAdmin[[.x]] ) )
-  equationsBodyWithAdmin = map2_chr( equationsBodyWithAdmin, timeNames, ~ str_replace_all( .x, "\\bt\\b", .y ) )
-
-  functionBodyWithAdmin = paste( equationsBodyWithAdmin, collapse = "\n" )
-  functionBodyWithAdmin = sprintf( paste( "%s\nreturn(list(c(", paste( outputAdmin, collapse = ", ") , ")))", collapse = ", " ), functionBodyWithAdmin )
-  functionDefinitionWithAdmin = sprintf( "function(%s) { %s }", paste( functionArgumentsWithAdmin, collapse = ", " ), functionBodyWithAdmin )
-  functionDefinitionWithAdmin = eval( parse( text = functionDefinitionWithAdmin ) )
-
-  # wrapper for function outcome without administration
-
-  # args for function without admin
-  functionArgumentsWithNoAdmin = unique( c( outcomesWithAdministration, parameterNames, timeNames ) )
-  functionArgumentsSymbolWithNoAdmin = map( functionArgumentsWithNoAdmin, ~ as.symbol(.x) )
-
-  # create function without admin
-  equationsBodyWithNoAdmin = map_chr( names( equationsWithNoAdmin ), ~ sprintf( "%s = %s", .x, equationsWithNoAdmin[[.x]] ) )
-  equationsBodyWithNoAdmin = map2_chr( equationsBodyWithNoAdmin, timeNames, ~ str_replace( .x, "\\bt\\b", .y ) )
-  functionBodyWithNoAdmin = paste( equationsBodyWithNoAdmin, collapse = "\n" )
-  functionBodyWithNoAdmin = sprintf( paste( "%s\nreturn(list(c(", paste( outputNoAdmin, collapse = ", "), ")))", collapse = ", " ), functionBodyWithNoAdmin )
-  functionDefinitionWithNoAdmin = sprintf( "function(%s) { %s }", paste( functionArgumentsWithNoAdmin, collapse = ", " ), functionBodyWithNoAdmin )
-  functionDefinitionWithNoAdmin = eval( parse( text = functionDefinitionWithNoAdmin ) )
-
-  prop( model, "wrapperModelAnalytic" ) = list( functionDefinitionWithAdmin = functionDefinitionWithAdmin,
-                                                functionDefinitionWithNoAdmin = functionDefinitionWithNoAdmin )
-
-  prop( model, "functionArgumentsModelAnalytic" ) = list( functionArgumentsWithAdmin = functionArgumentsWithAdmin,
-                                                          functionArgumentsWithNoAdmin = functionArgumentsWithNoAdmin )
-
-  prop( model, "functionArgumentsSymbolModelAnalytic" ) = list( functionArgumentsSymbolWithAdmin = functionArgumentsSymbolWithAdmin,
-                                                                functionArgumentsSymbolWithNoAdmin = functionArgumentsSymbolWithNoAdmin )
-
-  # define the model
-  prop( model, "outputNames") = unlist( outputs )
-  prop( model, "outcomesWithAdministration") = outcomesWithAdministration
-  return( model )
+  # Two evaluators: administered outcomes and passive/linked outcomes.
+  set_props(
+    model,
+    wrapperModelAnalytic = list(
+      functionDefinitionWithAdmin   = .buildAnalyticWrapper( equationsWithAdmin,   functionArgumentsWithAdmin,   timeNamesAdmin,   outputAdmin   ),
+      functionDefinitionWithNoAdmin = .buildAnalyticWrapper( equationsWithNoAdmin, functionArgumentsWithNoAdmin, timeNamesNoAdmin, outputNoAdmin )
+    ),
+    functionArgumentsModelAnalytic = list(
+      functionArgumentsWithAdmin   = functionArgumentsWithAdmin,
+      functionArgumentsWithNoAdmin = functionArgumentsWithNoAdmin
+    ),
+    functionArgumentsSymbolModelAnalytic = list(
+      functionArgumentsSymbolWithAdmin   = functionArgumentsSymbolWithAdmin,
+      functionArgumentsSymbolWithNoAdmin = functionArgumentsSymbolWithNoAdmin
+    ),
+    outputNames                = unlist( names( equations ) ),
+    outcomesWithAdministration = outcomesWithAdministration
+  )
 }
 
-# ==============================================================================
-#' @title Define the administration for an analytic model
-#' @name defineModelAdministration
-#' @param model An object of class \code{ModelAnalytic} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return The model with samplings, solverInputs
-#' @template copyright
-#' @export
-# ==============================================================================
 
+#' Build per-outcome dose and relative-time tables for the analytic solver.
+#'
+#' For \code{tau != 0}, expands a single dose into a regular grid
+#' \code{0, tau, 2*tau, ...} up to the last sampling time. At each sampling,
+#' records relative times since each past dose and how many distinct dose
+#' contributions are active (for linear superposition).
+#' @return Updated model with \code{samplings} and \code{solverInputs}.
+#' @name defineModelAdministration
+#' @keywords internal
 method( defineModelAdministration, ModelAnalytic ) = function( model, arm ) {
 
-  # administrations and outcome
-  administrations = prop( arm, "administrations" )
-  outcomesWithAdministration =  prop( model, "outcomesWithAdministration" )
-  # sampling times
-  samplingTimes = prop( arm, "samplingTimes" )
-  # define the samplings for all response
-  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% unlist() %>% sort() %>% unique()
-  # model outputs
-  outputNames = prop( model, "outputNames" )
-  # define solverInputs
-  solverInputs = map( administrations, function(  administration ) {
+  administrations            = prop( arm,   "administrations" )
+  outcomesWithAdministration = prop( model, "outcomesWithAdministration" )
+  samplings                  = .analyticSamplingGrid( arm )
 
-    timeDose = prop( administration, "timeDose" )
-    tau = prop( administration, "tau" )
-    dose = prop( administration, "dose" )
-    maxSampling = max( samplings )
+  solverInputs = map( administrations, function( adm ) {
+    dosing = .alignAdministrationDosing( adm )
+    tbl    = .analyticRelativeDoseTable(
+      samplings, dosing$timeDose, dosing$dose, prop( adm, "tau" )
+    )
+    list( data = tbl$data, dose = tbl$dose, tau = prop( adm, "tau" ) )
+  }) |> set_names( outcomesWithAdministration )
 
-    if ( tau != 0 ) {
-      timeDose = seq( 0, maxSampling, tau )
-      dose = rep( dose, length( timeDose ) )
-    }
-
-    # define the time doses
-    timeDose = timeDose %>%
-      map( ~ ifelse( samplings - .x > 0, samplings - .x, samplings ) ) %>%
-      reduce( cbind )
-
-    indicesDoses = if ( is.null( dim( timeDose ) ) ) {
-      # dose unique
-      indicesDoses = 1
-    } else {
-      # multi dose
-      indicesDoses = map_int( seq_len( dim( timeDose )[1] ), ~{
-        length( unique( timeDose[.x, ] ) )
-      })
-    }
-    list( data = data.frame( timeDose, indicesDoses ), dose = dose )
-  }) %>% setNames( outcomesWithAdministration )
-
-  prop( model, "samplings" ) = samplings
-  prop( model, "solverInputs" ) = solverInputs
-
-  return( model )
+  set_props( model, samplings = samplings, solverInputs = solverInputs )
 }
 
-# ==============================================================================
-#' @title Evaluate the analytic model
-#' @name evaluateModel
-#' @param model An object of class \code{ModelAnalytic} that defines the model.
-#' @param arm An object of class \code{Arm} that defines the arm.
-#' @return A list of dataframes that contains the results for the evaluation of the model.
-#' @template copyright
-#' @export
-# ==============================================================================
+#' Evaluate analytic bolus concentrations at all sampling times.
+#'
+#' For each observation time and administered outcome, evaluates the closed-form
+#' formula over all active doses (superposition via \code{sum}), then evaluates
+#' passive (non-admin) equations with the administered prediction injected into
+#' the shared argument list.
+#' @param model A \code{ModelAnalytic} object.
+#' @param arm   An \code{Arm} object.
+#' @return Named list of output data frames at requested sampling times.
+#' @name evaluateAnalyticCore
+#' @keywords internal
+evaluateAnalyticCore = function( model, arm ) {
 
-method( evaluateModel, ModelAnalytic ) = function( model, arm ) {
+  parameters                 = prop( model, "modelParameters" )
+  outcomesWithAdministration = prop( model, "outcomesWithAdministration" )
+  outputNames                = prop( model, "outputNames" )
+  samplings                  = prop( model, "samplings" )
+  solverInputs               = prop( model, "solverInputs" )
 
-  # parameters
-  parameters = prop( model, "modelParameters")
-  # administrations
-  outcomesWithAdministration =  prop( model, "outcomesWithAdministration" )
-  # outputs
-  outputNames = prop( model, "outputNames" )
-
-  # sampling time for model
-  samplings = prop( model, "samplings" )
-
-  # solver inputs for time dose and indice dose
-  solverInputs = prop( model, "solverInputs")
-
-  # model wrapper model analytic
-  wrapperModelAnalytic = prop( model, "wrapperModelAnalytic")
-  functionDefinitionWithAdmin = wrapperModelAnalytic$functionDefinitionWithAdmin
-  functionDefinitionWithNoAdmin = wrapperModelAnalytic$functionDefinitionWithNoAdmin
-
-  # args for model evaluation function with administration
-  functionArguments = prop( model, "functionArgumentsModelAnalytic" )
-  functionArgumentsWithAdmin = functionArguments$functionArgumentsWithAdmin
-  functionArgumentsWithNoAdmin = functionArguments$functionArgumentsWithNoAdmin
-
-  # args for model evaluation function without administration
-  functionArgumentsSymbols = prop( model, "functionArgumentsSymbolModelAnalytic" )
-  functionArgumentsSymbolWithAdmin = functionArgumentsSymbols$functionArgumentsSymbolWithAdmin
-  functionArgumentsSymbolWithNoAdmin = functionArgumentsSymbols$functionArgumentsSymbolWithNoAdmin
-
-  # Assign the values to variables in the current environment
-  mu = set_names(
-    map(parameters, ~ .x@distribution@mu),
-    map(parameters, ~ .x@name)
+  # Compiled wrappers from defineModelWrapper().
+  wrappers = .analyticBindUserEnv(
+    prop( model, "wrapperModelAnalytic" )$functionDefinitionWithAdmin,
+    prop( model, "wrapperModelAnalytic" )$functionDefinitionWithNoAdmin
   )
+  fnAdmin   = wrappers[[ 1L ]]
+  fnNoAdmin = wrappers[[ 2L ]]
+  mu        = .extractMu( parameters )
 
-  list2env( mu, envir = environment() )
-
-  # evaluate analytic model
-  evaluationModelTmp = map( seq_along( samplings ), function( iterTime ) {
-
-    evaluationOutcome = map( outcomesWithAdministration, function( outcomeWithAdministration ) {
-
-      data = solverInputs[[outcomeWithAdministration]]$data
-      dose = solverInputs[[outcomeWithAdministration]]$dose
-
-      indicesDoses = data$indicesDoses[iterTime]
-      time = data[iterTime, 1:indicesDoses]
-      doses = dose[1:indicesDoses]
-
-      evaluationOutcomeWithAdmin = sum( map_dbl( seq_len( indicesDoses ), function( indiceDose ) {
-
-        assign( paste0( "t_", outcomeWithAdministration ), time[indiceDose] )
-        assign( paste0( "dose_", outcomeWithAdministration ), doses[indiceDose] )
-
-        do.call( functionDefinitionWithAdmin, setNames( functionArgumentsSymbolWithAdmin, functionArgumentsWithAdmin ) ) %>% unlist()
-      }))
-
-      # assign values to response PK
-      assign( outcomeWithAdministration, evaluationOutcomeWithAdmin )
-
-      # evaluation function response PD
-      evaluationOutcomeWithNoAdmin = do.call( functionDefinitionWithNoAdmin, setNames( functionArgumentsSymbolWithNoAdmin, functionArgumentsWithNoAdmin ) ) %>% unlist()
-
-      # test if response PD or not
-      if ( is.null( evaluationOutcomeWithNoAdmin ) )
-      {
-        evaluationOutcome = data.frame( evaluationOutcomeWithAdmin )
-      }else{
-        evaluationOutcome = data.frame( evaluationOutcomeWithAdmin, evaluationOutcomeWithNoAdmin )
-      }
-    })
-    return( evaluationOutcome )
-  }) %>% flatten() %>% reduce( rbind ) %>% cbind( samplings, . ) %>% setNames( c( "time", outputNames ) )
-
-  # filter sampling time
-  samplingTimes = prop( arm, "samplingTimes" )
-  samplings = map( samplingTimes, ~ prop( .x, "samplings" ) ) %>% set_names( outputNames )
-
-  evaluationModel = list()
-  for ( outputName in outputNames )
-  {
-    time = evaluationModelTmp$time %in% samplings[[outputName]]
-    evaluationModel[[outputName]] = evaluationModelTmp[ time , c( "time", outputName ) ]
-  }
-  return( evaluationModel )
+  tmp = .analyticEvalGrid(
+    samplings, outcomesWithAdministration, as.list( mu ),
+    function( iterTime, outcome, args ) {
+      data         = solverInputs[[ outcome ]]$data
+      dose         = solverInputs[[ outcome ]]$dose
+      indicesDoses = data$indicesDoses[ iterTime ]
+      if ( "tau" %in% names( formals( fnAdmin ) ) || "tau" %in% names( formals( fnNoAdmin ) ) )
+        args$tau = solverInputs[[ outcome ]]$tau
+      argsAdmin    = c(
+        args,
+        set_names(
+          list(
+            as.numeric( data[ iterTime, seq_len( indicesDoses ) ] ),
+            as.numeric( dose[ seq_len( indicesDoses ) ] )
+          ),
+          c( paste0( "t_", outcome ), paste0( "dose_", outcome ) )
+        )
+      )
+      admin = sum( do.call( fnAdmin, argsAdmin )[[ 1L ]] )
+      args[[ outcome ]] = admin
+      argsNoAdmin = .pfimFillMissingTimeFormals( fnNoAdmin, args, samplings[[ iterTime ]] )
+      list( admin = admin, noAdmin = do.call( fnNoAdmin, argsNoAdmin )[[ 1L ]], args = args )
+    }
+  )
+  .analyticFinishEvaluation( tmp, outputNames, arm )
 }
 
-# ==============================================================================
-#' @title Conversion from analytic PK model to ODE PK model
-#' @name convertPKModelAnalyticToPKModelODE
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the model.
-#' @return A character string containing the ODE equation derived from the analytic expression.
-#' @template copyright
-#' @export
-# ==============================================================================
 
-method( convertPKModelAnalyticToPKModelODE, ModelAnalytic ) = function( pkModel  ) {
+#' Dispatch: covariate/occasion structure -> specialised path; else core evaluator.
+#' @return Named list of output data frames at requested sampling times.
+#' @name evaluateModel
+#' @keywords internal
+method( evaluateModel, ModelAnalytic ) = function( model, arm ) {
+  .analyticDispatchEvaluate( model, arm, evaluateAnalyticCore )
+}
 
-  pkModelEquations = prop( pkModel, "modelEquations")
-  dtEquationPKsubstitute = D( parse( text = pkModelEquations ), "t" )
-  dtEquationPKsubstitute = str_c( deparse( dtEquationPKsubstitute ), collapse = "" )
-  pkModelEquations =  pluck( pkModelEquations, 1 )
-
-  if ( str_detect( pkModelEquations, "Cl" ) )
-  {
-    pkModelEquations = str_c( dtEquationPKsubstitute, "+(Cl/V)*", pkModelEquations, "- (Cl/V)*RespPK" )
+#' Convert one analytic PK concentration formula to an ODE derivative.
+#'
+#' Differentiates the closed form w.r.t. time, then adds elimination in
+#' clearance (\code{Cl/V}) or rate-constant (\code{k}) form so the RHS matches
+#' the library ODE convention.
+#' @param equation Character analytic PK formula (library notation).
+#' @param stateName State variable replaced in the elimination term (default \code{RespPK}).
+#' @return Character scalar ODE right-hand side.
+#' @noRd
+#' @keywords internal
+.convertAnalyticPkExprToOde = function( equation, stateName = "RespPK" ) {
+  # d(analytic)/dt, then cancel elimination of the closed form and re-introduce
+  # elimination of the ODE state (Cl/V or k depending on parameterisation).
+  dt = D( parse( text = equation ), "t" ) |> deparse() |> str_c( collapse = "" )
+  out = if ( str_detect( equation, "Cl" ) ) {
+    str_c( dt, "+(Cl/V)*", equation, "-(Cl/V)*", stateName )
   } else {
-    pkModelEquations = str_c( dtEquationPKsubstitute, "+k*", pkModelEquations, "- k*RespPK" )
+    str_c( dt, "+k*", equation, "-k*", stateName )
   }
-  pkModelEquations = str_replace_all( pkModelEquations, " ", "" )
-  pkModelEquations = paste( Simplify( pkModelEquations ) )
-
-  return( pkModelEquations )
+  out |> str_replace_all( " ", "" ) |> (\(x) paste( Simplify( x ) ))()
 }
 
-# ==============================================================================
-#' @title Define a PK model from library of model
+#' Convert the first analytic PK equation to ODE-compatible form.
+#' @param pkModel First argument of generic.
+#' @return Character vector of ODE-compatible PK equations.
+#' @name convertPKModelAnalyticToPKModelODE
+#' @keywords internal
+method( convertPKModelAnalyticToPKModelODE, ModelAnalytic ) = function( pkModel ) {
+  .convertAnalyticPkExprToOde( pluck( prop( pkModel, "modelEquations" ), 1 ) )
+}
+
+
+#' Return PK equations stored on the analytic model (library / user).
+#' @param pkModel First argument of generic.
+#' @param pfimproject \code{PFIMProject} object (unused).
+#' @return List of PK equations from \code{pkModel}.
 #' @name definePKModel
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the PK model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
-#' @template copyright
-#' @export
-# ==============================================================================
-
+#' @keywords internal
 method( definePKModel, list( ModelAnalytic, PFIMProject ) ) = function( pkModel, pfimproject ) {
-  pkModelEquations = prop( pkModel, "modelEquations")
-  return( pkModelEquations )
+  prop( pkModel, "modelEquations" )
 }
 
-# ==============================================================================
-#' @title Define a PKPD model from library of model
+
+#' Concatenate analytic PK and analytic PD equation lists.
+#' @param pkModel First argument of generic.
+#' @param pdModel Second model combined with PK equations.
+#' @param pfimproject \code{PFIMProject} object (unused).
+#' @return Concatenated analytic PK and PD equation list.
 #' @name definePKPDModel
-#' @param pkModel An object of class \code{ModelAnalytic} that defines the PK model.
-#' @param pdModel An object of class \code{ModelAnalytic} that defines the PD model.
-#' @param pfimproject An object of class \code{PFIMProject} that defines the pfimproject.
-#' @template copyright
-#' @export
-# ==============================================================================
+#' @keywords internal
+method( definePKPDModel, list( ModelAnalytic, ModelAnalytic, PFIMProject ) ) =
+  function( pkModel, pdModel, pfimproject ) {
+    c( prop( pkModel, "modelEquations" ), prop( pdModel, "modelEquations" ) )
+  }
 
-method( definePKPDModel, list( ModelAnalytic, ModelAnalytic, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
-  pkModelEquations = prop( pkModel, "modelEquations")
-  pdModelEquations = prop( pdModel, "modelEquations")
-  equations = c( pkModelEquations, pdModelEquations )
-  return( equations )
-}
 
-# ==============================================================================
-#' @rdname definePKPDModel
+#' Convert analytic PK to ODE, append ODE PD, and remap library compartments.
+#' @param pkModel First argument of generic.
+#' @param pdModel ODE PD model whose equations are appended.
+#' @param pfimproject \code{PFIMProject} used for equation remapping.
+#' @return Named list of remapped PK/PD ODE equations.
 #' @name definePKPDModel
-#' @export
-# ==============================================================================
+#' @keywords internal
+method( definePKPDModel, list( ModelAnalytic, ModelODE, PFIMProject ) ) =
+  function( pkModel, pdModel, pfimproject ) {
 
-method( definePKPDModel, list( ModelAnalytic, class_any, PFIMProject ) ) = function( pkModel, pdModel, pfimproject ) {
-
-  # PKPD model equations
-  pkModelEquations = convertPKModelAnalyticToPKModelODE( pkModel )
-  pdModelEquations = prop( pdModel, "modelEquations")
-  equations = c( pkModelEquations, pdModelEquations )
-
-  # get the initial conditions to get variable names
-  designs = prop( pfimproject, "designs" )
-  variablesNames = designs %>% map(~ map( prop(.x,"arms"), ~ prop(.x,"initialConditions"))) %>% unlist() %>% names() %>% unique()
-  variablesNamesToChange =  c("RespPK", "E")
-
-  # modify variable names in the model equations
-  equations = equations %>% imap( ~ reduce2( variablesNamesToChange, variablesNames, replaceVariablesLibraryOfModels, .init = .x ) ) %>% set_names( paste0( "Deriv_", variablesNames ) )
-
-  return( equations )
-}
+    # Analytic PK -> ODE derivative, then join with PD and remap RespPK/E tokens.
+    equations = c(
+      convertPKModelAnalyticToPKModelODE( pkModel ),
+      prop( pdModel, "modelEquations" )
+    )
+    eq = remapPkpdLibraryEquations( equations, pfimproject )
+    set_names( eq, .derivativeNamesFromCompartments( pfimproject, length( eq ), names( eq ) ) )
+  }

@@ -1,44 +1,26 @@
-#' @title ModelInfusion Class
-#' @name ModelInfusion
-#' @description The class \code{ModelInfusion} is used to defined a model in infusion.
+#' @title ModelInfusion
+#' @description Base class for infusion administration models.
 #' @inheritParams Model
 #' @include Model.R
 #' @include ModelAnalytic.R
-#' @template copyright
+#' @return An S7 object of class \code{ModelInfusion}.
 #' @export
 
 ModelInfusion = new_class( "ModelInfusion", package = "PFIM", parent = Model )
 
-# ==============================================================================
-#' @title conversion from analytic to ode
+#' Convert analytic during/after infusion formulas to ODE form.
+#'
+#' Applies \code{.convertAnalyticPkExprToOde} to every equation in the
+#' \code{duringInfusion} and \code{afterInfusion} lists so infusion analytic
+#' models can be remapped onto ODE library compartments.
+#' @param pkModel An infusion analytic model with during/after equation lists.
+#' @return List with \code{duringInfusion} and \code{afterInfusion} ODE strings.
 #' @name convertPKModelAnalyticToPKModelODE
-#' @param pkModel An object of class \code{ModelInfusion} that defines the model.
-#' @template copyright
-#' @export
-# ==============================================================================
-
-method( convertPKModelAnalyticToPKModelODE, ModelInfusion ) = function( pkModel  ) {
-
-  pkModelEquations = prop(pkModel, "modelEquations")
-
-  pkModelEquations = list( duringInfusion = pkModelEquations$duringInfusion,
-                           afterInfusion = pkModelEquations$afterInfusion )
-
-  convertEquation = function( equation ) {
-    dtEquationPKsubstitute = D( parse( text = equation ), "t")
-    dtEquationPKsubstitute = str_c( deparse( dtEquationPKsubstitute ), collapse = "" )
-
-    if ( str_detect( equation, "Cl" ) ) {
-      return( str_c( dtEquationPKsubstitute, "+(Cl/V)*", equation, "- (Cl/V)*C1" ) )
-    } else {
-      return( str_c( dtEquationPKsubstitute, "+k*", equation, "- k*C1" ) )
-    }
-  }
-
-  equations = map( pkModelEquations, convertEquation )
-  equations = map( equations, str_replace_all, " ", "" )
-  equations =  list( duringInfusion = list( "Deriv_C1" = equations$duringInfusion ),
-                     afterInfusion = list( "Deriv_C1" = equations$afterInfusion ) )
-
-  return( equations )
+#' @keywords internal
+method( convertPKModelAnalyticToPKModelODE, ModelInfusion ) = function( pkModel ) {
+  pkEq = prop( pkModel, "modelEquations" )
+  list(
+    duringInfusion = map( pkEq$duringInfusion, .convertAnalyticPkExprToOde ),
+    afterInfusion  = map( pkEq$afterInfusion,  .convertAnalyticPkExprToOde )
+  )
 }

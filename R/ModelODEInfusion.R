@@ -1,47 +1,42 @@
-# ==============================================================================
-#' @title ModelODEInfusion Class
-#' @name ModelODEInfusion
-#' @description
-#' The \code{ModelODEInfusion} class is specifically designed to define ODE-based
-#' models for infusion-type administrations. It extends the \code{ModelInfusion}
-#' properties to handle continuous drug delivery through differential equations.
-#' @inheritParams ModelInfusion
+#' @title ModelODEInfusion
+#' @description ODE model with infusion inputs.
+#'
+#' Inherits from \code{ModelODE} (numerical nature) rather than
+#' \code{ModelInfusion}, so \code{S7_inherits(x, ModelODE)} is TRUE for
+#' infusion ODEs. Use \code{.pfimIsInfusionModel()} for the infusion capability.
+#' @inheritParams ModelODE
+#' @include ModelODE.R
 #' @include ModelInfusion.R
-#' @template copyright
+#' @return An S7 object of class \code{ModelODEInfusion}.
 #' @export
 
-ModelODEInfusion = new_class( "ModelODEInfusion", package = "PFIM", parent = ModelInfusion )
+ModelODEInfusion = new_class( "ModelODEInfusion", package = "PFIM", parent = ModelODE )
 
-# ==============================================================================
-#' @rdname evaluateInitialConditions
+#' Evaluate initial conditions for ODE infusion models.
+#'
+#' Delegates to \code{.evalInitialConditionsImpl}: substitutes typical values
+#' into arm initial-condition expressions (numeric values pass through).
+#' @return Numeric vector of evaluated initial conditions.
 #' @name evaluateInitialConditions
-#' @export
-# ==============================================================================
-
+#' @keywords internal
 method( evaluateInitialConditions, ModelODEInfusion ) = function( model, arm ) {
+  .evalInitialConditionsImpl( model, arm )
+}
 
-  initialConditions = prop( arm, "initialConditions")
-  parameters = prop( model, "modelParameters")
+#' TRUE when \code{model} is integrated with \code{deSolve} (any \code{ModelODE}).
+#' @noRd
+#' @keywords internal
+.pfimIsOdeModel = function( model ) {
+  S7::S7_inherits( model, ModelODE )
+}
 
-  # assign mu values of the parameters
-  mu = set_names(
-    map( parameters, ~ {
-      pluck(.x, "distribution", "mu")
-    }),
-    map( parameters, ~ prop( .x, "name") )
-  )
-
-  list2env( mu, envir = environment())
-
-  # evaluate the initial conditions
-  initialConditions = map( initialConditions, ~ {
-
-    if ( is.numeric(.x) ) {
-      return(.x)
-    } else {
-      eval( parse( text = .x ) )
-    }
-  })%>%unlist()
-
-  return( initialConditions )
+#' TRUE when \code{model} uses infusion (analytic \code{ModelInfusion} or ODE infusion).
+#'
+#' S7 has single inheritance: ODE-infusion classes inherit \code{ModelODE}, not
+#' \code{ModelInfusion}. This predicate is the polymorphic infusion check.
+#' @noRd
+#' @keywords internal
+.pfimIsInfusionModel = function( model ) {
+  S7::S7_inherits( model, ModelInfusion ) ||
+    S7::S7_inherits( model, ModelODEInfusion )
 }

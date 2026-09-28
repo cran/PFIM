@@ -1,596 +1,378 @@
-#' @title PFIMProject Class
-#' @name PFIMProject
+#' @title PFIMProject
 #' @description
-#' The `PFIMProject` class is the central orchestrator for a Population Fisher
-#' Information Matrix (PFIM) analysis. It encapsulates all necessary components
-#' for design evaluation or optimization, including structural models, statistical
-#' parameters, experimental designs, and optimization settings.
-#' @param name A string representing the name of the project or evaluation study.
-#' @param modelEquations A list containing the mathematical equations of the model.
-#' @param modelFromLibrary A list specifying the pre-defined model selected from the PFIM library.
-#' @param modelParameters A list defining the fixed effects and random effects (variances) of the model.
-#' @param modelError A list specifying the residual error model (e.g., constant, proportional, or combined).
-#' @param optimizer A string identifying the optimization algorithm to be used.
-#'   Must be one of: \code{"MultiplicativeAlgorithm"}, \code{"FedorovWynnAlgorithm"},
-#'   \code{"SimplexAlgorithm"}, \code{"PSOAlgorithm"}, or \code{"PGBOAlgorithm"}.
-#' @param optimizerParameters A list of settings for the chosen optimizer (e.g., iterations, tolerance).
-#' @param outputs A list defining the observation variables or responses of the model.
-#' @param designs A list of `Design` objects representing the experimental protocols to be evaluated.
-#' @param fimType A string specifying the FIM calculation method.
-#'   Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.
-#' @param fim An object of class \code{Fim} representing the computed Fisher Information Matrix.
-#' @param odeSolverParameters A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.
-#' @slot name \code{character}
-#' @slot modelEquations \code{list}
-#' @slot modelFromLibrary \code{list}
-#' @slot modelParameters \code{list}
-#' @slot modelError \code{list}
-#' @slot optimizer \code{character}
-#' @slot optimizerParameters \code{list}
-#' @slot outputs \code{list}
-#' @slot designs \code{list}
-#' @slot fimType \code{character}
-#' @slot fim \code{Fim}
-#' @slot odeSolverParameters \code{list}
+#' Base S7 class for PFIM design evaluation and optimization projects.
+#'
+#' Set \code{numberOfOccasions} on \code{Evaluation} or \code{Optimization} (optional:
+#' \code{NA} infers from covariates and IOV). When set explicitly, it must match
+#' \code{\link{inferNumberOfOccasions}}. The resolved value is stored on the
+#' \code{Model} in \code{defineModelType()}.
+#'
+#' All \code{fimType} values support covariates and IOV; \code{population} adds
+#' \code{omega} and \code{gamma} blocks to the FIM.
+#' @param name Character string: project name.
+#' @param modelEquations List of model equations (or empty if using the model library).
+#' @param modelClass Model S7 class name; filled by \code{defineModelType()} when empty.
+#'   Custom classes: \code{\link{pfim_register_model_class}}.
+#' @param modelFromLibrary List selecting a built-in PK/PD model.
+#' @param modelParameters List of \code{ModelParameter} objects.
+#' @param modelCovariates List of covariate objects (from \code{Covariate()} factory).
+#' @param modelCovariatesEquation Character: \code{"additive"} or \code{"exponential"}.
+#' @param modelError List of residual error model objects.
+#' @param optimizer Character: optimization algorithm name (for \code{Optimization}).
+#' @param optimizerParameters List of algorithm-specific settings passed to
+#'   \code{run(Optimization)}. Names and types are checked at construction for
+#'   built-in optimizers; see \code{\link{MultiplicativeAlgorithm}},
+#'   \code{\link{FedorovWynnAlgorithm}}, etc. Do not set these on the
+#'   \code{*Algorithm} object - that object only stores outputs after \code{run()}.
+#' @param outputs Named list mapping internal to user output names.
+#' @param designs List of \code{Design} objects.
+#' @param fimType Character: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.
+#' @param fim \code{Fim} object filled after \code{run()}.
+#' @param odeSolverParameters List with \code{atol} and \code{rtol} for ODE solvers.
+#'   Finite-difference steps assume parameter mus are scaled to O(1).
+#' @param numberOfOccasions Integer number of study occasions; \code{NA} to infer
+#'   (see \code{\link{inferNumberOfOccasions}}). If set, must be consistent with
+#'   IOV covariate sequences and \code{gamma} on parameters.
+#' @param cacheScope Reserved (internal FIM cache id).
 #' @include Fim.R
-#' @template copyright
+#' @include CovariateModelEquation.R
+#' @include pfim-project-access.R
+#' @include model-type-dispatch.R
+#' @return An S7 object of class \code{PFIMProject}.
 #' @export
 
 PFIMProject = new_class("PFIMProject", package = "PFIM",
                         properties = list(
                           name = new_property(class_character, default = character(0)),
+                          modelClass = new_property(class_character, default = character(0)),
                           modelEquations = new_property(class_list, default = list()),
+                          modelCovariatesEquation = new_property(class_character, default = character(0)),
                           modelFromLibrary = new_property(class_list, default = list()),
                           modelParameters = new_property(class_list, default = list()),
+                          modelCovariates = new_property(class_list, default = list()),
                           modelError = new_property(class_list, default = list()),
                           optimizer = new_property(class_character, default = character(0)),
                           optimizerParameters = new_property(class_list, default = list()),
                           outputs = new_property(class_list, default = list()),
                           designs = new_property(class_list, default = list()),
                           fimType = new_property(class_character, default = character(0)),
-                          fim = new_property(Fim, default = NULL),
-                          odeSolverParameters = new_property(class_list, default = list())
-                        ))
+                          fim = new_property(NULL | Fim, default = NULL),
+                          odeSolverParameters = new_property(class_list, default = list()),
+                          numberOfOccasions = new_property(class_numeric, default = NA_real_),
+                          cacheScope = new_property( class_character, default = "" )
+                        ),
+                        validator = function( self ) {
+                          .validateS7List( prop( self, "designs" ), Design, "PFIMProject:designs", "Design" ) %||%
+                            .validateS7List( prop( self, "modelParameters" ), ModelParameter,
+                                             "PFIMProject:modelParameters", "ModelParameter" ) %||%
+                            .validateS7List( prop( self, "modelCovariates" ), Covariate,
+                                             "PFIMProject:modelCovariates", "Covariate" ) %||%
+                            .validateS7List( prop( self, "modelError" ), ModelError,
+                                             "PFIMProject:modelError", "ModelError" )
+                        })
 
-# ==============================================================================
-# the new_generic
-# ==============================================================================
-
-# ==============================================================================
-#' @title run
+#' Run a PFIM evaluation or optimization project
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
 #' @name run
-#' @description
-#' This function performs the evaluation or the optimization of a experimental design
-#' based on the settings provided in a \code{PFIMProject} object.
-#' @param pfimproject An object of class \code{PFIMProject} containing the
-#' project settings, model definitions, and design parameters.
-#' @param ... Additional arguments.
 #' @examples
-#' \dontrun{
-#' # Execute the evaluation process
-#' results = run(evaluationPopObject)
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' getDeterminant(ev)
 #' }
-#' @template copyright
 #' @export
-# ==============================================================================
-
 run = new_generic( "run", "pfimproject" )
 
-# ==============================================================================
-#' @title getFisherMatrix
-#' @name getFisherMatrix
-#' @description
-#' Extracts partitioned components of the FIM for an \code{Evaluation} object.
-#' @param pfimproject An object of class \code{Evaluation}.
-#' @param ... Additional arguments.
-#' @return A \code{list} with \code{fisherMatrix}, \code{fixedEffects},
-#'   and \code{varianceEffects}.
+#' Build the FIM object from project settings
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name defineFim
+#' @export
+defineFim = new_generic( "defineFim", c( "pfimproject" ) )
+
+#' Plot evaluation outputs for a project
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Method-specific arguments. For \code{Evaluation} and
+#'   \code{Optimization}, \code{plotOptions} list with \code{unitTime},
+#'   \code{unitOutcomes}. Response curves are densified for display
+#'   with sampling markers at design times.
+#' @usage plotEvaluation(pfimproject, ...)
+#' @return A nested list of \code{ggplot2} plot objects (by design / arm / outcome).
 #' @examples
-#' \dontrun{
-#' fisherMatrixComponents = getFisherMatrix(evaluationPopulationFIMResults)
-#' # Access specific matrices
-#' FIM             = fisherMatrixComponents$fisherMatrix
-#' fixedEffects    = fisherMatrixComponents$fixedEffects
-#' varianceEffects = fisherMatrixComponents$varianceEffects
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' names(plotEvaluation(ev, list()))
 #' }
-#' @template copyright
-#' @export
-# ==============================================================================
-
-getFisherMatrix = new_generic( "getFisherMatrix", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title show
-#' @name show
-#' @description
-#' Displays a formatted summary of a \code{PFIMProject} object including the FIM,
-#' standard errors, and design metrics.
-#' @param pfimproject The object to be displayed.
-#' @param ... Additional arguments.
-#' @return Invisibly prints the FIM summary to the console.
-#' @examples
-#' \dontrun{
-#' # Show the results of the evaluationPopulationFIMResults
-#' show(evaluationPopulationFIMResults)
-#'}
-#' @template copyright
-#' @export
-# ==============================================================================
-
-show = S7::new_generic( "show", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title plotEvaluation
 #' @name plotEvaluation
-#' @description
-#' Generates graphical representations of model responses based on the design
-#' and parameters defined in the PFIM project.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A named list of plots per design.
-#' @examples
-#' \dontrun{
-#' # Plot the model responses from evaluationPopulationFIMResults
-#' plotEvaluation(evaluationPopulationFIMResults, plotOptions = plotOptions)
-#' }
-#' @template copyright
 #' @export
-# ==============================================================================
-
 plotEvaluation = new_generic( "plotEvaluation", c( "pfimproject" ) )
 
-# ==============================================================================
-#' @title plotSensitivityIndices
-#' @name plotSensitivityIndices
-#' @description
-#' Generates sensitivity index plots (partial derivatives of model responses
-#' with respect to population parameters).
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A named list of sensitivity index plots per design.
+#' Plot sensitivity indices for a project
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Method-specific arguments. For \code{Evaluation}, \code{plotOptions} list with
+#'   \code{unitTime}, \code{unitOutcomes}. Gradients are plotted at design sampling times.
+#' @usage plotSensitivityIndices(pfimproject, ...)
+#' @return A \code{ggplot2} plot object.
 #' @examples
-#' \dontrun{
-#' plot the sensitivity indices from evaluationPopulationFIMResults
-#' plotSensitivityIndices( evaluationPopulationFIMResults, plotOptions = plotOptions )
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' names(plotSensitivityIndices(ev, list()))
 #' }
-#' @template copyright
+#' @name plotSensitivityIndices
 #' @export
-# ==============================================================================
-
 plotSensitivityIndices = new_generic( "plotSensitivityIndices", c( "pfimproject" ) )
 
-# ==============================================================================
-#' @title plotSE
-#' @name plotSE
-#' @description
-#' Bar plot of Standard Errors (SE) for fixed effects and variance components.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A bar plot of SE values.
+#' Plot standard errors for project results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @usage plotSE(pfimproject, ...)
+#' @return A \code{ggplot2} plot object.
 #' @examples
-#' \dontrun{
-#' # plotSE from evaluationPopulationFIMResults
-#' plotSE( evaluationPopulationFIMResults )
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' inherits(plotSE(ev), "ggplot")
 #' }
-#' @template copyright
+#' @name plotSE
 #' @export
-# ==============================================================================
-
 plotSE = new_generic( "plotSE", c( "pfimproject" ) )
 
-# ==============================================================================
-#' @title plotRSE
-#' @name plotRSE
-#' @description
-#' Bar plot of Relative Standard Errors (RSE, \%) for the model parameters.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A bar plot of RSE (\%) values.
+#' Plot relative standard errors for project results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @usage plotRSE(pfimproject, ...)
+#' @return A \code{ggplot2} plot object.
 #' @examples
-#' \dontrun{
-#' # Extract Relative Standard Errors from evaluationPopulationFIMResults
-#' se = getSE(evaluationPopulationFIMResults)
-#' print(se)
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' inherits(plotRSE(ev), "ggplot")
 #' }
-#' @template copyright
+#' @name plotRSE
 #' @export
-# ==============================================================================
-
 plotRSE = new_generic( "plotRSE", c( "pfimproject" ) )
 
-
-
-
-# ==============================================================================
-#' @title getSE
-#' @name getSE
-#' @description
-#' Retrieves the Standard Errors (SE) from the Fisher Information Matrix.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A numeric vector of SE values for each model parameter.
+# methods::show via S7 external generic (NOT exported from PFIM).
+# Use show(x) or methods::show(x) - never PFIM::show(x).
+#' Show methods for PFIM objects
+#'
+#' Console display for PFIM S7 classes. Dispatches through the
+#' \code{methods::show} generic (S7 external generic). \code{show} is
+#' \strong{not} exported by PFIM: prefer \code{show(object)} after
+#' \code{library(PFIM)} or \code{methods::show(object)}. Do not call
+#' \code{PFIM::show(object)} (fragile / unbound).
+#'
+#' @param object A PFIM object (\code{Evaluation}, \code{Optimization},
+#'   \code{CovariateTest}, etc.).
+#' @usage show(object)
+#' @docType methods
+#' @format NULL
+#' @keywords methods
+#' @name show-methods
+#' @aliases show-methods show,PFIM::Optimization-method show,PFIM::Evaluation-method show,PFIM::CovariateTest-method
 #' @examples
-#' \dontrun{
-#' # Extract Standard Errors from evaluationPopulationFIMResults
-#' se = getSE(evaluationPopulationFIMResults)
-#' print(se)
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' show(ev)            # OK - methods::show
+#' methods::show(ev)   # OK - explicit
 #' }
-#' @template copyright
-#' @export
-# ==============================================================================
-
-getSE = new_generic( "getSE", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title getRSE
-#' @name getRSE
-#' @description
-#' Retrieves the Relative Standard Errors (RSE, \%) from the FIM.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A numeric vector of RSE (\%) values for each model parameter.
-#' @examples
-#' \dontrun{
-#' # Extract RSE (%) for all model parameters for evaluationPopulationFIMResults
-#' rse = getRSE(evaluationPopulationFIMResults)
-#' # Display the RSE values
-#' print(rse)
+#' @section Methods:
+#' \describe{
+#'   \item{\code{Optimization}}{Display initial and optimal design results.}
+#'   \item{\code{Evaluation}}{Display evaluation results (FIM, SE, RSE, etc.).}
+#'   \item{\code{CovariateTest}}{Display covariate-test results.}
 #' }
-#' @template copyright
-#' @export
-# ==============================================================================
+#' @keywords internal
+#' @importFrom methods show
+show = S7::new_external_generic( "methods", "show", "object" )
 
-getRSE = new_generic( "getRSE", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title getShrinkage
-#' @name getShrinkage
-#' @description
-#' Retrieves shrinkage values for the random effects (omega), measuring how
-#' individual estimates are shrunk toward the population mean.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A numeric vector of shrinkage values for each random effect.
-#' @examples
-#' \dontrun{
+#' Generate an HTML evaluation or optimization report
 #'
-#' # Extract the shrinkage values from the Bayesian FIM evaluation results
-#' shrinkage = getShrinkage(evaluationBayesianFIMResults)
-#' print(shrinkage)
-#'
-#' }
-#' @template copyright
-#' @export
-# ==============================================================================
-
-getShrinkage = new_generic( "getShrinkage", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title getDeterminant
-#' @name getDeterminant
-#' @description
-#' Returns the determinant of the Fisher Information Matrix (FIM),
-#' a global measure of design information used for D-optimality.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A numeric value representing the determinant of the FIM.
-#' @examples
-#' \dontrun{
-#'
-#' # Extract the determinant of the Fisher Information Matrix (FIM)
-#' determinant = getDeterminant(evaluationPopulationFIMResults)
-#'
-#' # Display the determinant value
-#' print(determinant)
-#'
-#' }
-#' @template copyright
-#' @export
-# ==============================================================================
-
-getDeterminant = new_generic( "getDeterminant", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title getDcriterion: Extract the D-optimality criterion
-#' @description
-#' Returns the D-criterion derived from the determinant of the FIM, normalized
-#' by the number of parameters for cross-design comparisons.
-#' @name getDcriterion
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A numeric value representing the D-criterion.
-#' @examples
-#' \dontrun{
-#'
-#' # Examples from Vignette 1 and 2
-#'
-#' # Extract the D-criterion from the FIM evaluation results
-#' dCriterion = getDcriterion(evaluationPopulationFIMResults)
-#'
-#' # Display the D-criterion value
-#' print(dCriterion)
-#'
-#' }
-#' @template copyright
-#' @export
-# ==============================================================================
-
-getDcriterion = new_generic( "getDcriterion", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title getCorrelationMatrix
-#' @name getCorrelationMatrix
-#' @description
-#' Returns the correlation matrix of parameter estimates derived from the
-#' asymptotic variance-covariance matrix \eqn{C = M^{-1}}, where \eqn{M} is
-#' the FIM. Formally: \eqn{R_{ij} = C_{ij} / \sqrt{C_{ii} C_{jj}}}.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments.
-#' @return A symmetric correlation matrix with values in \eqn{[-1, 1]} and
-#'   ones on the diagonal.
-#' @examples
-#' \dontrun{
-#'
-#' # Extract and print the correlation matrix from the FIM evaluation results
-#' correlationMatrix = getCorrelationMatrix(evaluationPopulationFIMResults)
-#'
-#' # Display the matrix
-#' print(correlationMatrix)
-#'
-#' }
-#' @template copyright
-#' @export
-# ==============================================================================
-
-getCorrelationMatrix = new_generic( "getCorrelationMatrix", c( "pfimproject" ) )
-
-# ==============================================================================
-#' @title Report
+#' Requires \pkg{rmarkdown} and pandoc (\url{https://pandoc.org}).
+#' @param pfimproject A \code{PFIMProject}, \code{Evaluation}, or \code{Optimization} object after \code{run()}.
+#' @param ... \code{outputPath}, \code{outputFile}, \code{plotOptions} for HTML reports.
 #' @name Report
-#' @description
-#' Creates a detailed HTML report from the design evaluation results,
-#' including tables, matrices, and plots.
-#' @param pfimproject An object of class \code{PFIMProject}.
-#' @param ... Additional arguments: outputPath, outputFile, plotOptions
-#' @return Generates and saves an HTML report to \code{outputPath/outputFile}.
+#' @rdname Report
+#' @return Invisibly, the path or result from the report generator.
 #' @examples
 #' \dontrun{
-#'
-#' # Examples from Vignette 1 and 2
-#'
-#' # Generate a comprehensive HTML report for the design evaluation
-#' Report(
-#'   pfimproject = evaluationPopulationFIMResults,
-#'   outputPath  = "C:/MyResults",
-#'   outputFile  = "Design_Evaluation_Report.html",
-#'   plotOptions = plotOptions
-#' )
-#'
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' tmp = tempfile(fileext = ".html")
+#' Report(ev, outputPath = tempdir(), outputFile = basename(tmp), plotOptions = list())
 #' }
-#' @template copyright
 #' @export
-# ==============================================================================
-
 Report = new_generic( "Report", c( "pfimproject" ) )
 
-# ==============================================================================
-# the methods
-# ==============================================================================
-
-# ==============================================================================
-#' @name defineFim
-#' @title Define the Fisher Information Matrix object
-#' @description
-#' This method initializes and configures the specific type of Fisher Information Matrix
-#' to be calculated within a \code{PFIMProject}. It maps the project's statistical
-#' assumptions (Population, Individual, or Bayesian) to the underlying FIM computational engine.
-#' \itemize{
-#'   \item \bold{Population:} For Nonlinear Mixed Effects Models (NLME), accounting for inter-individual variability.
-#'   \item \bold{Individual:} For standard fixed-effects models where only one subject/profile is considered.
-#'   \item \bold{Bayesian:} When prior distributions for the parameters are incorporated into the information matrix.
-#' }
-#' @param pfimproject An object of class \code{\link{PFIMProject}} containing the
-#' model and design specifications.
-#' @param ... Additional arguments.
-#' @return An object of class \code{\link{Fim}} initialized with the settings
-#' defined in the project.
-#' @template copyright
+#' Retrieve the Fisher information matrix from results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name getFisherMatrix
+#' @return A list with \code{fisherMatrix}, \code{fixedEffects},
+#'   \code{varianceEffects}, and \code{singularFim}.
 #' @export
-# ==============================================================================
+getFisherMatrix = new_generic( "getFisherMatrix", c( "pfimproject" ) )
 
-defineFim = new_generic( "defineFim", c( "pfimproject" ) )
+#' Retrieve standard errors from results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name getSE
+#' @return A list or matrix of standard errors for the FIM parameters.
+#' @export
+getSE = new_generic( "getSE", c( "pfimproject" ) )
+
+#' Retrieve relative standard errors from results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name getRSE
+#' @return A list or matrix of relative standard errors (percent).
+#' @export
+getRSE = new_generic( "getRSE", c( "pfimproject" ) )
+
+#' Retrieve shrinkage metrics from results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name getShrinkage
+#' @return Numeric vector or list of Bayesian shrinkage values.
+#' @export
+getShrinkage = new_generic( "getShrinkage", c( "pfimproject" ) )
+
+#' Retrieve determinant of the Fisher matrix
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name getDeterminant
+#' @return Numeric determinant of the Fisher information matrix.
+#' @export
+getDeterminant = new_generic( "getDeterminant", c( "pfimproject" ) )
+
+#' Retrieve D-criterion from project results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name getDcriterion
+#' @return Numeric D-optimality criterion value.
+#' @export
+getDcriterion = new_generic( "getDcriterion", c( "pfimproject" ) )
+
+#' Retrieve correlation matrix from results
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name getCorrelationMatrix
+#' @return Correlation matrix of the parameter estimates.
+#' @export
+getCorrelationMatrix = new_generic( "getCorrelationMatrix", c( "pfimproject" ) )
+
+#' Infer and instantiate the concrete model class
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @name defineModelType
+#' @keywords internal
+defineModelType = new_generic( "defineModelType", c( "pfimproject" ) )
+
+#' Build model equations from PK/PD model library entries
+#' @param pfimproject A \code{PFIMProject} object.
+#' @param ... Optional method arguments.
+#' @return List of model equations resolved from the library.
+#' @examples
+#' \donttest{
+#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#' nrow(getFisherMatrix(ev)$fisherMatrix)
+#' }
+#' @name defineModelEquationsFromLibraryOfModel
+#' @keywords internal
+defineModelEquationsFromLibraryOfModel = new_generic( "defineModelEquationsFromLibraryOfModel", c( "pfimproject" ) )
+
+#' Build the FIM object from project settings.
+#'
+#' Instantiates \code{PopulationFim}, \code{IndividualFim}, or \code{BayesianFim}
+#' from the project's \code{fimType} string via the type registry.
+#' @name defineFim
+#' @export
 
 method( defineFim, PFIMProject ) = function( pfimproject )
 {
-  fimType = prop(pfimproject, "fimType")
-  fim = switch(fimType,
-               "population" = PopulationFim(),
-               "individual" = IndividualFim(),
-               "Bayesian"   = BayesianFim(),
-               stop(sprintf(
-                 "Unknown fimType: '%s'. Must be one of: 'population', 'individual', 'Bayesian'.",
-                 fimType
-               ))
-  )
-  return(fim)
+  raw = projectProp( pfimproject, "fimType" )
+  if ( length( raw ) != 1L || !is.character( raw ) )
+    .pfimStop( "fimType must be a single character string." )
+  .pfimInstantiateFimType( raw )
 }
 
-# ==============================================================================
-#' @title defineModelType
+#' Infer the model class from equations and dosing.
+#'
+#' Resolves \code{modelClass} (explicit or legacy token detection), copies
+#' parameters/covariates onto a fresh model instance, then attaches residual
+#' error, ODE tolerances, occasions, and the additive/exponential covariate
+#' structural equation when requested.
 #' @name defineModelType
-#' @description
-#' The method acts as a constructor for the specific model class
-#' required for analysis. It extracts configurations from a \code{\link{PFIMProject}}
-#' and instantiates a \code{Model} object, integrating equations, parameter
-#' structures, error models, and solver settings.
-#' @details
-#' This method determines whether the model should be treated as a:
-#' \itemize{
-#'   \item \bold{Library Model:} Pre-defined structural models (e.g., 1-compartment PK).
-#'   \item \bold{User-Defined Model:} Custom equations provided via \code{modelEquations}.
-#'   \item \bold{ODE Model:} Models requiring numerical integration using specified
-#'   \code{odeSolverParameters}.
-#' }
-#' @param pfimproject An object of class \code{\link{PFIMProject}} containing
-#' the project specifications.
-#' @param ... Additional arguments.
-#' @return An object of class \code{Model} (or a subclass thereof) initialized
-#' with \code{modelParameters}, \code{odeSolverParameters}, \code{modelError},
-#' and \code{modelEquations}.
-#' @template copyright
-#' @export
-# ==============================================================================
-
-defineModelType = new_generic( "defineModelType", c( "pfimproject" ) )
+#' @keywords internal
 
 method( defineModelType, PFIMProject ) = function( pfimproject )
 {
-  isModelODE = FALSE
-  isModelInfusion = FALSE
-  isDoseInEquation = FALSE
-  isDoseInInitialConditions = FALSE
+  equations       = projectProp( pfimproject, "modelEquations" )
+  parameters      = projectProp( pfimproject, "modelParameters" )
+  modelCovariates = projectProp( pfimproject, "modelCovariates" )
 
-  equations = prop( pfimproject, "modelEquations" )
-  parameters = prop( pfimproject, "modelParameters")
+  classInfo = .pfimResolveModelClassInfo( pfimproject )
+  className = classInfo$class
+  .pfimSyncModelClass( pfimproject, className )
+  if ( identical( classInfo$source, "legacy" ) &&
+       isTRUE( pfim_get_option( "model.detect.legacy_warn", FALSE ) ) )
+    .pfimWarn(
+      "Model class '", className,
+      "' inferred from equation tokens; set modelClass explicitly."
+    )
+  model = set_props(
+    .pfimInstantiateModelClass( className ),
+    modelParameters     = parameters,
+    modelCovariates     = modelCovariates,
+    odeSolverParameters = projectProp( pfimproject, "odeSolverParameters" ),
+    modelError          = projectProp( pfimproject, "modelError" ),
+    modelEquations      = equations,
+    numberOfOccasions   = resolveNumberOfOccasions(
+      projectProp( pfimproject, "numberOfOccasions" ),
+      modelCovariates,
+      parameters
+    )
+  )
 
-  #  check if model ode
-  isModelODE = getListLastName( equations ) %>% str_detect("Deriv_") %>% any()
+  modelCovariatesEquation = projectProp( pfimproject, "modelCovariatesEquation")
 
-  # check if model analytic
-  isModelAnalytic = !( getListLastName( equations ) %>% str_detect("Deriv_") %>% all() )
-
-  # check if model steady state
-  isTauInEquations = equations %>% map_lgl( ~ if ( is.list(.x) ) {
-    any( map_lgl( .x, ~ str_detect( .x, "tau" ) ) )
-  } else {
-    str_detect( .x, "tau" )
-  }) %>% any()
-
-  # check if mode infusion
-  isModelInfusion = equations %>% map_lgl( ~ if ( is.list(.x) ) {
-    any( map_lgl( .x, ~ str_detect( .x, "Tinf_") ) )
-  } else {
-    str_detect( .x, "Tinf_" )
-  }) %>% any()
-
-  # check if dose in equations
-  isDoseInEquation = equations %>% map_lgl( ~ if ( is.list(.x) ) {
-    any( map_lgl( .x, ~ str_detect( .x, "dose_" ) ) )
-  } else {
-    str_detect( .x, "dose_" )
-  }) %>% any()
-
-  # check if dose in initial conditions
-  initialConditions = pfimproject %>%
-    pluck( "designs" ) %>%
-    map(~ {
-      arms = pluck( .x, "arms" )
-      names( arms ) = map_chr( arms, ~ prop( .x, "name" ) )
-      map( arms, ~ pluck( .x, "initialConditions" ) )
-    }) %>%
-    unlist()
-
-  isDoseInInitialConditions = any( map_lgl( initialConditions, ~ str_detect( .x, "dose_" ) ) )
-
-  # define the class of the model
-  if ( isModelODE ){
-    # ode model dose defined in equations
-    if ( isDoseInEquation )
-    {
-      model = ModelODEDoseInEquations()
-    }
-    # ode model dose as cmpt
-    if ( !isDoseInEquation )
-    {
-      model = ModelODEDoseNotInEquations()
-    }
-    # ode model & infusion & dose defined in equations
-    if ( isModelInfusion & isDoseInEquation )
-    {
-      model = ModelODEInfusionDoseInEquation()
-    }
-    # ode model bolus & dose defined in initial conditions
-    if ( isDoseInInitialConditions )
-    {
-      model = ModelODEBolus()
-    }
+  # Character labels from the user API -> concrete Additive / Exponential objects.
+  if ( length( modelCovariatesEquation ) != 0L ) {
+    modelCovariatesEquation = switch( modelCovariatesEquation,
+                                      "additive" = Additive(),
+                                      "exponential" = Exponential() )
+    prop( model, "modelCovariatesEquation") = modelCovariatesEquation
   }
 
-  if ( isModelAnalytic ){
-    if ( !isModelInfusion & !isTauInEquations )
-    {
-      # model analytic
-      model = ModelAnalytic()
-    }
-    if ( !isModelInfusion & isTauInEquations )
-    {
-      # ModelAnalyticSteadyState
-      model = ModelAnalyticSteadyState()
-    }
-    if ( isModelInfusion & isDoseInEquation )
-    {
-      # model analytic with infusion
-      model = ModelAnalyticInfusion()
-    }
-    if ( isModelInfusion & isDoseInEquation & isTauInEquations )
-    {
-      # model analytic with infusion
-      model = ModelAnalyticInfusionSteadyState()
-    }
-  }
-  # model parameters order by names
-  prop( model, "modelParameters") = parameters
-  prop( model, "odeSolverParameters") = prop( pfimproject, "odeSolverParameters" )
-  prop( model, "modelError") = prop( pfimproject, "modelError" )
-  prop( model, "modelEquations") = equations
-
-  return( model )
+  model
 }
 
-# ==============================================================================
-#' @title defineModelEquationsFromLibraryOfModel
+#' Load model equations from the PK or PD library.
+#'
+#' Looks up \code{modelFromLibrary$PKModel} (and optional \code{PDModel}),
+#' temporarily writes each library equation onto the project to infer model
+#' class, then returns the combined PK or PK/PD equation list.
 #' @name defineModelEquationsFromLibraryOfModel
-#' @description
-#' The  method extracts the structural
-#' mathematical equations from the pre-defined PFIM library. This allows users
-#' to leverage standard pharmacokinetic (PK) and pharmacodynamic (PD) models
-#' without manually defining differential or algebraic equations.
-#' @details
-#' This function references the \code{modelFromLibrary} property of the
-#' \code{PFIMProject}. It maps library identifiers to a specific set of
-#' symbolic or numeric equations used by the evaluation engine.
-#' Typical library models include:
-#' \itemize{
-#'   \item \bold{One-compartment:} Bolus, Infusion, or First-order absorption.
-#'   \item \bold{Multi-compartment:} Distribution models with various elimination routes.
-#'   \item \bold{Standard PD:} Emax, Sigmoid Emax, or Indirect response models.
-#' }
-#' @param pfimproject An object of class \code{\link{PFIMProject}} containing
-#' the library selection criteria.
-#' @param ... Additional arguments.
-#' @return A \code{list} of character strings or expressions representing the
-#' structural model equations.
-#' @template copyright
-#' @export
-# ==============================================================================
+#' @keywords internal
 
-defineModelEquationsFromLibraryOfModel = new_generic( "defineModelEquationsFromLibraryOfModel", c( "pfimproject" ) )
-
-method(defineModelEquationsFromLibraryOfModel, PFIMProject) = function(pfimproject)
+method( defineModelEquationsFromLibraryOfModel, PFIMProject ) = function( pfimproject )
 {
-  equations    = prop(pfimproject, "modelFromLibrary")
-  pdModelName  = equations[["PDModel"]]
-  pkModels = prop(LibraryOfPKModels, "models")
-  prop(pfimproject, "modelEquations") = pkModels[[equations[["PKModel"]]]]
-  pkModel = defineModelType(pfimproject)
+  equations = prop( pfimproject, "modelFromLibrary" )
 
-  if (!is.null(pdModelName)) {
-    pdModels = prop(LibraryOfPDModels, "models")
-    prop(pfimproject, "modelEquations") = pdModels[[equations[["PDModel"]]]]
-    pdModel = defineModelType(pfimproject)
-    pkpdModelEquations = definePKPDModel(pkModel, pdModel, pfimproject)
-  } else {
-    pkpdModelEquations = definePKModel(pkModel, pfimproject)
+  pkModelName = equations$PKModel
+  pdModelName = equations$PDModel
+
+  pkModels = prop( pkModelLibrary, "models" )
+  prop( pfimproject, "modelEquations" ) = .pfimLibraryEquation( pkModels, pkModelName, "PKModel" )
+
+  pkModel = defineModelType( pfimproject )
+
+  # Optional PD library entry -> combined PK/PD equations; else PK-only.
+  if ( !is.null( pdModelName ) ) {
+    pdModels = prop( pdModelLibrary, "models" )
+    prop( pfimproject, "modelEquations" ) = .pfimLibraryEquation( pdModels, pdModelName, "PDModel" )
+    pdModel = defineModelType( pfimproject )
+    pkpdModelEquations = definePKPDModel( pkModel, pdModel, pfimproject )
+  }else{
+    pkpdModelEquations = definePKModel( pkModel, pfimproject )
   }
-  return(pkpdModelEquations)
+
+  return( pkpdModelEquations )
 }

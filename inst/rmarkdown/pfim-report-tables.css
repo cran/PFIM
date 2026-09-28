@@ -1,0 +1,15 @@
+/* PFIM HTML reports: light-gray column header, white body (no zebra stripes). */
+table.table > thead > tr > th,
+table > thead > tr > th,
+thead th {
+  background-color: #f3f4f6 !important;
+  border-bottom: 1px solid #bbb;
+}
+
+table.table > tbody > tr > td,
+table.table > tbody > tr > th,
+tbody tr,
+tbody tr:nth-child(even),
+tbody tr:nth-child(odd) {
+  background-color: #ffffff !important;
+}

@@ -2,114 +2,28 @@
 % Please edit documentation in R/PSOAlgorithm.R
 \name{PSOAlgorithm}
 \alias{PSOAlgorithm}
-\title{PSOAlgorithm Class}
+\title{PSOAlgorithm}
 \usage{
-PSOAlgorithm(
-  maxIteration = 100,
-  populationSize = 50,
-  seed = 42,
-  personalLearningCoefficient = 2.05,
-  globalLearningCoefficient = 2.05,
-  showProcess = FALSE,
-  optimisationDesign = list(),
-  optimisationAlgorithmOutputs = list(),
-  name = character(0),
-  modelParameters = list(),
-  modelEquations = list(),
-  modelFromLibrary = list(),
-  modelError = list(),
-  designs = list(),
-  outputs = list(),
-  fimType = character(0),
-  odeSolverParameters = list()
-)
+PSOAlgorithm(optimizerOutputs = list())
 }
 \arguments{
-\item{maxIteration}{An integer specifying the maximum number of iterations
-before the algorithm stops.}
-
-\item{populationSize}{An integer specifying the number of particles in
-the swarm. Larger populations explore the space better but increase
-computation time.}
-
-\item{seed}{A numeric value for the random number generator to ensure
-reproducibility of the optimization results.}
-
-\item{personalLearningCoefficient}{A numeric value (often denoted as \eqn{c_1})
-that controls the "cognitive" component—how much the particle trusts its
-own best experience.}
-
-\item{globalLearningCoefficient}{A numeric value (often denoted as \eqn{c_2})
-that controls the "social" component—how much the particle follows the
-swarm's best experience.}
-
-\item{showProcess}{A logical. If \code{TRUE}, the algorithm prints the
-current best fitness and iteration progress to the R console.}
-
-\item{optimisationDesign}{A list storing the evaluations (FIM, criteria, SE)
-of both the initial and the optimal design.}
-
-\item{optimisationAlgorithmOutputs}{A list containing the logs and
-algorithm-specific outputs produced during the optimization process.}
-
-\item{name}{A string representing the name of the project or evaluation study.}
-
-\item{modelParameters}{A list defining the fixed effects and random effects (variances) of the model.}
-
-\item{modelEquations}{A list containing the mathematical equations of the model.}
-
-\item{modelFromLibrary}{A list specifying the pre-defined model selected from the PFIM library.}
-
-\item{modelError}{A list specifying the residual error model (e.g., constant, proportional, or combined).}
-
-\item{designs}{A list of `Design` objects representing the experimental protocols to be evaluated.}
-
-\item{outputs}{A list defining the observation variables or responses of the model.}
-
-\item{fimType}{A string specifying the FIM calculation method.
-Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.}
-
-\item{odeSolverParameters}{A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.}
+\item{optimizerOutputs}{List filled by \code{optimizeDesign()} (optimal arms, etc.).}
+}
+\value{
+A \code{PSOAlgorithm} specification object.
 }
 \description{
-The \code{PSOAlgorithm} class is a subclass of \code{\link{Optimization}}
-that implements the PSO metaheuristic. It optimizes experimental designs by
-moving a "swarm" of candidate solutions (particles) through the search space.
-}
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+Particle Swarm Optimization for sampling-time search (Rcpp kernel in \code{src/PSOKernel.cpp}).
+Pass \code{maxIteration}, \code{populationSize}, \code{seed}, and learning coefficients
+via \code{optimizerParameters} on \code{\link{Optimization}}.
+Search starts from each outcome's \code{initialSamplings} (reported initial design);
+\code{seed} controls swarm exploration after that start.
+Optional \code{tolerance} (default \code{0}, stall stop disabled ->
+\code{converged = NA}) and \code{stallIterations}
+(default \code{5}) enable early stopping when \code{tolerance > 0}.
 }
 \examples{
 \dontrun{
-
-# Examples from Vignette 2
-
-# Initializing the PSO algorithm for population FIM optimization
-optimizationPSOPopFIM = Optimization(
-  name                = "optimizationExamplePSO",
-  modelFromLibrary    = modelFromLibrary,
-  modelParameters     = modelParameters,
-  modelError          = modelError,
-  optimizer           = "PSOAlgorithm",
-  optimizerParameters = list(
-    maxIteration                = 100,   # number of swarm update cycles
-    populationSize              = 50,    # number of particles
-    personalLearningCoefficient = 2.05,  # c1: attraction toward personal best
-    globalLearningCoefficient   = 2.05,  # c2: attraction toward global best
-    seed                        = 42,    # reproducibility
-    showProcess                 = FALSE  # suppress iteration-level output
-  ),
-  designs             = list(design2),
-  fimType             = "population",
-  outputs             = list("RespPK")
-)
-
-# Run the PSO optimization and display the results
-resultsPSOPopFIM = run(optimizationPSOPopFIM)
-show(resultsPSOPopFIM)
-
+vignette("Example02")
 }
-}
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

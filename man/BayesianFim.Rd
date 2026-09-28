@@ -2,7 +2,7 @@
 % Please edit documentation in R/BayesianFim.R
 \name{BayesianFim}
 \alias{BayesianFim}
-\title{BayesianFim Class}
+\title{BayesianFim}
 \usage{
 BayesianFim(
   fisherMatrix = numeric(0),
@@ -11,50 +11,49 @@ BayesianFim(
   SEAndRSE = list(),
   condNumberFixedEffects = 0,
   condNumberVarianceEffects = 0,
-  shrinkage = numeric(0)
+  shrinkage = numeric(0),
+  singularFim = FALSE
 )
 }
 \arguments{
-\item{fisherMatrix}{A numerical matrix representing the FIM.}
+\item{fisherMatrix}{Labelled FIM matrix.}
 
-\item{fixedEffects}{A matrix representing fixed effects information.}
+\item{fixedEffects}{Fixed-effects sub-block.}
 
-\item{varianceEffects}{A matrix representing variance components information.}
+\item{varianceEffects}{Variance-effects sub-block.}
 
-\item{SEAndRSE}{A data frame containing calculated SE and RSE values.}
+\item{SEAndRSE}{List with \code{SE}, \code{RSE}, and combined tables.}
 
-\item{condNumberFixedEffects}{A numeric value for the fixed effects condition number.}
+\item{condNumberFixedEffects}{Condition number of the fixed-effects block.}
 
-\item{condNumberVarianceEffects}{A numeric value for the variance effects condition number.}
+\item{condNumberVarianceEffects}{Condition number of the variance-effects block.}
 
-\item{shrinkage}{A numeric vector representing parameter shrinkage.}
+\item{shrinkage}{Named shrinkage (percent) per parameter (Bayesian FIM).}
+
+\item{singularFim}{\code{TRUE} when SE/RSE used a pseudo-inverse (singular FIM).
+Set in \code{.fimStoreEvaluationResult} from \code{.fimBuildSeAndRse}; D-criterion
+/ log-det still use the raw matrix (may be 0 / \code{-Inf} when singular).}
+}
+\value{
+A \code{BayesianFim} object (filled by \code{run()}).
 }
 \description{
-The \code{BayesianFim} class stores the Bayesian Fisher Information Matrix (FIM).
-It extends the standard \code{Fim} class by incorporating Bayesian-specific
-metrics, such as the shrinkage of individual parameters.
+Bayesian Fisher information matrix with shrinkage on random effects.
+
+First-order linearization on the random-effect scale. Covariate \code{beta} is not a
+subject parameter (MAP conditions on \eqn{\beta}) and is omitted. Across
+strata / arms, subject FIMs keep their prior and are aggregated by averaging
+covariances: \eqn{\bar C = \sum w_s M_s^{-1}}, \eqn{M_{\mathrm{eff}}=\bar C^{-1}}.
+A positive weight on a non-identifiable protocol yields \code{Inf} SE for the
+null-space parameters. This covariance mixture is not comparable to summing
+Fisher matrices (PFIM 6 / PopED on this case).
+
+With IOV (\eqn{\gamma>0}), each occasion uses the marginal FO residual
+\eqn{V_k = R_k + F_k\,\mathrm{diag}(\gamma^2)\,F_k^\top} on the \eqn{\eta}-scale
+(equivalent to the \eqn{\eta} block of the augmented \eqn{(\eta,\kappa)} system).
 }
-\section{Slots}{
-
-\describe{
-\item{\code{fisherMatrix}}{\code{matrix}. The numerical values of the Bayesian FIM.}
-
-\item{\code{shrinkage}}{\code{numeric vector}. The shrinkage values for each random effect.}
-
-\item{\code{fixedEffects}}{\code{matrix}. The FIM components related to fixed effects.}
-
-\item{\code{varianceEffects}}{\code{matrix}. The FIM components related to variance components (random effects).}
-
-\item{\code{SEAndRSE}}{\code{data.frame}. Standard Errors (SE) and Relative Standard Errors (RSE).}
-
-\item{\code{condNumberFixedEffects}}{\code{numeric}. The condition number for the fixed effects sub-matrix.}
-
-\item{\code{condNumberVarianceEffects}}{\code{numeric}. The condition number for the variance effects sub-matrix.}
-}}
-
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+\examples{
+\dontrun{
+vignette("Example01")
 }
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }

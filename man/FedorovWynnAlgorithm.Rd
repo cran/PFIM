@@ -2,105 +2,31 @@
 % Please edit documentation in R/FedorovWynnAlgorithm.R
 \name{FedorovWynnAlgorithm}
 \alias{FedorovWynnAlgorithm}
-\title{FedorovWynnAlgorithm Class}
+\title{FedorovWynnAlgorithm}
 \usage{
-FedorovWynnAlgorithm(
-  elementaryProtocols = list(),
-  numberOfSubjects = 0,
-  proportionsOfSubjects = 0,
-  showProcess = FALSE,
-  FedorovWynnAlgorithmOutputs = list(),
-  optimisationDesign = list(),
-  optimisationAlgorithmOutputs = list(),
-  name = character(0),
-  modelParameters = list(),
-  modelEquations = list(),
-  modelFromLibrary = list(),
-  modelError = list(),
-  designs = list(),
-  outputs = list(),
-  fimType = character(0),
-  odeSolverParameters = list()
-)
+FedorovWynnAlgorithm(FedorovWynnAlgorithmOutputs = list())
 }
 \arguments{
-\item{elementaryProtocols}{A list of elementary protocols available for selection.}
-
-\item{numberOfSubjects}{A numeric vector specifying the number of subjects per arm.}
-
-\item{proportionsOfSubjects}{A numeric vector of subject proportions for each protocol.}
-
-\item{showProcess}{A logical indicating whether to display optimization progress.}
-
-\item{FedorovWynnAlgorithmOutputs}{A list storing the results of the optimization.}
-
-\item{optimisationDesign}{A list storing the evaluations (FIM, criteria, SE)
-of both the initial and the optimal design.}
-
-\item{optimisationAlgorithmOutputs}{A list containing the logs and
-algorithm-specific outputs produced during the optimization process.}
-
-\item{name}{A string representing the name of the project or evaluation study.}
-
-\item{modelParameters}{A list defining the fixed effects and random effects (variances) of the model.}
-
-\item{modelEquations}{A list containing the mathematical equations of the model.}
-
-\item{modelFromLibrary}{A list specifying the pre-defined model selected from the PFIM library.}
-
-\item{modelError}{A list specifying the residual error model (e.g., constant, proportional, or combined).}
-
-\item{designs}{A list of `Design` objects representing the experimental protocols to be evaluated.}
-
-\item{outputs}{A list defining the observation variables or responses of the model.}
-
-\item{fimType}{A string specifying the FIM calculation method.
-Must be one of: \code{"population"}, \code{"individual"}, or \code{"Bayesian"}.}
-
-\item{odeSolverParameters}{A list containing technical settings for the ODE solver, such as \code{atol} and \code{rtol}.}
+\item{FedorovWynnAlgorithmOutputs}{Output list from the Rcpp routine.}
+}
+\value{
+A \code{FedorovWynnAlgorithm} specification object for \code{run(Optimization)}.
 }
 \description{
-The class \code{FedorovWynnAlgorithm} implements the FedorovWynn algorithm.
-The class \code{FedorovWynnAlgorithm} implements the Fedorov-Wynn exchange
-algorithm. This algorithm is used for discrete design optimization,
-iteratively adding or exchanging elementary protocols to maximize the
-determinant of the Fisher Information Matrix (D-optimality).
+Fedorov-Wynn exchange algorithm for D-optimal sampling-time design (Rcpp kernel).
+Pass \code{elementaryProtocols}, \code{numberOfSubjects}, and
+\code{proportionsOfSubjects} via \code{optimizerParameters} on \code{\link{Optimization}}.
+Optional \code{delta} (default \code{1e-4}) is the relative optimality
+gap \eqn{\max_i \phi_i \le p(1+\delta)}, same role as in the multiplicative algorithm.
+Each elementary protocol may be a flat numeric vector (full grid row) or a list of
+per-outcome vectors that concatenate to that row (typical PK/PD). A vignette-style
+\code{list(pk, pd)} with a single proportion is accepted as one multi-outcome protocol.
 }
-\note{
-Copyright (c) 2026-present Romain Leroux. All rights reserved.
+\details{
+FedorovWynnAlgorithm: S7 class
 }
 \examples{
 \dontrun{
-
-# Example from Vignette 1: Population FIM optimization using Fedorov-Wynn
-
-# 1. Initialize the Optimization object
-optiFW <- Optimization(
-  name                = "FedorovWynn_Optimization",
-  modelEquations      = modelEquations,
-  modelParameters     = modelParameters,
-  modelError          = modelError,
-  optimizer           = "FedorovWynnAlgorithm",
-  optimizerParameters = list(
-    elementaryProtocols   = initialElementaryProtocols,
-    numberOfSubjects      = numberOfSubjects,
-    proportionsOfSubjects = proportionsOfSubjects,
-    showProcess           = TRUE
-  ),
-  designs             = list(designConstraint),
-  fimType             = "population",
-  outputs             = list("RespPK" = "Cc", "RespPD" = "E"),
-  odeSolverParameters = list(atol = 1e-8, rtol = 1e-8)
-)
-
-# 2. Run the optimization algorithm
-optimizationResults = run(optiFW)
-
-# 3. Display the optimized design and Fisher Information Matrix
-show(optimizationResults)
-
+vignette("Example01")
 }
-}
-\author{
-Romain Leroux \email{romainlerouxPFIM@gmail.com}
 }
