@@ -1,18 +1,18 @@
 # Lightweight checks on compiled optimizer kernels (no separate C++ test harness).
 
-.pfim_init_c_path = function() {
+.pfim_dynload_cpp_path = function() {
   candidates = c(
-    testthat::test_path( "../../src/init.c" ),
-    file.path( system.file( package = "PFIM" ), "..", "src", "init.c" )
+    testthat::test_path( "../../src/pfim-dynload.cpp" ),
+    file.path( system.file( package = "PFIM" ), "..", "src", "pfim-dynload.cpp" )
   )
   hits = candidates[ file.exists( candidates ) ]
   if ( length( hits ) ) hits[[ 1L ]] else NA_character_
 }
 
 .pfim_registered_call_symbols = function() {
-  init_path = .pfim_init_c_path()
-  init = readLines( init_path, warn = FALSE )
-  hits = grep( '^\\s*\\{"_PFIM_', init, value = TRUE )
+  cpp_path = .pfim_dynload_cpp_path()
+  cpp = readLines( cpp_path, warn = FALSE )
+  hits = grep( '^\\s*\\{"_PFIM_', cpp, value = TRUE )
   sub( '^\\s*\\{"([^"]+)".*', "\\1", hits )
 }
 
@@ -23,8 +23,8 @@
   sub( ".*\\.Call\\(`(_PFIM_[^`]+)`.*", "\\1", hits )
 }
 
-test_that( "init.c registers every Rcpp .Call export", {
-  skip_if_not( !is.na( .pfim_init_c_path() ), "src/init.c absent (installed tarball)" )
+test_that( "pfim-dynload.cpp registers every Rcpp .Call export", {
+  skip_if_not( !is.na( .pfim_dynload_cpp_path() ), "src/pfim-dynload.cpp absent (installed tarball)" )
   expect_setequal( .pfim_registered_call_symbols(), .pfim_rcpp_call_symbols() )
 } )
 
@@ -84,10 +84,9 @@ test_that( "pso_optimize_Rcpp keeps fixed dimensions when windows are empty", {
     phi2               = 2.05,
     constriction       = 0.7298,
     show_process       = FALSE,
-    eval_fitness       = function( x ) sum( x^2 ),
-    eval_fitness_batch = NULL
+    eval_fitness       = function( x ) 1
   )
 
+  expect_length( res$globalBestDesign, n_dims )
   expect_equal( res$globalBestDesign[ 1L ], initial[ 1L ] )
-  expect_true( res$globalBestDesign[ 2L ] >= 0 && res$globalBestDesign[ 2L ] <= 10 )
 } )

@@ -13,8 +13,8 @@ ModelODEInfusionDoseInEquation = new_class( "ModelODEInfusionDoseInEquation",
                                             parent     = ModelODEInfusion,
                                             properties = list(
                                               modelODE             = new_property(class_function, default = NULL),
-                                              wrapperModelInfusion = new_property(class_list,     default = list()),
-                                              solverInputs         = new_property(class_list,     default = list())
+                                              wrapperModelInfusion = new_property(class_list,     default = quote( list() )),
+                                              solverInputs         = new_property(class_list,     default = quote( list() ))
                                             ))
 
 

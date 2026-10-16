@@ -206,16 +206,14 @@ NULL
 #' @param FedorovWynnAlgorithmOutputs Output list from the Rcpp routine.
 #' @return A \code{FedorovWynnAlgorithm} specification object for \code{run(Optimization)}.
 #' @examples
-#' \dontrun{
-#' vignette("Example01")
-#' }
+#' vignette("Vignette_01_discrete_design")
 #' @include Optimization.R
 #' @export
 
 FedorovWynnAlgorithm = new_class( "FedorovWynnAlgorithm",
                                   package    = "PFIM",
                                   properties = list(
-                                    FedorovWynnAlgorithmOutputs = new_property( class_list, default = list() )
+                                    FedorovWynnAlgorithmOutputs = new_property( class_list, default = quote( list() ) )
                                   )
 )
 S4_register( FedorovWynnAlgorithm )
@@ -424,9 +422,7 @@ method( optimizeDesign, list( Optimization, FedorovWynnAlgorithm ) ) =
 #' @name plotFrequenciesFedorovWynnAlgorithm
 #' @return A \code{ggplot2} plot object.
 #' @examples
-#' \dontrun{
-#' # help(plotFrequenciesFedorovWynnAlgorithm); vignette("Example01")
-#' }
+#' vignette("Vignette_01_discrete_design")
 #' @keywords internal
 
 method( plotFrequenciesFedorovWynnAlgorithm,

@@ -48,7 +48,7 @@ struct OccasionBlocks {
 OccasionBlocks split_by_occasions( const arma::mat& G_adj_mu,
                                    const Rcpp::IntegerVector& occ_col_widths ) {
   int width_sum = 0;
-  for ( int k = 0; k < occ_col_widths.size(); ++k ) {
+  for ( int k = 0; k < static_cast<int>( occ_col_widths.size() ); ++k ) {
     if ( occ_col_widths[ k ] <= 0 )
       Rcpp::stop( "computePopFimCombo_Rcpp: occ_col_widths entries must be positive." );
     width_sum += occ_col_widths[ k ];
@@ -58,7 +58,7 @@ OccasionBlocks split_by_occasions( const arma::mat& G_adj_mu,
 
   OccasionBlocks occ;
   arma::uword col = 0;
-  for ( int k = 0; k < occ_col_widths.size(); ++k ) {
+  for ( int k = 0; k < static_cast<int>( occ_col_widths.size() ); ++k ) {
     const int w = occ_col_widths[ k ];
     occ.T_blocks.push_back( G_adj_mu.cols( col, col + w - 1 ).t() );
     occ.offsets.push_back( col );
@@ -101,7 +101,7 @@ arma::mat build_V( const arma::mat& G_adj_mu,
                    bool has_iov,
                    const OccasionBlocks* occ ) {
   const int n_omega     = static_cast<int>( G_adj_mu.n_rows );
-  const int n_occasions = occ_col_widths.size();
+  const int n_occasions = static_cast<int>( occ_col_widths.size() );
   const std::vector<int> g_idx = active_gamma( gamma );
 
   if ( has_iov && n_occasions > 1 ) {
@@ -146,7 +146,7 @@ DvParts build_dV_parts( const arma::mat& G_adj_mu,
                         bool has_iov,
                         const OccasionBlocks* occ ) {
   const int n_omega     = static_cast<int>( G_adj_mu.n_rows );
-  const int n_occasions = occ_col_widths.size();
+  const int n_occasions = static_cast<int>( occ_col_widths.size() );
   const std::vector<int> g_idx = active_gamma( gamma );
   const arma::mat G_T = G_adj_mu.t();
 
@@ -171,7 +171,7 @@ DvParts build_dV_parts( const arma::mat& G_adj_mu,
     parts.W = G_T.cols( 0, static_cast<arma::uword>( n_omega - 1 ) );
   }
 
-  for ( int k = 0; k < sigma_derivatives.size(); ++k )
+  for ( int k = 0; k < static_cast<int>( sigma_derivatives.size() ); ++k )
     parts.full.push_back( Rcpp::as<arma::mat>( sigma_derivatives[ k ] ) );
   return parts;
 }
@@ -212,7 +212,7 @@ arma::mat computePopFimCombo_Rcpp( const arma::mat& gradients,
   // Split occasion columns once when needed (shared by V and dV assembly).
   OccasionBlocks occ_storage;
   const OccasionBlocks* occ_ptr = nullptr;
-  if ( has_iov && occ_col_widths.size() > 1 ) {
+  if ( has_iov && static_cast<int>( occ_col_widths.size() ) > 1 ) {
     occ_storage = split_by_occasions( G_adj_mu, occ_col_widths );
     occ_ptr = &occ_storage;
   }

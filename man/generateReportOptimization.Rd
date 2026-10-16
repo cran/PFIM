@@ -20,8 +20,6 @@ Invisibly, the generated report path or render result.
 Generate an optimization report from FIM results
 }
 \examples{
-\dontrun{
-\dontrun{vignette("Example01")}
-}
+vignette("Vignette_01_discrete_design")
 }
 \keyword{internal}

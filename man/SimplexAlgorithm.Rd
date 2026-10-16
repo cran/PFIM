@@ -25,7 +25,5 @@ with a warning.
 matching PSO/PGBO when stall stop is off.
 }
 \examples{
-\dontrun{
-vignette("Example02")
-}
+vignette("Vignette_02_continuous_design")
 }

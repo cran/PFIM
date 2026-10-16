@@ -169,27 +169,11 @@ method( showFIM, IndividualFim ) = function( fim ) {
 #' @noRd
 #' @keywords internal
 .individualSEPlot = function( fim, evaluation, metric ) {
-  fim    = setEvaluationFim( prop( evaluation, "fim" ), evaluation )
-  seDF   = prop( fim, "SEAndRSE" )$SEAndRSE
-  greekC = .greekConsole
-  fe     = .fimFixedEffectLabels( evaluation, greekC )
-  sigma  = .fimSigmaBlockLabels( evaluation, greekC )
-  facet  = function( key ) .pfimSeRseFacetLabel( metric, key )
-
-  # SE/RSE barplots: mu / sigma (beta omitted from subject FIM).
-  nMu    = length( fe$columnNamesMu )
-  nSigma = length( sigma$columnNamesSigma )
-  idx    = seq_len( nMu + nSigma )
-  # Full console names so x-axis plotmath matches the SE/RSE report table.
-  paramLabels = c( fe$columnNamesMu, sigma$columnNamesSigma )
-  cats = c(
-    rep( facet( "mu"    ), nMu ),
-    rep( facet( "sigma" ), nSigma )
-  )
-  yVals = if ( metric == "SE" ) seDF$SE[ idx ] else seDF$RSE[ idx ]
-  df = data.frame( Parameter = paramLabels, y = yVals, cat = cats )
-  names( df )[ 2L ] = metric
-  .fimSeRseBarPlot( df, metric, unique( cats ) )
+  fim  = setEvaluationFim( prop( evaluation, "fim" ), evaluation )
+  seDF = prop( fim, "SEAndRSE" )$SEAndRSE
+  rn   = .pfimSeRownames( seDF, "individual SE/RSE plot" )
+  df   = .fimSeRseGroupedFrame( seDF, rn, metric, c( "mu", "sigma" ) )
+  .fimSeRseBarPlot( df, metric, groups = c( "mu", "sigma" ) )
 }
 
 #' @keywords internal

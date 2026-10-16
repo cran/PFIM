@@ -17,9 +17,7 @@
 #' @inheritParams Fim
 #' @return A \code{BayesianFim} object (filled by \code{run()}).
 #' @examples
-#' \dontrun{
-#' vignette("Example01")
-#' }
+#' vignette("Vignette_01_discrete_design")
 #' @include Fim.R
 #' @include pfim-fim-report-render.R
 #' @include PFIMProject.R
@@ -313,7 +311,7 @@ method( showFIM, BayesianFim ) = function( fim ) {
 #' ggplot data for Bayesian SE/RSE barplots (mu and beta facets).
 #' @param evaluation A \code{PFIMProject} object.
 #' @param metric Character scalar, \code{"SE"} or \code{"RSE"}.
-#' @return List with \code{data} (plot-ready \code{data.frame}) and \code{facetLevels}.
+#' @return List with \code{data} (plot-ready \code{data.frame} with \code{facetKey}).
 #' @noRd
 #' @keywords internal
 .bayesianSeRsePlotData = function( evaluation, metric ) {
@@ -323,12 +321,12 @@ method( showFIM, BayesianFim ) = function( fim ) {
   df = .fimSeRseGroupedFrame(
     seDF, .pfimSeRownames( seDF, "Bayesian SE/RSE plot" ), metric, c( "mu", "beta" )
   )
-  list( data = df, facetLevels = unique( df$cat ) )
+  list( data = df )
 }
 
 .bayesianSeRseBarPlot = function( evaluation, metric ) {
   px = .bayesianSeRsePlotData( evaluation, metric )
-  .fimSeRseBarPlot( px$data, metric, px$facetLevels )
+  .fimSeRseBarPlot( px$data, metric, groups = c( "mu", "beta" ) )
 }
 
 method( plotSEFIM, list( BayesianFim, PFIMProject ) ) = function( fim, evaluation )

@@ -15,7 +15,8 @@ plotOptions = list(unitTime = c("hour"), unitOutcomes = c("mcg/mL"))
     !is.null( val ) && ( !is.character( val ) || any( nzchar( val ) ) )
   }
 }
-knitr::opts_chunk$set(purl = FALSE, collapse = TRUE,
+knitr::opts_chunk$set(eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
+                      purl = FALSE, collapse = TRUE,
                       comment = "#>", echo = FALSE, warning = FALSE, message = FALSE,
                       cache = FALSE, tidy = FALSE,
                       fig.align = "center", out.width = "100%", dpi = 160,

@@ -19,3 +19,39 @@ Differs from \code{getDcriterion()} (implemented protocol) when joint cells
 or Hamilton allocation change the realised design. Requires
 \code{MultiplicativeAlgorithm} results.
 }
+\examples{
+\donttest{
+algo = MultiplicativeAlgorithm(
+  multiplicativeAlgorithmOutputs = list(mixtureDcriterion = 2, realisedDcriterion = 1.5)
+)
+opt = Optimization(
+  name = "mult_d",
+  modelFromLibrary = list(PKModel = "Linear1BolusSingleDose_kV"),
+  modelParameters = list(
+    ModelParameter(name = "k", distribution = LogNormal(mu = 0.25, omega = 0.5)),
+    ModelParameter(name = "V", distribution = LogNormal(mu = 15, omega = 0.3))
+  ),
+  modelError = list(Combined1(output = "RespPK", sigmaInter = 0.5, sigmaSlope = 0.15)),
+  optimizer = "MultiplicativeAlgorithm",
+  optimizerParameters = list(
+    lambda = 0.99, delta = 1e-3, numberOfIterations = 20L, weightThreshold = 0.01
+  ),
+  outputs = list("RespPK"),
+  designs = list(Design(
+    name = "d",
+    arms = list(Arm(
+      name = "a", size = 10,
+      administrations = list(Administration(outcome = "RespPK", timeDose = 0, dose = 100)),
+      samplingTimes = list(SamplingTimes(outcome = "RespPK", samplings = c(1, 4)))
+    ))
+  )),
+  fimType = "individual",
+  optimisationAlgorithmOutputs = list(
+    optimizationAlgorithm = algo,
+    mixtureDcriterion = 2,
+    realisedDcriterion = 1.5
+  )
+)
+getMixtureDcriterion(opt)
+}
+}

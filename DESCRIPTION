@@ -1,8 +1,8 @@
 Package: PFIM
 Type: Package
 Title: Population Fisher Information Matrix
-Version: 8.0
-Date: 2026-09-28
+Version: 8.0.1
+Date: 2026-10-15
 Authors@R: c(
     person(given = "Romain",
            family = "Leroux",
@@ -14,6 +14,11 @@ Authors@R: c(
            role = c("cre"),
            comment = c(ORCID = "0000-0002-7045-1275"),
            email = "pfim@inserm.fr"),
+    person(given = "Lucie",
+           family = "Fayette",
+           role = "ctb",
+           comment = c(ORCID = "0009-0001-0048-5998"),
+           email = "lucie.fayette1@gmail.com"),
     person(given = "Antoine",
            family = "Croxo",
            role = "ctb",
@@ -22,22 +27,24 @@ Authors@R: c(
     person(given = "Jérémy",
            family = "Seurat",
            role = "ctb",
-           email = "jeremy.seurat@inserm.fr")) 
+           comment = c(ORCID = "0000-0002-8127-7751"),
+           email = "jeremy.seurat@gmail.com"))
 Maintainer: France Mentré <pfim@inserm.fr>
 NeedsCompilation: yes
 Description: Evaluate or optimize designs for nonlinear mixed effects models
-    using the Fisher Information matrix. Supports population, individual, and
+    using the Fisher Information matrix; see <doi:10.1093/biomet/84.2.429> and
+    <doi:10.1016/S0169-2607(00)00117-6>. Supports population, individual, and
     Bayesian 'FIMs', covariates, inter-occasion variability, and D-optimal search
     ('Fedorov-Wynn', multiplicative, simplex, 'PSO', 'PGBO').
-URL: http://www.pfim.biostat.fr/
+URL: https://github.com/iame-researchCenter/PFIM
+BugReports: https://github.com/iame-researchCenter/PFIM/issues
 Depends: R (>= 4.5.0)
-SystemRequirements: C++17
-License: GPL-3 | file LICENSE
+License: GPL-3
 Encoding: UTF-8
 VignetteBuilder: knitr
 Config/build/clean-inst-doc: FALSE
-Imports: utils, Deriv, methods, deSolve, purrr, stringr, S7 (>= 0.2.0),
-        Matrix, ggplot2 (>= 3.5.0), Rcpp, kableExtra, tibble, scales,
+Imports: utils, Deriv, Rcpp, methods, deSolve, purrr, stringr, S7 (>=
+        0.2.0), Matrix, ggplot2 (>= 3.5.0), kableExtra, tibble, scales,
         stats, rmarkdown, rlang, knitr, tools, grDevices
 Suggests: testthat (>= 3.2.3), withr
 LinkingTo: Rcpp, RcppArmadillo
@@ -78,10 +85,11 @@ Collate: 'CovariateModelEquation.R' 'Additive.R' 'Administration.R'
         'pfim-subject-fim.R' 'population-fim-variance.R'
         's7-reexports.R' 'zzz.R'
 Config/roxygen2/version: 8.1.0
-Packaged: 2026-09-28 13:20:43 UTC; MrLer
+Packaged: 2026-10-15 21:21:52 UTC; MrLer
 Author: Romain Leroux [aut] (ORCID: <https://orcid.org/0009-0009-5779-5303>),
   France Mentré [cre] (ORCID: <https://orcid.org/0000-0002-7045-1275>),
+  Lucie Fayette [ctb] (ORCID: <https://orcid.org/0009-0001-0048-5998>),
   Antoine Croxo [ctb] (ORCID: <https://orcid.org/0009-0007-4726-5259>),
-  Jérémy Seurat [ctb]
+  Jérémy Seurat [ctb] (ORCID: <https://orcid.org/0000-0002-8127-7751>)
 Repository: CRAN
-Date/Publication: 2026-09-28 14:50:21 UTC
+Date/Publication: 2026-10-16 07:00:26 UTC

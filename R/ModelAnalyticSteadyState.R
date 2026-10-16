@@ -15,10 +15,10 @@ ModelAnalyticSteadyState = new_class( "ModelAnalyticSteadyState",
                                       package    = "PFIM",
                                       parent     = ModelAnalytic,
                                       properties = list(
-                                        wrapperModelAnalytic                 = new_property(class_list, default = list()),
-                                        functionArgumentsModelAnalytic       = new_property(class_list, default = list()),
-                                        functionArgumentsSymbolModelAnalytic = new_property(class_list, default = list()),
-                                        solverInputs                         = new_property(class_list, default = list())
+                                        wrapperModelAnalytic                 = new_property(class_list, default = quote( list() )),
+                                        functionArgumentsModelAnalytic       = new_property(class_list, default = quote( list() )),
+                                        functionArgumentsSymbolModelAnalytic = new_property(class_list, default = quote( list() )),
+                                        solverInputs                         = new_property(class_list, default = quote( list() ))
                                       ))
 
 

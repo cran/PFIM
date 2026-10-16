@@ -1,4 +1,5 @@
-# Frozen gold table: do not "fix" numbers to match a new run.
+# Frozen table: gcsf_design1 is the PopED Design 1 RSE; cas* are PFIM.
+# Do not "fix" numbers to match a new run.
 
 test_that( "PFIM gold table is complete and frozen", {
   expect_true( is.list( .pfimGold ) )

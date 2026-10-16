@@ -1,5 +1,6 @@
 ---
 title: "Design evaluation and optimization in continuous space"
+author: "Romain Leroux, Jérémy Seurat"
 classoption: openany
 output:
   rmarkdown::html_vignette:
@@ -13,6 +14,7 @@ vignette: >
   %\VignetteIndexEntry{Design evaluation and optimization in continuous space}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteAuthor{Romain Leroux, Jérémy Seurat}
 ---
 
 <style type="text/css">
@@ -134,7 +136,8 @@ plotOptions = list(unitTime = c("hour"), unitOutcomes = c("mcg/mL"))
     !is.null( val ) && ( !is.character( val ) || any( nzchar( val ) ) )
   }
 }
-knitr::opts_chunk$set(purl = FALSE, collapse = TRUE,
+knitr::opts_chunk$set(eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
+                      purl = FALSE, collapse = TRUE,
                       comment = "#>", echo = FALSE, warning = FALSE, message = FALSE,
                       cache = FALSE, tidy = FALSE,
                       fig.align = "center", out.width = "100%", dpi = 160,
@@ -156,7 +159,7 @@ Unlike Example 01, where model equations were specified as user-defined ODEs, th
 1. **Evaluation** — Compute and compare three FIM types for the original design: population, individual, and Bayesian FIMs. Assess parameter precision (RSE%) and shrinkage.
 2. **Optimization** — Find a D-optimal design with only 4 sampling times, using sampling time windows and continuous-space optimization. The number of subjects and the dosing regimen remain unchanged. Three algorithms are compared: PSO (Particle Swarm Optimization), PGBO (Population genetic-based optimization), and Simplex (Nelder–Mead).
 
-Optimisation results are computed by `example02_execute.R` (run once, then cached as `.RDS` in `data/`). HTML reports are written to `results/`. Reports are also available at <https://github.com/packagePFIM>
+Optimisation results are computed by `vignette_02_continuous_design_execute.R` (run once, then cached as `.RDS` in `data/`). HTML reports are written to `results/`. Reports are also available at <https://github.com/iame-researchCenter/PFIM>
 
 # Design evaluation
 
@@ -335,9 +338,9 @@ evaluationFIMBay = run( evaluationBay )
 ```
 
 ```{r ex02_run, include = FALSE}
-script = system.file("vignette-scripts", "example02_execute.R", package = "PFIM")
+script = system.file("vignette-scripts", "vignette_02_continuous_design_execute.R", package = "PFIM")
 if (!nzchar(script) || !file.exists(script)) {
-  stop("example02_execute.R not found; reinstall PFIM or rebuild vignettes.")
+  stop("vignette_02_continuous_design_execute.R not found; reinstall PFIM or rebuild vignettes.")
 }
 source(script, local = knitr::knit_global())
 ```
@@ -409,13 +412,13 @@ plotEval_RSE
 
 plotOptions = list( unitTime = c("hour"), unitOutcomes = c("mcg/mL") )
 
-outputFile = "Example02_EvaluationPopFIM.html"
+outputFile = "Vignette_02_EvaluationPopFIM.html"
 Report( evaluationFIMPop, paths$reports, outputFile, plotOptions )
 
-outputFile = "Example02_EvaluationIndFIM.html"
+outputFile = "Vignette_02_EvaluationIndFIM.html"
 Report( evaluationFIMInd, paths$reports, outputFile, plotOptions )
 
-outputFile = "Example02_EvaluationBayFIM.html"
+outputFile = "Vignette_02_EvaluationBayFIM.html"
 Report( evaluationFIMBay, paths$reports, outputFile, plotOptions )
 ```
 
@@ -552,7 +555,7 @@ plotPSO_RSE
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
-outputFile = "Example02_OptimizationPSOPopFIM.html"
+outputFile = "Vignette_02_OptimizationPSOPopFIM.html"
 
 Report( optimizationPSO, paths$reports, outputFile, plotOptions )
 ```
@@ -638,7 +641,7 @@ plotPGBO_RSE
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
-outputFile = "Example02_OptimizationPGBOPopFIM.html"
+outputFile = "Vignette_02_OptimizationPGBOPopFIM.html"
 
 Report( optimizationPGBO, paths$reports, outputFile, plotOptions )
 ```
@@ -721,7 +724,7 @@ plotSimplex_RSE
 
 ```{r, echo = TRUE, eval = FALSE, comment=''} 
 
-outputFile = "Example02_OptimizationSimplexPopFIM.html"
+outputFile = "Vignette_02_OptimizationSimplexPopFIM.html"
 
 Report( optimizationSimplex, paths$reports, outputFile, plotOptions )
 

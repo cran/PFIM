@@ -3,8 +3,12 @@
 \name{pfim-constraints-helpers}
 \alias{pfim-constraints-helpers}
 \title{Constraint tables for optimization reports.}
+\value{
+No return value. Internal helpers for optimization HTML reports.
+}
 \description{
 Builds \code{kableExtra} tables of arm-level dose/sampling constraints for
 discrete (Fedorov-Wynn / Multiplicative) and continuous (PSO / PGBO / Simplex)
 optimizers. Uses \code{getArmConstraints()} from \code{pfim-arm-constraints.R}.
 }
+\keyword{internal}

@@ -1,6 +1,5 @@
 ## ----global_options, echo = FALSE, include = FALSE----------------------------------------------------------------------------------------------------------------------------------------------------
 knitr::opts_knit$set(tangle = FALSE)
-backup_options = options()
 library(PFIM)
 set.seed(42)
 options(width = 200)
@@ -15,11 +14,26 @@ plotOptions = list(unitTime = c("hour"), unitOutcomes = c("mcg/mL"))
     !is.null( val ) && ( !is.character( val ) || any( nzchar( val ) ) )
   }
 }
-knitr::opts_chunk$set(purl = FALSE, collapse = TRUE,
-                      comment = "#>", echo = FALSE, warning = FALSE, message = FALSE,
-                      cache = FALSE, tidy = FALSE,
-                      fig.align = "center", out.width = "100%", dpi = 160,
-                      fig.width = 7, fig.height = 4, dev = "png",
-                      dev.args = if (isTRUE(capabilities("cairo")))
-                        list(png = list(type = "cairo", antialias = "default")) else list())
+knitr::opts_chunk$set(
+  eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
+  purl = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  tidy = FALSE,
+  fig.align = "center",
+  out.width = "100%",
+  dpi = 160,
+  fig.width = 7,
+  fig.height = 4,
+  dev = "png",
+  dev.args = if (isTRUE(capabilities("cairo"))) {
+    list(png = list(type = "cairo", antialias = "default"))
+  } else {
+    list()
+  }
+)
 

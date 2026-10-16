@@ -1,9 +1,16 @@
-# Frozen PFIM gold numbers.
+# Frozen reference numbers. Do not edit these values to silence a failure.
 #
-# If a test against this file fails, the implementation changed.
-# Do not edit these values to silence a failure. Investigate the code.
+# gcsf_design1 — PopED Design 1, not a PFIM snapshot.
+#   RSE from PopED get_rse(FIM_gcsf, poped_db_gcsf).
+#   rse_mu and rse_d are on the same scale as PFIM (fixed effects and ω²).
+#   rse_sigma_var is the RSE of the residual variance; var_sigma is that variance.
+#   PFIM residual RSE is on the SD, so compare 2 * RSE(SD) to rse_sigma_var.
+#
+# cas1–cas6 — frozen PFIM FIM summaries (D-criterion and selected entries).
+#   If a test against these fails, the implementation changed. Investigate the code.
 
 .pfimGold = list(
+  # PopED get_rse(FIM_gcsf, poped_db_gcsf) for Design 1.
   gcsf_design1 = list(
     rse_mu = c(
       KA = 3.289140, KEL = 13.518742, VD = 12.604107, KD = 8.265412,

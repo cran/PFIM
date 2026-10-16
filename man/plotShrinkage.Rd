@@ -22,8 +22,10 @@ Plot Bayesian shrinkage from a FIM
 Default method for \code{BayesianFim}.
 }
 \examples{
-\dontrun{
+\donttest{
 source(system.file("examples", "covariate-test-minimal.R", package = "PFIM"))
-# plotShrinkage(prop(ev, "fim"), ev)  # BayesianFim
+prop(ev, "fimType") = "Bayesian"
+ev = run(ev)
+plotShrinkage(prop(ev, "fim"), ev)
 }
 }

@@ -15,15 +15,13 @@
 #' @param optimizerOutputs List filled by \code{optimizeDesign()} (optimal arms, etc.).
 #' @return A \code{PGBOAlgorithm} specification object.
 #' @examples
-#' \dontrun{
-#' vignette("Example02")
-#' }
+#' vignette("Vignette_02_continuous_design")
 #' @include Optimization.R
 #' @export
 
 PGBOAlgorithm = new_class( "PGBOAlgorithm", package = "PFIM",
                            properties = list(
-                             optimizerOutputs = new_property( class_list, default = list() )
+                             optimizerOutputs = new_property( class_list, default = quote( list() ) )
                            ) )
 S4_register( PGBOAlgorithm )
 

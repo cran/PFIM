@@ -1,5 +1,6 @@
 ---
 title: "G-CSF PK-PD design evaluation"
+author: "Romain Leroux"
 classoption: openany
 output:
   rmarkdown::html_vignette:
@@ -13,6 +14,7 @@ vignette: >
   %\VignetteIndexEntry{G-CSF PK-PD design evaluation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteAuthor{Romain Leroux}
 ---
 
 <style type="text/css">
@@ -134,7 +136,8 @@ plotOptions = list(unitTime = c("hour"), unitOutcomes = c("ng/mL", "10^3/uL"))
     !is.null( val ) && ( !is.character( val ) || any( nzchar( val ) ) )
   }
 }
-knitr::opts_chunk$set(purl = FALSE, collapse = TRUE,
+knitr::opts_chunk$set(eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
+                      purl = FALSE, collapse = TRUE,
                       comment = "#>", echo = FALSE, warning = FALSE, message = FALSE,
                       cache = FALSE, tidy = FALSE,
                       fig.align = "center", out.width = "100%", dpi = 160,
@@ -145,17 +148,17 @@ knitr::opts_chunk$set(purl = FALSE, collapse = TRUE,
 
 # Overview
 
-This example evaluates a **G-CSF / filgrastim** population design with PFIM, based on the PK-PD model of Krzyzanski *et al.* [@Krzyzanski2010].
+This example evaluates a G-CSF / filgrastim population design with PFIM, based on the PK-PD model of Krzyzanski *et al.* [@Krzyzanski2010].
 
-The model describes subcutaneous filgrastim with quasi-steady-state target-mediated drug disposition (TMDD) and a myelopoiesis cascade for absolute neutrophil count (ANC). The population Fisher information matrix (FIM) is evaluated for **Design 1**: three parallel arms (1, 3 and 10 µg/kg), 10 subjects per arm, dense PK and ANC sampling on days 1 and 7.
+The model describes subcutaneous filgrastim with quasi-steady-state target-mediated drug disposition (TMDD) and a myelopoiesis cascade for absolute neutrophil count (ANC). The population Fisher information matrix (FIM) is evaluated for Design 1: three parallel arms (1, 3 and 10 µg/kg), 10 subjects per arm, dense PK and ANC sampling on days 1 and 7.
 
 ## Objectives
 
-1. **Evaluate** the population FIM of Design 1 (ODE model, two responses, `Combined2` residual error).
-2. **Report** relative standard errors (RSE %) for fixed effects, IIV and residual error.
-3. **Display** typical PK and ANC predictions (dense ODE re-simulation) together with SE / RSE bar charts.
+1. Evaluate the population FIM of Design 1 (ODE model, two responses, `Combined2` residual error).
+2. Report relative standard errors (RSE %) for fixed effects, IIV and residual error.
+3. Display typical PK and ANC predictions (dense ODE re-simulation) together with SE / RSE bar charts.
 
-The 11-state ODE FIM is expensive. During rendering, `example04_execute.R` reuses `vignettes/data/vignette4_evaluation_populationFIM.RDS` when present; otherwise it runs the evaluation. Set `PFIM_GCSF_FORCE_RUN=true` to ignore the cache. HTML `Report()` is rebuilt only when regenerating the FIM or when `PFIM_VIGNETTE_REPORT=true`.
+The 11-state ODE FIM is expensive. During rendering, `vignette_05_gcse_pkpd_execute.R` reuses `vignettes/data/vignette5_evaluation_populationFIM.RDS` when present; otherwise it runs the evaluation. Set `PFIM_GCSF_FORCE_RUN=true` to ignore the cache. HTML `Report()` is rebuilt only when regenerating the FIM or when `PFIM_VIGNETTE_REPORT=true`.
 
 # Experimental design
 
@@ -177,12 +180,12 @@ PK samples on day 1: 0.167–24 h (22 points), repeated on day 7, plus 172, 192 
 
 Two observed responses:
 
-- **RespPK** — serum G-CSF (ng/mL), algebraic quasi-steady-state free concentration from the central amount `CENT`.
-- **RespPD** — circulating ANC ($10^3$/µL), ODE state `NB`.
+- RespPK — serum G-CSF (ng/mL), algebraic quasi-steady-state free concentration from the central amount `CENT`.
+- RespPD — circulating ANC ($10^3$/µL), ODE state `NB`.
 
 Eleven ODE states: depot `ABS`, central `CENT`, nine bone-marrow transit compartments `B1`–`B9`, and blood neutrophils `NB`. Prefix `Deriv_` identifies each right-hand side; the suffix must match the state name. Operators follow R (`**` for exponentiation).
 
-The full right-hand sides are built by `.pfimGcsfModelEquations()` in `example04_execute.R`. The evaluation only needs the equation list, the algebraic PK output, and baseline initial conditions `.pfimGcsfBaselineICs()`.
+The full right-hand sides are built by `.pfimGcsfModelEquations()` in `vignette_05_gcse_pkpd_execute.R`. The evaluation only needs the equation list, the algebraic PK output, and baseline initial conditions `.pfimGcsfBaselineICs()`.
 
 ```{r, echo = TRUE, eval = FALSE, comment=''}
 modelEquations = .pfimGcsfModelEquations()
@@ -230,13 +233,13 @@ modelParameters = list(
   ModelParameter(name = "KA",  distribution = LogNormal(mu = 0.642, omega = 0)),
   ModelParameter(name = "KEL", distribution = LogNormal(mu = 0.148, omega = sqrt(0.312))),
   ModelParameter(name = "VD",  distribution = LogNormal(mu = 2.56,  omega = sqrt(0.328))),
-  # ... remaining parameters as in example04_execute.R
+  # ... remaining parameters as in vignette_05_gcse_pkpd_execute.R
 )
 ```
 
 # Residual error model
 
-PFIM `Combined2` stores residual **standard deviations** (`sigmaInter`, `sigmaSlope`). The variance form is
+PFIM `Combined2` stores residual standard deviations (`sigmaInter`, `sigmaSlope`). The variance form is
 
 $$
 V = \sigma_{\mathrm{inter}}^2 + (\sigma_{\mathrm{slope}}\, f)^2.
@@ -313,11 +316,11 @@ getRSE(evaluationPop)
 ```
 
 ```{r ex04_run, include = FALSE}
-script = file.path("..", "inst", "vignette-scripts", "example04_execute.R")
+script = file.path("..", "inst", "vignette-scripts", "vignette_05_gcse_pkpd_execute.R")
 if (!file.exists(script))
-  script = system.file("vignette-scripts", "example04_execute.R", package = "PFIM")
+  script = system.file("vignette-scripts", "vignette_05_gcse_pkpd_execute.R", package = "PFIM")
 if (!nzchar(script) || !file.exists(script))
-  stop("example04_execute.R not found; reinstall PFIM or rebuild vignettes.")
+  stop("vignette_05_gcse_pkpd_execute.R not found; reinstall PFIM or rebuild vignettes.")
 source(script, local = knitr::knit_global())
 ```
 
@@ -327,9 +330,93 @@ if (.pfimVignetteHas("showOutputEvaluationPop")) {
 }
 ```
 
-# Relative standard errors
+# PFIM, PopED, and cross-tool equivalence
 
-RSE (%) reported by PFIM for Design 1.
+This vignette compares PFIM to PopED on G-CSF Design 1. Many PFIM examples (workshop material, Tim Waterhouse oral PK) were originally built in PopED. The two tools do not share syntax; FIMs and RSE are comparable only when the statistical model, design, and variance versus SD conventions are aligned.
+
+This section has three parts:
+
+- General rules, valid for any PopED model translated into PFIM;
+- Tim Waterhouse oral PK, the reference PopED layout (`optimal-design-2023`), implemented in `vignette("Vignette_04_tim_waterhouse_pediatric", package = "PFIM")`;
+- G-CSF Design 1, the ODE model of this vignette.
+
+Readers interested only in the G-CSF example can go directly to [G-CSF Design 1](#gcsf-poped) and the [relative standard errors](#gcsf-rse).
+
+## General rules (all vignettes)
+
+### Variance or SD? One conversion rule
+
+PopED stores inter-individual `d` and residual `sigma` as variances. PFIM stores `omega` (IIV) and `sigmaInter` / `sigmaSlope` (residuals) as standard deviations on the same scales. When moving from PopED, NONMEM, or Tim's files to PFIM, apply `sqrt` to each variance separately (IIV and each residual component), never to the combined expression $\sigma_{\mathrm{add}}^2 + (\sigma_{\mathrm{prop}} f)^2$.
+
+From PopED or NONMEM to PFIM: `omega = sqrt(d)` on each `LogNormal`; `sigmaSlope = sqrt(sigma[1])`, `sigmaInter = sqrt(sigma[2])` for `Combined2` (e.g. $\sqrt{1} = 1$).
+
+PFIM only: type SDs directly; outputs label them $\sigma$, not $\sigma^2$. Use `Constant` or `Proportional` when a single error term is enough; `Combined2` matches PopED's two-term residual model.
+
+Sanity check: at a typical $f_0$, compare $\sigma_{\mathrm{inter}}^2 + (\sigma_{\mathrm{slope}} f_0)^2$ in PFIM to `sigma[2] + sigma[1] * f_0^2` in PopED. Mismatch in FIM, RSE, or optimal times often comes from skipping the square root on `d` or `sigma`.
+
+### Naming
+
+Different names are expected. For peer review or cross-checking with PopED, align the equivalence table and the variance → SD rule, not a literal copy of PopED numbers into PFIM fields.
+
+## Tim Waterhouse oral PK (Vignette 04)
+
+The tables below refer to the pediatric oral PK example of `vignette("Vignette_04_tim_waterhouse_pediatric", package = "PFIM")`.
+
+### What plays the same role
+
+| Topic | Tim / PopED | PFIM (Vignette 04) |
+|-------|-------------|----------------------|
+| Structural PK | `ff()`, `fg()`; scaling in `ff` with `WT`, `WT_CL`, `WT_V` | One analytic `modelEquations` string; `(WT/70)^beta_*` inside the formula |
+| Typical clearance, volume, absorption | `bpop`: `CL`, `V`, `KA` | `ModelParameter`: `Cl`, `V`, `ka` (`LogNormal`, μ on the natural scale, e.g. `V = 100` L) |
+| Weight exponents (fixed) | `bpop`: `WT_CL = 0.75`, `WT_V = 1`; `notfixed_bpop = 0` for those | `beta_Cl_WT`, `beta_V_WT` with `fixedMu = TRUE` |
+| Pediatric weight | Covariate `a` / `fg`: `WT = 32` | Global symbol `WT = 32` read from the R environment (not `Covariate()`) |
+| IIV on CL, V, KA | `d`: `0.08`, `0.1`, `0.2` | `omega = sqrt(0.08)`, `sqrt(0.1)`, `sqrt(0.2)` on each `LogNormal` |
+| Residual error | `feps.add.prop`; `sigma = c(0.05, 1)` | `Combined2`; `sigmaSlope = sqrt(0.05)`, `sigmaInter = 1` |
+| Dose | `a`: `DOSE = 10` (mg); `fg` uses `DOSE * 1000` | `Administration`: `dose = 10 * 1000` at each `timeDose` |
+| Sample size | `groupsize = 12` | `Arm(..., size = 12)` |
+| Objective | D-optimal FIM on `bpop` (estimated thetas) | D-optimal population FIM on estimable `μ` (`fimType = "population"`) |
+
+### Design and time scale
+
+| PopED | PFIM (Vignette 04) |
+|-------|----------------------|
+| `xt`, `minxt`, `maxxt` often relative to dosing (e.g. hours after dose); steady-state samples use `model_switch = 2` and a dedicated formula | Calendar time from study start (hours); repeated doses via `timeDose` + superposition of the same oral formula |
+| Five occasions in Tim: `xt = c(5, 24, 24, 24, 168)` in the SS frame | `5`, predose weeks 8/12/24, `lastDose + 168` in calendar hours |
+
+Optimization windows in PFIM are chosen to mirror Tim's protocol; optimal times need not match PopED numerically (different time origin and PK engine).
+
+### Structural model implementation
+
+PopED switches between first-dose and steady-state concentration formulas (`model_switch`). PFIM uses one oral absorption expression and superposes daily doses. For a short half-life and once-daily dosing, profiles are usually similar but not identical.
+
+### Naming only (no change to the model)
+
+| PopED / Tim | PFIM (Vignette 04) |
+|-------------|---------------------|
+| `CL`, `KA` | `Cl`, `ka` (case) |
+| `WT_CL`, `WT_V` | `beta_Cl_WT`, `beta_V_WT` |
+| `bpop`, `d`, `sigma`, `xt` | `modelParameters`, `modelError`, `SamplingTimes` / constraints |
+
+## G-CSF Design 1 (this vignette, Vignette 05) {#gcsf-poped}
+
+### Variance → SD for this model
+
+| Term | PopED (variance) | PFIM (SD) |
+|------|------------------|-----------|
+| IIV, e.g. `KEL` | `d = 0.312` | `omega = sqrt(0.312)` |
+| PK proportional | `0.253` | `sigmaSlope = sqrt(0.253)` |
+| ANC proportional | `0.0227` | `sigmaSlope = sqrt(0.0227)` |
+| ANC additive | `2.10` | `sigmaInter = sqrt(2.10)` |
+
+### Comparing RSE with PopED
+
+- Fixed effects ($\mu$) and IIV ($\omega^2$): both tools report RSE on the same scale; values are directly comparable (see tables below).
+- Residual error: PopED reports the RSE of the variance, PFIM the RSE of the SD. By the delta method, $\mathrm{RSE}(\sigma^2) \approx 2\,\mathrm{RSE}(\sigma)$.
+- Finite differences: `perf.fdLinearOnly = TRUE` uses central differences, as PopED does, so that gradients are computed the same way.
+
+# Relative standard errors {#gcsf-rse}
+
+RSE (%) for Design 1. The PopED column is `get_rse(FIM_gcsf, poped_db_gcsf)` for this design, stored as `gcsf_design1` in `inst/fixtures/gold-fim.R`. That block is a PopED reference, not a PFIM result. The other entries in the same file (`cas1`–`cas6`) are frozen PFIM numbers and are not used here. Residual RSE in `gcsf_design1` (`rse_sigma_var`) is on the variance scale.
 
 ## Fixed effects ($\mu$)
 
@@ -351,10 +438,11 @@ mu_desc = c(
 mu_tab = data.frame(
   Parameter = paste0("$\\mu_{\\mathrm{", cmp_mu$param, "}}$"),
   Description = unname(mu_desc[ cmp_mu$param ]),
-  `RSE (%)` = .gcsfFmtRse(cmp_mu$pfim),
+  `PopED RSE (%)` = .gcsfFmtRse(cmp_mu$poped),
+  `PFIM RSE (%)` = .gcsfFmtRse(cmp_mu$pfim),
   check.names = FALSE
 )
-.gcsfKbl(mu_tab, "Fixed-effect RSE (%) for Design 1.")
+.gcsfKbl(mu_tab, "Fixed-effect RSE (%) for Design 1 (PFIM vs PopED).")
 ```
 
 ## Inter-individual variances ($\omega^2$)
@@ -371,15 +459,18 @@ d_desc = c(
 d_tab = data.frame(
   Parameter = paste0("$\\omega^2_{\\mathrm{", cmp_d$param, "}}$"),
   Description = unname(d_desc[ cmp_d$param ]),
-  `RSE (%)` = .gcsfFmtRse(cmp_d$pfim),
+  `PopED RSE (%)` = .gcsfFmtRse(cmp_d$poped),
+  `PFIM RSE (%)` = .gcsfFmtRse(cmp_d$pfim),
   check.names = FALSE
 )
-.gcsfKbl(d_tab, "IIV variance ($\\omega^2$) RSE (%) for Design 1.")
+.gcsfKbl(d_tab, "IIV variance ($\\omega^2$) RSE (%) for Design 1 (PFIM vs PopED).")
 ```
 
 ## Residual error ($\sigma$)
 
-Console and report rows are labelled $\sigma_{\mathrm{slope/inter}}$ — the **Value** column is the SD, not the variance.
+Console and report rows are labelled $\sigma_{\mathrm{slope/inter}}$ — the Value column is the SD, not the variance.
+
+PFIM estimates the residual SD, PopED the residual variance, so their RSE are not on the same scale. By the delta method, $\mathrm{RSE}(\sigma^2) \approx 2\,\mathrm{RSE}(\sigma)$: the column $2 \times$ PFIM RSE is the one to compare with PopED.
 
 ```{r ex04_rse_sigma, echo = FALSE, results = "asis"}
 sig_desc = c(
@@ -394,16 +485,24 @@ sig_tab = data.frame(
     "$\\sigma_{\\mathrm{inter,ANC}}$"
   ),
   Description = unname(sig_desc[ cmp_sigma$param ]),
-  `Value (SD)` = .gcsfFmtRse(cmp_sigma$pfim_sd, 4),
-  `RSE (%)` = .gcsfFmtRse(cmp_sigma$pfim_rse_sd),
+  `Value PFIM (SD)` = .gcsfFmtRse(cmp_sigma$pfim_sd, 4),
+  `PFIM RSE (SD, %)` = .gcsfFmtRse(cmp_sigma$pfim_rse_sd),
+  `2 × PFIM RSE (variance scale, %)` = .gcsfFmtRse(cmp_sigma$pfim_rse_var_equiv),
+  `PopED RSE (variance, %)` = .gcsfFmtRse(cmp_sigma$poped_rse_var),
   check.names = FALSE
 )
-.gcsfKbl(sig_tab, "Residual-error SD and RSE (%) for Design 1.")
+.gcsfKbl(
+  sig_tab,
+  paste0(
+    "Residual error for Design 1. Compare the last two columns: ",
+    "$2 \\times$ PFIM RSE(SD) $\\approx$ RSE(variance), the scale used by PopED."
+  )
+)
 ```
 
 # Diagnostic plots
 
-Overlay of the three dose groups (PK | ANC): **ODE re-simulation** on a dense $0..t_{\max}$ grid. Sampling times are shown as points. SE and RSE bar charts follow.
+Overlay of the three dose groups (PK | ANC): ODE re-simulation on a dense $0..t_{\max}$ grid. Sampling times are shown as points. SE and RSE bar charts follow.
 
 ```{r, echo = TRUE, eval = FALSE, comment=''}
 plotOutcomesEvaluationModel

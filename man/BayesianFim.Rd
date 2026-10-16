@@ -53,7 +53,5 @@ With IOV (\eqn{\gamma>0}), each occasion uses the marginal FO residual
 (equivalent to the \eqn{\eta} block of the augmented \eqn{(\eta,\kappa)} system).
 }
 \examples{
-\dontrun{
-vignette("Example01")
-}
+vignette("Vignette_01_discrete_design")
 }

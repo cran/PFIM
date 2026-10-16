@@ -36,7 +36,5 @@ getDeterminant(ev)
 \donttest{
 source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
 }
-\dontrun{
-vignette("Example01")
-}
+vignette("Vignette_01_discrete_design")
 }

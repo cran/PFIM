@@ -23,12 +23,12 @@
 
 Design = new_class("Design", package = "PFIM",
                    properties = list(
-                     name = new_property(class_character, default = character(0)),
+                     name = new_property(class_character, default = quote( character(0) )),
                      size = new_property(class_double, default = 0.0),
-                     arms = new_property(class_list, default = list()),
-                     evaluationArms = new_property(class_list, default = list()),
+                     arms = new_property(class_list, default = quote( list() )),
+                     evaluationArms = new_property(class_list, default = quote( list() )),
                      numberOfArms = new_property(class_double, default = 0.0),
-                     fim = new_property(NULL | Fim, default = NULL)
+                     fim = new_property(.pfimFimOrNull, default = NULL)
                    ),
                    validator = function( self ) {
                      n = prop( self, "name" )

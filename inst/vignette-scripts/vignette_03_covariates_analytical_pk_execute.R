@@ -1,4 +1,4 @@
-# Example03: evaluation, optimization, plots, and reports.
+# Vignette_03_covariates_analytical_pk: evaluation, optimization, plots, and reports.
 utils = system.file("vignette-scripts", "pfim-vignette-utils.R", package = "PFIM")
 if (!nzchar(utils)) stop("pfim-vignette-utils.R not found.", call. = FALSE)
 source(utils, local = TRUE)

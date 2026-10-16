@@ -21,6 +21,13 @@
     pfim_set_option( devPath = pkgRoot )
 
   # Replay S4 tables (lazy-load skips top-level S4_register side effects).
+  S4_register( Fim )
+  .pfimS4RegisterUnion( .pfimFimOrNull )
+  S4_register( CovariateModelEquation )
+  .pfimS4RegisterUnion( .pfimCovariateModelEquationOrNull )
+  S4_register( Distribution )
+  .pfimS4RegisterUnion( .pfimDistributionOrNull )
+  .pfimS4RegisterUnion( .pfimFunctionOrNull )
   S4_register( Evaluation )
   S4_register( Optimization )
   S4_register( CovariateTest )
@@ -37,4 +44,4 @@
 }
 
 # Silence R CMD check notes for magrittr/purrr placeholder `.`.
-utils::globalVariables(c("."))
+utils::globalVariables(c(".", "facetStrip", "Parameter"))

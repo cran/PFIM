@@ -1,5 +1,6 @@
 ---
 title: "Design evaluation and optimization in discrete space"
+author: "Romain Leroux, Jérémy Seurat"
 classoption: openany
 output:
   rmarkdown::html_vignette:
@@ -13,6 +14,7 @@ vignette: >
   %\VignetteIndexEntry{Design evaluation and optimization in discrete space}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteAuthor{Romain Leroux, Jérémy Seurat}
 ---
 
 <style type="text/css">
@@ -134,7 +136,8 @@ plotOptions = list(unitTime = c("hour"), unitOutcomes = c("mcg/mL", "DI%"))
     !is.null( val ) && ( !is.character( val ) || any( nzchar( val ) ) )
   }
 }
-knitr::opts_chunk$set(purl = FALSE, collapse = TRUE,
+knitr::opts_chunk$set(eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
+                      purl = FALSE, collapse = TRUE,
                       comment = "#>", echo = FALSE, warning = FALSE, message = FALSE,
                       cache = FALSE, tidy = FALSE,
                       fig.align = "center", out.width = "100%", dpi = 160,
@@ -161,7 +164,7 @@ The original study involved 6 parallel groups of rats (*n* ≥ 6 per group) rece
 1. **Evaluation:** compute the Population Fisher Information Matrix (FIM) for the original design to assess the precision of structural parameters and variance components (RSE%, Shrinkage). A Bayesian FIM is also computed for comparison.
 2. **Optimization:** identify the D-optimal design for a total of 30 rats by selecting dose levels and sampling times from a discrete candidate set. The Fedorov-Wynn and Multiplicative algorithms are compared.
 
-Optimisation results are computed by `example01_execute.R` (run once, then cached as `.RDS` in `data/`). HTML reports are written to `results/`. Reports are also available at <https://github.com/packagePFIM>
+Optimisation results are computed by `vignette_01_discrete_design_execute.R` (run once, then cached as `.RDS` in `data/`). HTML reports are written to `results/`. Reports are also available at <https://github.com/iame-researchCenter/PFIM>
 
 # Design evaluation
 
@@ -464,9 +467,9 @@ evaluationBay = run(evaluationBay)
 ```
 
 ```{r ex01_run, include = FALSE}
-script = system.file("vignette-scripts", "example01_execute.R", package = "PFIM")
+script = system.file("vignette-scripts", "vignette_01_discrete_design_execute.R", package = "PFIM")
 if (!nzchar(script) || !file.exists(script)) {
-  stop("example01_execute.R not found; reinstall PFIM or rebuild vignettes.")
+  stop("vignette_01_discrete_design_execute.R not found; reinstall PFIM or rebuild vignettes.")
 }
 source(script, local = knitr::knit_global())
 ```
@@ -575,7 +578,7 @@ plotEval_RSE
 
 ```{r, echo = TRUE, eval = FALSE, comment=''}
 
-outputFile = "Example01_EvaluationPopFIM.html"
+outputFile = "Vignette_01_EvaluationPopFIM.html"
 Report(evaluationPop, paths$reports, outputFile, plotOptions)
 ```
 
@@ -600,7 +603,7 @@ Both algorithms operate in the discrete candidate space and maximize the D-crite
 
 ## Runtime note
 
-Both algorithms require approximately 10–15 minutes to run on a standard workstation. During vignette rendering, `example01_execute.R` runs each optimization once (with `showProcess = FALSE`) and saves the result to `data/`; subsequent renders load the cached `.RDS` files.
+Both algorithms require approximately 10–15 minutes to run on a standard workstation. During vignette rendering, `vignette_01_discrete_design_execute.R` runs each optimization once (with `showProcess = FALSE`) and saves the result to `data/`; subsequent renders load the cached `.RDS` files.
 
 ## Initial administration and candidate sampling grids
 
@@ -819,7 +822,7 @@ plotFW_RSE
 
 ```{r, echo = TRUE, eval = FALSE, comment=''}
 
-outputFile = "Example01_OptimizationFWPopFIM.html"
+outputFile = "Vignette_01_OptimizationFWPopFIM.html"
 Report(optimizationFWPopFIM, paths$reports, outputFile, plotOptions)
 ```
 
@@ -912,7 +915,7 @@ plotMult_RSE
 
 ```{r, echo = TRUE, eval = FALSE, comment=''}
 
-outputFile = "Example01_OptimizationMultPopFIM.html"
+outputFile = "Vignette_01_OptimizationMultPopFIM.html"
 Report(optimizationMultPopFIM, paths$reports, outputFile, plotOptions)
 ```
 

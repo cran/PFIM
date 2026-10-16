@@ -26,7 +26,5 @@ per-outcome vectors that concatenate to that row (typical PK/PD). A vignette-sty
 FedorovWynnAlgorithm: S7 class
 }
 \examples{
-\dontrun{
-vignette("Example01")
-}
+vignette("Vignette_01_discrete_design")
 }

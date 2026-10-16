@@ -27,7 +27,5 @@ is kept - mixture weights describe the optimisation simplex, not a multi-protoco
 subject allocation across joint arms.
 }
 \examples{
-\dontrun{
-vignette("Example01")
-}
+vignette("Vignette_01_discrete_design")
 }

@@ -93,22 +93,18 @@ NULL
 #' several reports share a directory.
 #' @noRd
 #' @keywords internal
-.pfimCleanupReportSidecars = function( outputPath, outputFile, template = NULL ) {
+.pfimCleanupReportSidecars = function( outputPath, outputFile ) {
   stem  = tools::file_path_sans_ext( basename( outputFile ) )
   # Only this report's media folder --- not every PNG under outputPath.
   media = file.path( outputPath, paste0( stem, "_files" ) )
   if ( dir.exists( media ) )
     unlink( media, recursive = TRUE )
-  if ( !is.null( template ) ) {
-    knitMd = paste0( tools::file_path_sans_ext( basename( template ) ), ".knit.md" )
-    walk(
-      unique( c(
-        file.path( dirname( .reportTemplatePath( template ) ), knitMd ),
-        file.path( outputPath, knitMd )
-      ) ),
-      \( x ) if ( file.exists( x ) ) unlink( x )
-    )
-  }
+  # Sidecar knit markdown only under the render/output directory (never
+  # under installed template paths in the package library).
+  knitMd = paste0( stem, ".knit.md" )
+  sidecar = file.path( outputPath, knitMd )
+  if ( file.exists( sidecar ) )
+    unlink( sidecar )
   invisible( NULL )
 }
 
@@ -168,7 +164,7 @@ NULL
     file.path( outputPath, outputFile ),
     overwrite = TRUE
   )
-  .pfimCleanupReportSidecars( renderDir, outputFile, template )
+  .pfimCleanupReportSidecars( renderDir, outputFile )
   .pfimCleanupReportSidecars( outputPath, outputFile )
   invisible( out )
 }

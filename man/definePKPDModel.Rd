@@ -52,8 +52,6 @@ Convert SS analytic PK to ODE, append ODE PD, and remap library compartments.
 Combine remapped infusion PK with ODE PD for during and after phases.
 }
 \examples{
-\dontrun{
 vignette("LibraryOfModels")
-}
 }
 \keyword{internal}

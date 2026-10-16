@@ -15,10 +15,10 @@ ModelAnalyticInfusionSteadyState = new_class( "ModelAnalyticInfusionSteadyState"
                                               package    = "PFIM",
                                               parent     = ModelInfusion,
                                               properties = list(
-                                                wrapperModelAnalyticInfusion                 = new_property(class_list, default = list()),
-                                                functionArgumentsModelAnalyticInfusion       = new_property(class_list, default = list()),
-                                                functionArgumentsSymbolModelAnalyticInfusion = new_property(class_list, default = list()),
-                                                solverInputs                                 = new_property(class_list, default = list())
+                                                wrapperModelAnalyticInfusion                 = new_property(class_list, default = quote( list() )),
+                                                functionArgumentsModelAnalyticInfusion       = new_property(class_list, default = quote( list() )),
+                                                functionArgumentsSymbolModelAnalyticInfusion = new_property(class_list, default = quote( list() )),
+                                                solverInputs                                 = new_property(class_list, default = quote( list() ))
                                               ))
 
 

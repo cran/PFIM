@@ -101,7 +101,7 @@ inline arma::mat safe_solve( const arma::mat& M, bool* regularized = nullptr ) {
 
 // 1/2 Tr(V^{-1} dV_i V^{-1} dV_j) (.computeMFVar) — full dV list path.
 inline arma::mat mfvar( const arma::mat& V_inv, const Rcpp::List& dV_list ) {
-  const int n = dV_list.size();
+  const int n = static_cast<int>( dV_list.size() );
   if ( n == 0 )
     return arma::mat( 0, 0 );
 
@@ -135,7 +135,7 @@ inline arma::mat mfvar_mixed( const arma::mat& V_inv,
                               const arma::mat& W,
                               const Rcpp::List& dV_full ) {
   const int n1 = static_cast<int>( W.n_cols );
-  const int n2 = dV_full.size();
+  const int n2 = static_cast<int>( dV_full.size() );
   const int n  = n1 + n2;
   if ( n == 0 )
     return arma::mat( 0, 0 );

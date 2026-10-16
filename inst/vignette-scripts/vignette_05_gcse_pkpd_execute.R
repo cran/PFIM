@@ -1,4 +1,4 @@
-# Example04: G-CSF PK-PD population FIM (Design 1).
+# Vignette_05_gcse_pkpd: G-CSF PK-PD population FIM (PopED Design 1).
 utils = system.file("vignette-scripts", "pfim-vignette-utils.R", package = "PFIM")
 if (!nzchar(utils)) stop("pfim-vignette-utils.R not found.", call. = FALSE)
 source(utils, local = TRUE)
@@ -196,9 +196,9 @@ outputs = list(RespPK = cp_out, RespPD = "NB")
 
 # ---- Evaluation -------------------------------------------------------------
 # Heavy 11-state ODE FIM: ship / reuse vignettes/data/*.RDS (same pattern as Ex01–03).
-filePathEvalPop = file.path( paths$data, "vignette4_evaluation_populationFIM.RDS" )
+filePathEvalPop = file.path( paths$data, "vignette5_evaluation_populationFIM.RDS" )
 filePathEvalPopQuad = file.path(
-  paths$data, "vignette4_evaluation_populationFIM_quadratic.RDS"
+  paths$data, "vignette5_evaluation_populationFIM_quadratic.RDS"
 )
 # Always produce Report() HTML with the vignette outputs (skip only if
 # PFIM_VIGNETTE_SKIP_REPORT=true via pfimSafeReport).
@@ -284,6 +284,7 @@ goldPath = system.file( "fixtures", "gold-fim.R", package = "PFIM" )
 if ( !nzchar( goldPath ) || !file.exists( goldPath ) )
   goldPath = file.path( "inst", "fixtures", "gold-fim.R" )
 sys.source( goldPath, envir = environment() )
+# PopED get_rse(FIM_gcsf, poped_db_gcsf). See the header of gold-fim.R.
 gcsfGold = .pfimGold$gcsf_design1
 poped_rse_mu = gcsfGold$rse_mu
 poped_rse_d = gcsfGold$rse_d
@@ -381,7 +382,7 @@ showOutputEvaluationPop = pfimCapture( {
   getDcriterion( evaluationPop )
 } )
 writeLines( showOutputEvaluationPop,
-            file.path( paths$outputs, "vignette4_evaluation_populationFIM_show.txt" ) )
+            file.path( paths$outputs, "vignette5_evaluation_populationFIM_show.txt" ) )
 
 # ---- Prediction overlay (3 doses, PK | ANC) ---------------------------------
 # Dense ODE re-simulation on 0..tmax. Design 1 is dense on days 1 and 7 only;
@@ -505,7 +506,7 @@ plotOutcomesEvaluationRespPD = if ( !is.null( plotsEval ) )
 # HTML Report() with the vignette outputs (set PFIM_VIGNETTE_SKIP_REPORT=true to skip).
 if ( isTRUE( needReport ) ) {
   invisible( pfimSafeReport(
-    evaluationPop, paths$reports, "vignette4_evaluation_popFIM_report.html",
+    evaluationPop, paths$reports, "vignette5_evaluation_popFIM_report.html",
     plotOptions
   ) )
 }

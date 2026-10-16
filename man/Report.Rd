@@ -29,9 +29,11 @@ Administration / initial-design tables use design 1 only; response and SI
 plots cover every design in \code{designs}.
 }
 \examples{
-\dontrun{
-source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
-tmp = tempfile(fileext = ".html")
-Report(ev, outputPath = tempdir(), outputFile = basename(tmp), plotOptions = list())
+\donttest{
+if (rmarkdown::pandoc_available()) {
+  source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+  tmp = tempfile(fileext = ".html")
+  Report(ev, outputPath = tempdir(), outputFile = basename(tmp), plotOptions = list())
+}
 }
 }

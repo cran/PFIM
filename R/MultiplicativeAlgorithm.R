@@ -15,9 +15,7 @@
 #'   Filled by \code{optimizeDesign()}.
 #' @return A \code{MultiplicativeAlgorithm} specification object.
 #' @examples
-#' \dontrun{
-#' vignette("Example01")
-#' }
+#' vignette("Vignette_01_discrete_design")
 #' @include Optimization.R
 #' @export
 
@@ -25,7 +23,7 @@ MultiplicativeAlgorithm = new_class("MultiplicativeAlgorithm",
                                     package = "PFIM",
 
                                     properties = list(
-                                      multiplicativeAlgorithmOutputs = new_property(class_list, default = list())
+                                      multiplicativeAlgorithmOutputs = new_property(class_list, default = quote( list() ))
                                     ))
 S4_register( MultiplicativeAlgorithm )
 

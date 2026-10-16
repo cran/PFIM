@@ -43,10 +43,10 @@
 Administration = new_class("Administration",
                            package = "PFIM",
                            properties = list(
-                             outcome = new_property(class_character, default = character(0)),
-                             timeDose = new_property(class_double, default = numeric(0)),
-                             dose = new_property(class_double, default = numeric(0)),
-                             Tinf = new_property(class_double, default = numeric(0)),
+                             outcome = new_property(class_character, default = quote( character(0) )),
+                             timeDose = new_property(class_double, default = quote( numeric(0) )),
+                             dose = new_property(class_double, default = quote( numeric(0) )),
+                             Tinf = new_property(class_double, default = quote( numeric(0) )),
                              tau = new_property(class_double, default = 0.0)
                           ),
                            validator = function( self ) {

@@ -34,7 +34,7 @@ CovariateTest = new_class( "CovariateTest", package = "PFIM",
                              parameter    = new_property( class_any, default = quote( data.frame() ) ),
                              nonRelevance = new_property( class_any, default = quote( data.frame() ) ),
                              relevance    = new_property( class_any, default = quote( data.frame() ) ),
-                             settings     = new_property( class_any, default = list() )
+                             settings     = new_property( class_any, default = quote( list() ) )
                            )
 )
 S4_register( CovariateTest )

@@ -6,6 +6,8 @@
 #' @include pfim-arm-constraints.R
 #' @include pfim-utils.R
 #' @name pfim-constraints-helpers
+#' @keywords internal
+#' @return No return value. Internal helpers for optimization HTML reports.
 NULL
 
 #' Build a kableExtra table from the arm constraints of the first design.

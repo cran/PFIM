@@ -1,0 +1,524 @@
+---
+title: "Optimizing a Sparse PK Design in Pediatric Patients"
+author: "Lucie Fayette, Romain Leroux"
+classoption: openany
+output:
+  rmarkdown::html_vignette:
+    toc: true
+linkcolor: blue
+urlcolor: green
+vignette: >
+  %\VignetteIndexEntry{Optimizing a Sparse PK Design in Pediatric Patients}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteAuthor{Lucie Fayette, Romain Leroux}
+---
+
+<style type="text/css">
+
+body {
+  font-size: 11pt;
+  max-width: 1400px !important;
+  width: 92%;
+  margin: 0 auto !important;
+  padding: 0 1.5rem;
+  line-height: 1.45;
+}
+
+h1.title { font-size: 28pt; border-bottom: none !important; }
+h1, h2, h3, h4, h5, h6 {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+h1 { font-size: 18pt; margin-top: 1.4em; }
+h2 { font-size: 14pt; margin-top: 1.2em; }
+h3 { font-size: 12pt; margin-top: 1.0em; }
+
+div.sourceCode {
+  border: 1.5px solid #000 !important;
+  background: #fafafa !important;
+  padding: 0.7em 0.9em !important;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+div.sourceCode pre,
+div.sourceCode pre.sourceCode,
+pre.sourceCode {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: visible;
+}
+pre:not(.sourceCode) {
+  border: 1.5px solid #000 !important;
+  background: #fafafa !important;
+  padding: 0.7em 0.9em !important;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+code.r,
+pre code {
+  font-size: 10.5pt;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.6em auto;
+}
+
+table {
+  margin: 0.9em auto 1.1em auto;
+  border-collapse: collapse;
+  font-size: 10.5pt;
+}
+
+table caption {
+  caption-side: bottom;
+  font-style: italic;
+  font-size: 10pt;
+  padding-top: 0.4em;
+  color: #333;
+}
+
+th, td {
+  padding: 5px 11px;
+  vertical-align: middle;
+}
+
+table.table > thead > tr > th,
+table > thead > tr > th,
+thead th {
+  background-color: #f3f4f6 !important;
+  border-bottom: 1px solid #bbb;
+}
+
+table.table > tbody > tr > td,
+tbody tr,
+tbody tr:nth-child(even),
+tbody tr:nth-child(odd) {
+  background-color: #ffffff !important;
+}
+
+.pfim-show {
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-x: auto;
+  background: #fafafa;
+  border: 1.5px solid #000;
+  padding: 0.6em 0.8em;
+}
+
+</style>
+
+```{r global_options, echo = FALSE, include = FALSE}
+knitr::opts_knit$set(tangle = FALSE)
+library(PFIM)
+set.seed(42)
+options(width = 200)
+utils = system.file("vignette-scripts", "pfim-vignette-utils.R", package = "PFIM")
+if (!nzchar(utils)) stop("pfim-vignette-utils.R not found.", call. = FALSE)
+source(utils, local = knitr::knit_global())
+paths = pfimVignetteSetupPaths()
+plotOptions = list(unitTime = c("hour"), unitOutcomes = c("mcg/mL"))
+.pfimVignetteHas = function( name ) {
+  exists( name, inherits = TRUE ) && {
+    val = get( name, inherits = TRUE )
+    !is.null( val ) && ( !is.character( val ) || any( nzchar( val ) ) )
+  }
+}
+knitr::opts_chunk$set(
+  eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
+  purl = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  cache = FALSE,
+  tidy = FALSE,
+  fig.align = "center",
+  out.width = "100%",
+  dpi = 160,
+  fig.width = 7,
+  fig.height = 4,
+  dev = "png",
+  dev.args = if (isTRUE(capabilities("cairo"))) {
+    list(png = list(type = "cairo", antialias = "default"))
+  } else {
+    list()
+  }
+)
+```
+
+# Introduction
+
+This example is taken from Tim Waterhouse's webinar *A Gentle Introduction to Optimal Design for Pharmacometric Models* ([optimal-design-2023](https://github.com/timwaterhouse/optimal-design-2023)). It shows how PFIM evaluates and optimizes a sparse pharmacokinetic sampling design in pediatric patients.
+
+A population pharmacokinetic model for orally administered Mockdrozaline was developed in adults. The objective here is to assess and improve a sparse pediatric design so that population parameters can be estimated with adequate precision.
+
+The adult model consists of:
+
+- a one-compartment disposition model with first-order absorption,
+- allometric scaling of clearance and volume with body weight (reference 70 kg),
+- log-normal inter-individual variability on `Cl`, `V`, and `ka`,
+- combined proportional and additive residual error.
+
+# Population model
+
+## Structural model
+
+Clearance and volume enter the oral absorption formula after scaling with `(WT/70)^beta`, where `WT` is body weight in kg and the exponents are fixed at the adult estimates.
+
+```{r model_equations, echo = TRUE}
+modelEquations = list(
+  RespPK = paste(
+    "dose_RespPK/(V*(WT/70)^(beta_V_WT)) *",
+    "ka/(ka - (Cl*(WT/70)^(beta_Cl_WT))/(V*(WT/70)^(beta_V_WT))) *",
+    "(exp(-(Cl*(WT/70)^(beta_Cl_WT))/(V*(WT/70)^(beta_V_WT)) * t)",
+    "- exp(-ka * t))"
+  )
+)
+```
+
+## Population parameters
+
+Typical values `V`, `Cl`, and `ka` refer to a 70 kg adult. Weight exponents `beta_V_WT` and `beta_Cl_WT` are included in the equations but fixed (`fixedMu = TRUE`) because they are not re-estimated in the pediatric study.
+
+```{r model_parameters, echo = TRUE}
+modelParameters = list(
+  ModelParameter(name = "V",  distribution = LogNormal(mu = 100,  omega = sqrt(0.1))),
+  ModelParameter(name = "Cl", distribution = LogNormal(mu = 10,   omega = sqrt(0.08))),
+  ModelParameter(name = "ka", distribution = LogNormal(mu = 0.25, omega = sqrt(0.2))),
+  ModelParameter(
+    name = "beta_V_WT", distribution = Normal(mu = 1, omega = 0),
+    fixedMu = TRUE, fixedOmega = TRUE
+  ),
+  ModelParameter(
+    name = "beta_Cl_WT", distribution = Normal(mu = 0.75, omega = 0),
+    fixedMu = TRUE, fixedOmega = TRUE
+  )
+)
+```
+
+## Residual error
+
+Concentrations are modelled with combined proportional and additive residual error (PopED: `feps.add.prop`). Writing $f$ for the prediction (`RespPK`), both tools use the same variance formula; they differ in what the numbers mean:
+
+$$
+\mathrm{Var}(y \mid f) = \sigma_{\mathrm{add}}^2 + (\sigma_{\mathrm{prop}}\, f)^2 .
+$$
+
+| | Proportional term | Additive term |
+|--|-------------------|---------------|
+| PopED / NONMEM (`sigma`, `SIGMA`) | variance 0.05 | variance 1 |
+| PFIM `Combined2` | SD `sigmaSlope = sqrt(0.05)` | SD `sigmaInter = 1` |
+
+Tim's tables sometimes write `sigma_prop = 0.05`, which looks like “5% error”. In `optimal-design-2023`, that value is still a variance in `sigma`, not a proportional SD. Copying `0.05` into `sigmaSlope` in PFIM would not reproduce PopED (it would use variance $0.05^2$ instead of $0.05$). Inter-individual variability follows the same variance → SD rule via `omega = sqrt(d)` in the chunk above. Details and a short checklist are in `vignette("Vignette_05_gcse_pkpd", package = "PFIM")`, section *PFIM, PopED, and cross-tool equivalence*.
+
+```{r model_error, echo = TRUE}
+errorModelRespPK = Combined2(
+  output = "RespPK",
+  sigmaInter = 1,
+  sigmaSlope = sqrt(0.05)
+)
+modelError = list(errorModelRespPK)
+```
+
+## Reference body weight
+
+PFIM reads `WT` as a free symbol in the equation (not as a `Covariate()` object). For this homogeneous pediatric cohort, all subjects share the same weight.
+
+```{r weight, echo = TRUE}
+WT = 32
+```
+
+# Study design
+
+Mockdrozaline is administered as 10 mg once daily for 24 weeks (`n = 12` subjects). Doses are expressed in the same units as in the Tim Waterhouse material (`mg × 1000` in the administration record).
+
+```{r administration, echo = TRUE}
+week_h = 24 * 7
+lastDose = week_h * 24
+dose_times = seq(0, lastDose, by = 24)
+
+administrationRespPK = Administration(
+  outcome = "RespPK",
+  timeDose = dose_times,
+  dose = rep(10 * 1000, times = length(dose_times))
+)
+```
+
+The initial sparse design includes five samples:
+
+- 5 h after the first dose,
+- predose at weeks 8, 12, and 24,
+- 168 h after the last dose.
+
+```{r initial_sampling, echo = TRUE}
+observation_times = c(
+  5,
+  week_h * 8 - 1,
+  week_h * c(12, 24),
+  lastDose + 168
+)
+
+samplingTimesRespPK = SamplingTimes(
+  outcome = "RespPK",
+  samplings = observation_times
+)
+
+armInitial = Arm(
+  name = "Initial arm",
+  size = 12,
+  administrations = list(administrationRespPK),
+  samplingTimes = list(samplingTimesRespPK)
+)
+
+designInitial = Design(
+  name = "designInitial",
+  arms = list(armInitial)
+)
+```
+
+# Evaluation of the initial design
+
+The population Fisher information matrix (FIM) is computed for the initial design.
+
+Evaluation and PSO runs are computed by `vignette_04_tim_waterhouse_pediatric_execute.R` (run once, then cached as `.RDS` in `data/`).
+
+```{r evaluation_initial, echo = TRUE, eval = FALSE}
+evaluationPopFimInitial = Evaluation(
+  name = "FIM design initial",
+  modelParameters = modelParameters,
+  modelEquations = modelEquations,
+  modelError = modelError,
+  designs = list(designInitial),
+  outputs = list("RespPK"),
+  fimType = "population"
+)
+
+evaluationPopFimInitial = run(evaluationPopFimInitial)
+```
+
+```{r ex04_run, include = FALSE}
+script = system.file(
+  "vignette-scripts", "vignette_04_tim_waterhouse_pediatric_execute.R",
+  package = "PFIM"
+)
+if (!nzchar(script) || !file.exists(script)) {
+  stop(
+    "vignette_04_tim_waterhouse_pediatric_execute.R not found; ",
+    "reinstall PFIM or rebuild vignettes.",
+    call. = FALSE
+  )
+}
+source(script, local = knitr::knit_global())
+```
+
+## Predicted concentration-time profile
+
+```{r plot_initial, echo = TRUE, eval = FALSE}
+plotEvaluation(evaluationPopFimInitial, plotOptions)
+```
+
+```{r ex04_plot_initial, echo = FALSE, fig.width = 7, fig.height = 4, out.width = "100%", eval = .pfimVignetteHas("plotInitialEvaluation")}
+plotInitialEvaluation
+```
+
+## Design summary
+
+```{r show_initial, echo = TRUE, eval = FALSE}
+show(evaluationPopFimInitial)
+```
+
+```{r ex04_show_initial, echo = TRUE, eval = .pfimVignetteHas("evaluationPopFimInitial")}
+show(evaluationPopFimInitial)
+```
+
+## D-criterion
+
+```{r dcrit_initial, echo = TRUE, eval = FALSE}
+getDcriterion(evaluationPopFimInitial)
+```
+
+```{r ex04_dcrit_initial, echo = TRUE, eval = .pfimVignetteHas("evaluationPopFimInitial")}
+getDcriterion(evaluationPopFimInitial)
+```
+
+Designs can be compared with the D-criterion; relative standard errors (RSE) are often easier to interpret.
+
+## Relative standard errors
+
+```{r rse_initial, echo = TRUE, eval = FALSE}
+getRSE(evaluationPopFimInitial)
+```
+
+```{r ex04_rse_initial, echo = TRUE, eval = .pfimVignetteHas("evaluationPopFimInitial")}
+getRSE(evaluationPopFimInitial)
+```
+
+# D-optimal sampling-time optimization
+
+Sampling times can be optimized within protocol windows. Particle-swarm settings below use a small iteration count so the vignette renders in reasonable time; increase `maxIteration` for production work.
+
+## Five samples
+
+One window covers absorption (0–6 h after the first dose), three windows capture steady-state troughs (weeks 8, 12, and 24), and one window covers 96–168 h after the last dose.
+
+```{r constraints_5, echo = TRUE}
+samplingConstraintsRespPK5 = SamplingTimeConstraints(
+  outcome = "RespPK",
+  initialSamplings = observation_times,
+  samplingsWindows = list(
+    c(0, 6),
+    c(week_h * 8 - 1, week_h * 8),
+    c(week_h * 12 - 1, week_h * 12),
+    c(week_h * 24 - 1, week_h * 24),
+    c(lastDose + 96, lastDose + 168)
+  ),
+  numberOfTimesByWindows = c(1, 1, 1, 1, 1),
+  minSampling = c(1, 1, 1, 1, 1)
+)
+```
+
+```{r optimization_5, echo = TRUE, eval = FALSE}
+armOptim5 = Arm(
+  name = "ArmOptim5",
+  size = 12,
+  administrations = list(administrationRespPK),
+  samplingTimes = list(samplingTimesRespPK),
+  samplingTimesConstraints = list(samplingConstraintsRespPK5)
+)
+
+designOptim5 = Design(
+  name = "designOptim5",
+  arms = list(armOptim5)
+)
+
+optimizationPopFIM5 = Optimization(
+  name = "Optimization 5 samples",
+  modelEquations = modelEquations,
+  modelParameters = modelParameters,
+  modelError = modelError,
+  optimizer = "PSOAlgorithm",
+  optimizerParameters = list(
+    maxIteration = 10,
+    populationSize = 50,
+    personalLearningCoefficient = 2.05,
+    globalLearningCoefficient = 2.05,
+    seed = 1234,
+    showProcess = FALSE
+  ),
+  designs = list(designOptim5),
+  fimType = "population",
+  outputs = list("RespPK")
+)
+
+optimizationPopFIM5 = run(optimizationPopFIM5)
+```
+
+```{r show_optimization_5, echo = TRUE, eval = FALSE}
+show(optimizationPopFIM5)
+```
+
+```{r ex04_show_optimization_5, echo = TRUE, eval = .pfimVignetteHas("optimizationPopFIM5")}
+show(optimizationPopFIM5)
+```
+
+The optimized five-sample design improves the D-criterion, but precision on the typical parameters remains limited.
+
+## Six samples
+
+A sixth occasion is added in the washout phase (72 h and 168 h after the last dose), as in the extended Tim Waterhouse scenario.
+
+```{r constraints_6, echo = TRUE}
+observation_times_6 = c(
+  5,
+  week_h * 8 - 1,
+  week_h * c(12, 24),
+  lastDose + 72,
+  lastDose + 168
+)
+
+samplingConstraintsRespPK6 = SamplingTimeConstraints(
+  outcome = "RespPK",
+  initialSamplings = observation_times_6,
+  samplingsWindows = list(
+    c(0, 6),
+    c(week_h * 8 - 1, week_h * 8),
+    c(week_h * 12 - 1, week_h * 12),
+    c(week_h * 24 - 1, week_h * 24),
+    c(lastDose, lastDose + 168),
+    c(lastDose + 167.5, lastDose + 168)
+  ),
+  numberOfTimesByWindows = c(1, 1, 1, 1, 1, 1),
+  minSampling = c(1, 1, 1, 1, 1, 1)
+)
+```
+
+```{r optimization_6, echo = TRUE, eval = FALSE}
+armOptim6 = Arm(
+  name = "ArmOptim6",
+  size = 12,
+  administrations = list(administrationRespPK),
+  samplingTimes = list(
+    SamplingTimes(outcome = "RespPK", samplings = observation_times_6)
+  ),
+  samplingTimesConstraints = list(samplingConstraintsRespPK6)
+)
+
+designOptim6 = Design(
+  name = "designOptim6",
+  arms = list(armOptim6)
+)
+
+optimizationPopFIM6 = Optimization(
+  name = "Optimization 6 samples",
+  modelEquations = modelEquations,
+  modelParameters = modelParameters,
+  modelError = modelError,
+  optimizer = "PSOAlgorithm",
+  optimizerParameters = list(
+    maxIteration = 10,
+    populationSize = 50,
+    personalLearningCoefficient = 2.05,
+    globalLearningCoefficient = 2.05,
+    seed = 1234,
+    showProcess = FALSE
+  ),
+  designs = list(designOptim6),
+  fimType = "population",
+  outputs = list("RespPK")
+)
+
+optimizationPopFIM6 = run(optimizationPopFIM6)
+```
+
+```{r show_optimization_6, echo = TRUE, eval = FALSE}
+show(optimizationPopFIM6)
+```
+
+```{r ex04_show_optimization_6, echo = TRUE, eval = .pfimVignetteHas("optimizationPopFIM6")}
+show(optimizationPopFIM6)
+```
+
+```{r optimal_times_6, echo = TRUE, eval = FALSE}
+optArms = prop(optimizationPopFIM6, "optimisationAlgorithmOutputs")$optimalArms
+optSamplings = prop(prop(optArms[[1]], "samplingTimes")[[1]], "samplings")
+optSamplings
+```
+
+```{r ex04_optimal_times_6, echo = TRUE, eval = .pfimVignetteHas("optSamplings")}
+optSamplings
+```
+
+With these settings, the typical values `V`, `Cl`, and `ka` are expected to reach RSE below 20% after optimization (variance components are usually less precisely estimated).
+
+# Discussion
+
+Pediatric studies allow only a few samples per subject. Starting from a feasible sparse design, PFIM supports identifiability checks, FIM-based precision, D-optimal timing under windows, and comparison of alternative schedules.
+
+This scenario follows Tim Waterhouse's PopED workshop material (`optimal-design-2023`), re-expressed with PFIM objects. For object mapping, variance versus standard deviation, and cross-checks with PopED, see `vignette("Vignette_05_gcse_pkpd", package = "PFIM")`, section *PFIM, PopED, and cross-tool equivalence*.

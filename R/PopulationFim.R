@@ -94,7 +94,10 @@ method( evaluateFim, list( PopulationFim, Model, Arm ) ) = function( fim, model,
     seDF, .pfimSeRownames( seDF, "plotFimBars" ), metric,
     c( "mu", "beta", "omega", "gamma", "sigma" )
   )
-  .fimSeRseBarPlot( df, metric, unique( df$cat ) )
+  .fimSeRseBarPlot(
+    df, metric,
+    groups = c( "mu", "beta", "omega", "gamma", "sigma" )
+  )
 }
 
 #' Attach evaluated population FIM results to a project.

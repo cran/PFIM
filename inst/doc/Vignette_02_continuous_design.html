@@ -10,6 +10,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+<meta name="author" content="Romain Leroux, Jérémy Seurat" />
 
 
 <title>Design evaluation and optimization in continuous space</title>
@@ -362,6 +363,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Design evaluation and optimization in
 continuous space</h1>
+<h4 class="author">Romain Leroux, Jérémy Seurat</h4>
 
 
 <div id="TOC">
@@ -598,10 +600,10 @@ unchanged. Three algorithms are compared: PSO (Particle Swarm
 Optimization), PGBO (Population genetic-based optimization), and Simplex
 (Nelder–Mead).</li>
 </ol>
-<p>Optimisation results are computed by <code>example02_execute.R</code>
-(run once, then cached as <code>.RDS</code> in <code>data/</code>). HTML
-reports are written to <code>results/</code>. Reports are also available
-at <a href="https://github.com/packagePFIM" class="uri">https://github.com/packagePFIM</a></p>
+<p>Optimisation results are computed by
+<code>vignette_02_continuous_design_execute.R</code> (run once, then
+cached as <code>.RDS</code> in <code>data/</code>). HTML reports are
+written to <code>results/</code>. Reports are also available at <a href="https://github.com/iame-researchCenter/PFIM" class="uri">https://github.com/iame-researchCenter/PFIM</a></p>
 </div>
 <div id="design-evaluation" class="section level1">
 <h1>Design evaluation</h1>
@@ -1042,13 +1044,13 @@ Parameter             Value           SE     RSE(%)
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a></span>
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>plotOptions <span class="ot">=</span> <span class="fu">list</span>( <span class="at">unitTime =</span> <span class="fu">c</span>(<span class="st">&quot;hour&quot;</span>), <span class="at">unitOutcomes =</span> <span class="fu">c</span>(<span class="st">&quot;mcg/mL&quot;</span>) )</span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationPopFIM.html&quot;</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Vignette_02_EvaluationPopFIM.html&quot;</span></span>
 <span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMPop, paths<span class="sc">$</span>reports, outputFile, plotOptions )</span>
 <span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationIndFIM.html&quot;</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Vignette_02_EvaluationIndFIM.html&quot;</span></span>
 <span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMInd, paths<span class="sc">$</span>reports, outputFile, plotOptions )</span>
 <span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_EvaluationBayFIM.html&quot;</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Vignette_02_EvaluationBayFIM.html&quot;</span></span>
 <span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="fu">Report</span>( evaluationFIMBay, paths<span class="sc">$</span>reports, outputFile, plotOptions )</span></code></pre></div>
 </div>
 </div>
@@ -1253,7 +1255,7 @@ Parameter               Value           SE     RSE(%)
 <div id="create-and-save-the-report-for-the-design-optimization" class="section level3">
 <h3>Create and save the report for the design optimization</h3>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a></span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationPSOPopFIM.html&quot;</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Vignette_02_OptimizationPSOPopFIM.html&quot;</span></span>
 <span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a></span>
 <span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a><span class="fu">Report</span>( optimizationPSO, paths<span class="sc">$</span>reports, outputFile, plotOptions )</span></code></pre></div>
 </div>
@@ -1390,7 +1392,7 @@ Parameter               Value           SE     RSE(%)
 <div id="create-and-save-the-report-for-the-design-optimization-1" class="section level3">
 <h3>Create and save the report for the design optimization</h3>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a></span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationPGBOPopFIM.html&quot;</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Vignette_02_OptimizationPGBOPopFIM.html&quot;</span></span>
 <span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a></span>
 <span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="fu">Report</span>( optimizationPGBO, paths<span class="sc">$</span>reports, outputFile, plotOptions )</span></code></pre></div>
 </div>
@@ -1520,7 +1522,7 @@ Parameter               Value           SE     RSE(%)
 <div id="create-and-save-the-report-for-the-design-optimization-2" class="section level3">
 <h3>Create and save the report for the design optimization</h3>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a></span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Example02_OptimizationSimplexPopFIM.html&quot;</span></span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>outputFile <span class="ot">=</span> <span class="st">&quot;Vignette_02_OptimizationSimplexPopFIM.html&quot;</span></span>
 <span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a></span>
 <span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a><span class="fu">Report</span>( optimizationSimplex, paths<span class="sc">$</span>reports, outputFile, plotOptions )</span></code></pre></div>
 </div>

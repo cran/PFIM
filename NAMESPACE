@@ -109,10 +109,11 @@ export(run)
 export(saveCovariateTest)
 export(showFIM)
 export(tost)
-import(Rcpp)
 import(S7)
+import(methods)
 importFrom(Deriv,Simplify)
 importFrom(Matrix,bdiag)
+importFrom(Rcpp,sourceCpp)
 importFrom(deSolve,ode)
 importFrom(ggplot2,
   .data,
@@ -182,6 +183,7 @@ importFrom(purrr,
   walk2
 )
 importFrom(rlang,
+  "%||%",
   hash,
   new_function
 )

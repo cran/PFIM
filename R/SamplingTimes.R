@@ -12,8 +12,8 @@
 SamplingTimes = new_class("SamplingTimes", package = "PFIM",
 
                           properties = list(
-                            outcome = new_property(class_character, default = character(0)),
-                            samplings = new_property(class_double, default = numeric(0))
+                            outcome = new_property(class_character, default = quote( character(0) )),
+                            samplings = new_property(class_double, default = quote( numeric(0) ))
                           ),
                           validator = function( self ) {
                             s = prop( self, "samplings" )

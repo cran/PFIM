@@ -27,7 +27,5 @@ Optional \code{tolerance} (default \code{0}, stall stop disabled ->
 (default \code{5}) enable early stopping when \code{tolerance > 0}.
 }
 \examples{
-\dontrun{
-vignette("Example02")
-}
+vignette("Vignette_02_continuous_design")
 }

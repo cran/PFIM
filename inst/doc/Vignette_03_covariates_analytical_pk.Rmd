@@ -1,5 +1,6 @@
 ---
 title: "Design evaluation and optimization with covariates --- analytical PK model"
+author: "Antoine Croxo, Romain Leroux"
 classoption: openany
 output:
   rmarkdown::html_vignette:
@@ -10,6 +11,7 @@ vignette: >
   %\VignetteIndexEntry{Design evaluation and optimization with covariates --- analytical PK model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteAuthor{Antoine Croxo, Romain Leroux}
 ---
 
 <style type="text/css">
@@ -131,7 +133,8 @@ plotOptions = list(unitTime = c("hour"), unitOutcomes = c("mcg/mL"))
     !is.null( val ) && ( !is.character( val ) || any( nzchar( val ) ) )
   }
 }
-knitr::opts_chunk$set(purl = FALSE, collapse = TRUE,
+knitr::opts_chunk$set(eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
+                      purl = FALSE, collapse = TRUE,
                       comment = "#>", echo = FALSE, warning = FALSE, message = FALSE,
                       cache = FALSE, tidy = FALSE,
                       fig.align = "center", out.width = "100%", dpi = 160,
@@ -155,7 +158,7 @@ The design consists of a single arm of 40 subjects, each receiving a single oral
 
 The objective is to evaluate this design and how it assesses significance and non-relevance on the covariates, with the power for initial sample size and the number of subjects required to reach 90\% power. Secondly, we aim to find the D-optimal design with only 3 sampling times, using possible sampling time windows and a continuous design space optimization. The number of subjects and the dosing regimen is unchanged. At the end, we aim to compare if this sparser optimal design leads to equivalent performances on covariate tests than the initial design.
 
-Optimization results are computed by `example03_execute.R` (run once, then cached as `.RDS` in `data/`). HTML reports are written to `results/`. Reports are also available at <https://github.com/packagePFIM>
+Optimization results are computed by `vignette_03_covariates_analytical_pk_execute.R` (run once, then cached as `.RDS` in `data/`). HTML reports are written to `results/`. Reports are also available at <https://github.com/iame-researchCenter/PFIM>
 
 # Design evaluation
 
@@ -265,9 +268,9 @@ design1 = Design( name = "design1", arms = list( arm1 ) )
 ```
 
 ```{r ex03_run, include = FALSE}
-script = system.file("vignette-scripts", "example03_execute.R", package = "PFIM")
+script = system.file("vignette-scripts", "vignette_03_covariates_analytical_pk_execute.R", package = "PFIM")
 if (!nzchar(script) || !file.exists(script))
-  stop("example03_execute.R not found; reinstall PFIM or rebuild vignettes.")
+  stop("vignette_03_covariates_analytical_pk_execute.R not found; reinstall PFIM or rebuild vignettes.")
 source(script, local = knitr::knit_global())
 ```
 

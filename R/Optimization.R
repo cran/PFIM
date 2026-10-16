@@ -9,9 +9,7 @@
 #' @return An \code{Optimization} object; after \code{run()}, see
 #'   \code{optimisationDesign} and \code{optimisationAlgorithmOutputs}.
 #' @examples
-#' \dontrun{
-#' vignette("Example01")
-#' }
+#' vignette("Vignette_01_discrete_design")
 #' \donttest{
 #' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
 #' class(ev)
@@ -30,8 +28,8 @@ Optimization = new_class( "Optimization",
                           package    = "PFIM",
                           properties = list(
                             project                      = new_property( PFIMProject ),
-                            optimisationDesign           = new_property( class_list, default = list() ),
-                            optimisationAlgorithmOutputs = new_property( class_list, default = list() )
+                            optimisationDesign           = new_property( class_list, default = quote( list() ) ),
+                            optimisationAlgorithmOutputs = new_property( class_list, default = quote( list() ) )
                           ),
                           constructor = function(
                               name = character(0),
@@ -233,9 +231,7 @@ method( defineOptimizationAlgorithm, Optimization ) = function( optimization ) {
 #' @param pfimproject An \code{Optimization} object.
 #' @return The same \code{Optimization} with optimal design evaluations stored.
 #' @examples
-#' \dontrun{
-#' vignette("Example01")
-#' }
+#' vignette("Vignette_01_discrete_design")
 #' @name run
 #' @export
 method( run, Optimization ) = function( pfimproject ) {
@@ -349,6 +345,41 @@ method( getDcriterion, Optimization ) = function( pfimproject ) {
 #' @param pfimproject An \code{Optimization} from \code{MultiplicativeAlgorithm}.
 #' @param ... Optional method arguments.
 #' @return Numeric D-criterion of the continuous mixture.
+#' @examples
+#' \donttest{
+#' algo = MultiplicativeAlgorithm(
+#'   multiplicativeAlgorithmOutputs = list(mixtureDcriterion = 2, realisedDcriterion = 1.5)
+#' )
+#' opt = Optimization(
+#'   name = "mult_d",
+#'   modelFromLibrary = list(PKModel = "Linear1BolusSingleDose_kV"),
+#'   modelParameters = list(
+#'     ModelParameter(name = "k", distribution = LogNormal(mu = 0.25, omega = 0.5)),
+#'     ModelParameter(name = "V", distribution = LogNormal(mu = 15, omega = 0.3))
+#'   ),
+#'   modelError = list(Combined1(output = "RespPK", sigmaInter = 0.5, sigmaSlope = 0.15)),
+#'   optimizer = "MultiplicativeAlgorithm",
+#'   optimizerParameters = list(
+#'     lambda = 0.99, delta = 1e-3, numberOfIterations = 20L, weightThreshold = 0.01
+#'   ),
+#'   outputs = list("RespPK"),
+#'   designs = list(Design(
+#'     name = "d",
+#'     arms = list(Arm(
+#'       name = "a", size = 10,
+#'       administrations = list(Administration(outcome = "RespPK", timeDose = 0, dose = 100)),
+#'       samplingTimes = list(SamplingTimes(outcome = "RespPK", samplings = c(1, 4)))
+#'     ))
+#'   )),
+#'   fimType = "individual",
+#'   optimisationAlgorithmOutputs = list(
+#'     optimizationAlgorithm = algo,
+#'     mixtureDcriterion = 2,
+#'     realisedDcriterion = 1.5
+#'   )
+#' )
+#' getMixtureDcriterion(opt)
+#' }
 #' @name getMixtureDcriterion
 #' @export
 getMixtureDcriterion = new_generic( "getMixtureDcriterion", c( "pfimproject" ) )
@@ -368,6 +399,41 @@ method( getMixtureDcriterion, Optimization ) = function( pfimproject ) {
 #' @param pfimproject An \code{Optimization} from \code{MultiplicativeAlgorithm}.
 #' @param ... Optional method arguments.
 #' @return Numeric D-criterion of the implemented protocol.
+#' @examples
+#' \donttest{
+#' algo = MultiplicativeAlgorithm(
+#'   multiplicativeAlgorithmOutputs = list(mixtureDcriterion = 2, realisedDcriterion = 1.5)
+#' )
+#' opt = Optimization(
+#'   name = "mult_d",
+#'   modelFromLibrary = list(PKModel = "Linear1BolusSingleDose_kV"),
+#'   modelParameters = list(
+#'     ModelParameter(name = "k", distribution = LogNormal(mu = 0.25, omega = 0.5)),
+#'     ModelParameter(name = "V", distribution = LogNormal(mu = 15, omega = 0.3))
+#'   ),
+#'   modelError = list(Combined1(output = "RespPK", sigmaInter = 0.5, sigmaSlope = 0.15)),
+#'   optimizer = "MultiplicativeAlgorithm",
+#'   optimizerParameters = list(
+#'     lambda = 0.99, delta = 1e-3, numberOfIterations = 20L, weightThreshold = 0.01
+#'   ),
+#'   outputs = list("RespPK"),
+#'   designs = list(Design(
+#'     name = "d",
+#'     arms = list(Arm(
+#'       name = "a", size = 10,
+#'       administrations = list(Administration(outcome = "RespPK", timeDose = 0, dose = 100)),
+#'       samplingTimes = list(SamplingTimes(outcome = "RespPK", samplings = c(1, 4)))
+#'     ))
+#'   )),
+#'   fimType = "individual",
+#'   optimisationAlgorithmOutputs = list(
+#'     optimizationAlgorithm = algo,
+#'     mixtureDcriterion = 2,
+#'     realisedDcriterion = 1.5
+#'   )
+#' )
+#' getRealisedDcriterion(opt)
+#' }
 #' @name getRealisedDcriterion
 #' @export
 getRealisedDcriterion = new_generic( "getRealisedDcriterion", c( "pfimproject" ) )

@@ -1,4 +1,4 @@
-# Shared helpers for Example01--04 vignette execute scripts.
+# Shared helpers for Vignette_01--05 execute scripts.
 
 pfimEnsurePandoc = function() {
   if (requireNamespace("rmarkdown", quietly = TRUE) &&
@@ -20,9 +20,17 @@ pfimEnsurePandoc = function() {
   invisible(FALSE)
 }
 
+# TRUE during R CMD check. Side-car Report() HTML is not part of the vignette.
+pfimVignetteIsCheckRebuild = function() {
+  nzchar( Sys.getenv( "_R_CHECK_PACKAGE_NAME_" ) ) ||
+    tolower( Sys.getenv( "_R_CHECK_LICENSE_", "" ) ) == "true"
+}
+
 pfimSafeReport = function(...) {
   # Optional fast path for local plot-only preview.
   if ( identical( Sys.getenv( "PFIM_VIGNETTE_SKIP_REPORT" ), "true" ) )
+    return( invisible( NULL ) )
+  if ( pfimVignetteIsCheckRebuild() )
     return( invisible( NULL ) )
   if (!pfimEnsurePandoc()) return(invisible(NULL))
   tryCatch(invisible(Report(...)), error = function(e) {
@@ -75,16 +83,15 @@ pfimOptShow = function(opt, show_file) {
   )
 }
 
-# Load a shipped Optimization RDS. During R CMD check, missing caches stop;
-# rebuild locally only when NOT_CRAN=true and the file is absent.
+# Load a shipped evaluation/optimization RDS. During R CMD check (_R_CHECK_PACKAGE_NAME_
+# set), missing caches stop. Otherwise run once and save under vignettes/data/ (local
+# vignette rebuild or first-time cache generation).
 pfimRunOrLoad = function(rds_path, runner) {
   if (file.exists(rds_path)) {
     message("[PFIM vignette] Loading ", basename(rds_path))
     return(readRDS(rds_path))
   }
-  under_check = nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")) ||
-    !identical(Sys.getenv("NOT_CRAN"), "true")
-  if (under_check) {
+  if (nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))) {
     stop(
       "Missing vignette cache '", basename(rds_path),
       "' under vignettes/data/. Ship the RDS with the package; ",
@@ -111,13 +118,14 @@ pfimResultsRoot = function() {
 
 pfimVignettePaths = function() {
   root = pfimResultsRoot()
-  # Prefer package vignettes/data (shipped opt + eval caches) over inst/vignette-data.
+  # Prefer vignettes/data (eval + optimization caches). Do not prefer
+  # system.file("vignette-data"): that tree only ships evaluation RDS.
   data_candidates = unique(c(
+    file.path(getwd(), "data"),
     file.path(getwd(), "vignettes", "data"),
     file.path(getwd(), "..", "vignettes", "data"),
     file.path(getwd(), "..", "..", "vignettes", "data"),
-    system.file("vignette-data", package = "PFIM"),
-    file.path(getwd(), "data")
+    system.file("vignette-data", package = "PFIM")
   ))
   hit = Find(
     function(d) {

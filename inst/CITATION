@@ -8,12 +8,12 @@ bibentry(
     person("France", "Mentré")
   ),
   year = "2026",
-  note = "R package version 8.0",
+  note = paste("R package version", meta$Version),
   url = "https://CRAN.R-project.org/package=PFIM",
-  textVersion = paste(
-    "Leroux R, Mentré F (2026).",
-    "PFIM: Population Fisher Information Matrix.",
-    "R package version 8.0.",
+  textVersion = paste0(
+    "Leroux R, Mentré F (2026). ",
+    "PFIM: Population Fisher Information Matrix. ",
+    "R package version ", meta$Version, ". ",
     "https://CRAN.R-project.org/package=PFIM."
   )
 )

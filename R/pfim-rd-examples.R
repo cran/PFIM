@@ -267,9 +267,7 @@ NULL
 
 #' @name generateReportOptimization
 #' @examples
-#' \dontrun{
-#' \dontrun{vignette("Example01")}
-#' }
+#' vignette("Vignette_01_discrete_design")
 NULL
 
 #' @name generateSamplingsFromSamplingConstraints
@@ -660,9 +658,11 @@ NULL
 
 #' @name plotShrinkage
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' source(system.file("examples", "covariate-test-minimal.R", package = "PFIM"))
-#' # plotShrinkage(prop(ev, "fim"), ev)  # BayesianFim
+#' prop(ev, "fimType") = "Bayesian"
+#' ev = run(ev)
+#' plotShrinkage(prop(ev, "fim"), ev)
 #' }
 NULL
 

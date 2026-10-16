@@ -1,10 +1,12 @@
 # G-CSF PopED Design 1 RSE agreement.
-# Always runs under R CMD check (~20s linear-FD FIM). Plots stay skip_on_cran.
+# The linear-FD comparison takes about 30s. It runs when NOT_CRAN=true
+# and is skipped on CRAN so the incoming check can finish within 10 minutes.
+# Plots stay skip_on_cran.
 
-.gcsfExample04Script = function() {
-  script = file.path( "inst", "vignette-scripts", "example04_execute.R" )
+.gcsfVignette05Script = function() {
+  script = file.path( "inst", "vignette-scripts", "vignette_05_gcse_pkpd_execute.R" )
   if ( !file.exists( script ) )
-    script = system.file( "vignette-scripts", "example04_execute.R", package = "PFIM" )
+    script = system.file( "vignette-scripts", "vignette_05_gcse_pkpd_execute.R", package = "PFIM" )
   script
 }
 
@@ -15,9 +17,9 @@
     do.call( Sys.setenv, stats::setNames( list( old ), name ) )
 }
 
-.gcsfSourceExample04 = function( cmp_only ) {
-  script = .gcsfExample04Script()
-  skip_if_not( nzchar( script ) && file.exists( script ), "example04_execute.R not found" )
+.gcsfSourceVignette05 = function( cmp_only ) {
+  script = .gcsfVignette05Script()
+  skip_if_not( nzchar( script ) && file.exists( script ), "vignette_05_gcse_pkpd_execute.R not found" )
 
   old_force = Sys.getenv( "PFIM_GCSF_FORCE_RUN", unset = NA_character_ )
   old_cmp = Sys.getenv( "PFIM_GCSF_CMP_ONLY", unset = NA_character_ )
@@ -36,8 +38,9 @@
   env
 }
 
-test_that( "G-CSF PopED Design 1 RSE matches reference (Example04)", {
-  env = .gcsfSourceExample04( cmp_only = TRUE )
+test_that( "G-CSF PopED Design 1 RSE matches reference (Vignette_05_gcse_pkpd)", {
+  skip_on_cran()
+  env = .gcsfSourceVignette05( cmp_only = TRUE )
 
   expect_true( is.data.frame( env$cmp_mu ) )
   expect_true( is.data.frame( env$cmp_d ) )
@@ -63,7 +66,7 @@ test_that( "G-CSF PopED Design 1 RSE matches reference (Example04)", {
 
 test_that( "G-CSF PopED overlay is a true ODE (not FIM-cache interpolation)", {
   skip_on_cran()
-  env = .gcsfSourceExample04( cmp_only = FALSE )
+  env = .gcsfSourceVignette05( cmp_only = FALSE )
 
   expect_true( inherits( env$plotOutcomesEvaluationPopedStyle, "ggplot" ) )
   pk = subset(

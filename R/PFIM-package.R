@@ -11,7 +11,7 @@
 #' Nonlinear mixed-effects models (NLMEM) are widely used in model-based drug
 #' development. The population Fisher information matrix (FIM) is an efficient
 #' alternative to clinical trial simulation for optimizing study designs.
-#' **PFIM 8.0** is an R package using the **S7** object system to evaluate and
+#' **PFIM 8.0.1** is an R package using the **S7** object system to evaluate and
 #' optimize population designs from the FIM.
 #'
 #' PFIM includes libraries of PK and PD models (S7 classes): bolus, infusion,
@@ -86,8 +86,7 @@
 #' New York, 2016.
 #'
 #' @import S7
-#' @import Rcpp
-#' @importFrom methods show
+#' @import methods
 #' @importFrom deSolve ode
 #' @importFrom purrr accumulate compact detect detect_index every flatten imap iwalk keep list_c list_flatten list_rbind map map2 map2_chr map2_int map2_lgl map_chr map_dbl map_int map_lgl pluck pmap pmap_int reduce reduce2 set_names walk walk2
 #' @importFrom stringr fixed regex str_c str_detect str_remove str_replace str_replace_all str_split str_starts
@@ -97,19 +96,20 @@
 #' @importFrom utils combn tail head flush.console capture.output
 #' @importFrom Matrix bdiag
 #' @importFrom Deriv Simplify
+#' @importFrom Rcpp sourceCpp
 #' @importFrom scales pretty_breaks
 #' @importFrom kableExtra kable_styling kbl add_header_above footnote
 #' @importFrom knitr asis_output
-#' @importFrom rlang hash new_function
+#' @importFrom rlang "%||%" hash new_function
 #' @importFrom stats D cov2cor pnorm qnorm reorder uniroot
 #' @useDynLib PFIM, .registration = TRUE
 #'
 #' @author
-#' \strong{Author of PFIM 8.0}: Romain Leroux \email{romain.leroux@inserm.fr}
+#' \strong{Author of PFIM 8.0.1}: Romain Leroux \email{romain.leroux@inserm.fr}
 #' (\href{https://orcid.org/0009-0009-5779-5303}{ORCID}).
 #'
-#' \strong{Contributors}: Jérémy Seurat \email{jeremy.seurat@inserm.fr},
-#' Antoine Croxo \email{antoine.croxo@inserm.fr}.
+#' \strong{Contributors}: Jérémy Seurat \email{jeremy.seurat@gmail.com},
+#' Antoine Croxo \email{antoine.croxo@inserm.fr}, Lucie Fayette \email{lucie.fayette1@gmail.com}.
 #'
 #' \strong{Maintainer}: France Mentré \email{pfim@inserm.fr}
 #' (\href{https://orcid.org/0000-0002-7045-1275}{ORCID}).

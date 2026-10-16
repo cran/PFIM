@@ -10,6 +10,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+<meta name="author" content="Romain Leroux" />
 
 
 <title>G-CSF PK-PD design evaluation</title>
@@ -585,6 +586,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 <h1 class="title toc-ignore">G-CSF PK-PD design evaluation</h1>
+<h4 class="author">Romain Leroux</h4>
 
 
 <div id="TOC">
@@ -601,7 +603,34 @@ parameters</a></li>
 <li><a href="#administration-sampling-times-arms" id="toc-administration-sampling-times-arms">Administration, sampling
 times, arms</a></li>
 <li><a href="#population-fim-evaluation" id="toc-population-fim-evaluation">Population FIM evaluation</a></li>
-<li><a href="#relative-standard-errors" id="toc-relative-standard-errors">Relative standard errors</a>
+<li><a href="#pfim-poped-and-cross-tool-equivalence" id="toc-pfim-poped-and-cross-tool-equivalence">PFIM, PopED, and
+cross-tool equivalence</a>
+<ul>
+<li><a href="#general-rules-all-vignettes" id="toc-general-rules-all-vignettes">General rules (all vignettes)</a>
+<ul>
+<li><a href="#variance-or-sd-one-conversion-rule" id="toc-variance-or-sd-one-conversion-rule">Variance or SD? One
+conversion rule</a></li>
+<li><a href="#naming" id="toc-naming">Naming</a></li>
+</ul></li>
+<li><a href="#tim-waterhouse-oral-pk-vignette-04" id="toc-tim-waterhouse-oral-pk-vignette-04">Tim Waterhouse oral PK
+(Vignette 04)</a>
+<ul>
+<li><a href="#what-plays-the-same-role" id="toc-what-plays-the-same-role">What plays the same role</a></li>
+<li><a href="#design-and-time-scale" id="toc-design-and-time-scale">Design and time scale</a></li>
+<li><a href="#structural-model-implementation" id="toc-structural-model-implementation">Structural model
+implementation</a></li>
+<li><a href="#naming-only-no-change-to-the-model" id="toc-naming-only-no-change-to-the-model">Naming only (no change to
+the model)</a></li>
+</ul></li>
+<li><a href="#gcsf-poped" id="toc-gcsf-poped">G-CSF Design 1 (this
+vignette, Vignette 05)</a>
+<ul>
+<li><a href="#variance-sd-for-this-model" id="toc-variance-sd-for-this-model">Variance → SD for this
+model</a></li>
+<li><a href="#comparing-rse-with-poped" id="toc-comparing-rse-with-poped">Comparing RSE with PopED</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#gcsf-rse" id="toc-gcsf-rse">Relative standard errors</a>
 <ul>
 <li><a href="#fixed-effects-mu" id="toc-fixed-effects-mu">Fixed effects
 (<span class="math inline">\(\mu\)</span>)</a></li>
@@ -715,28 +744,28 @@ tbody tr:nth-child(odd) {
 </style>
 <div id="overview" class="section level1">
 <h1>Overview</h1>
-<p>This example evaluates a <strong>G-CSF / filgrastim</strong>
-population design with PFIM, based on the PK-PD model of Krzyzanski
-<em>et al.</em> <span class="citation">(<a href="#ref-Krzyzanski2010">Krzyzanski et al. 2010</a>)</span>.</p>
+<p>This example evaluates a G-CSF / filgrastim population design with
+PFIM, based on the PK-PD model of Krzyzanski <em>et al.</em> <span class="citation">(<a href="#ref-Krzyzanski2010">Krzyzanski et al.
+2010</a>)</span>.</p>
 <p>The model describes subcutaneous filgrastim with quasi-steady-state
 target-mediated drug disposition (TMDD) and a myelopoiesis cascade for
 absolute neutrophil count (ANC). The population Fisher information
-matrix (FIM) is evaluated for <strong>Design 1</strong>: three parallel
-arms (1, 3 and 10 µg/kg), 10 subjects per arm, dense PK and ANC sampling
-on days 1 and 7.</p>
+matrix (FIM) is evaluated for Design 1: three parallel arms (1, 3 and 10
+µg/kg), 10 subjects per arm, dense PK and ANC sampling on days 1 and
+7.</p>
 <div id="objectives" class="section level2">
 <h2>Objectives</h2>
 <ol style="list-style-type: decimal">
-<li><strong>Evaluate</strong> the population FIM of Design 1 (ODE model,
-two responses, <code>Combined2</code> residual error).</li>
-<li><strong>Report</strong> relative standard errors (RSE %) for fixed
-effects, IIV and residual error.</li>
-<li><strong>Display</strong> typical PK and ANC predictions (dense ODE
-re-simulation) together with SE / RSE bar charts.</li>
+<li>Evaluate the population FIM of Design 1 (ODE model, two responses,
+<code>Combined2</code> residual error).</li>
+<li>Report relative standard errors (RSE %) for fixed effects, IIV and
+residual error.</li>
+<li>Display typical PK and ANC predictions (dense ODE re-simulation)
+together with SE / RSE bar charts.</li>
 </ol>
 <p>The 11-state ODE FIM is expensive. During rendering,
-<code>example04_execute.R</code> reuses
-<code>vignettes/data/vignette4_evaluation_populationFIM.RDS</code> when
+<code>vignette_05_gcse_pkpd_execute.R</code> reuses
+<code>vignettes/data/vignette5_evaluation_populationFIM.RDS</code> when
 present; otherwise it runs the evaluation. Set
 <code>PFIM_GCSF_FORCE_RUN=true</code> to ignore the cache. HTML
 <code>Report()</code> is rebuilt only when regenerating the FIM or when
@@ -795,10 +824,9 @@ feedback: higher ANC clears G-CSF faster.</p>
 <h1>PK-PD model</h1>
 <p>Two observed responses:</p>
 <ul>
-<li><strong>RespPK</strong> — serum G-CSF (ng/mL), algebraic
-quasi-steady-state free concentration from the central amount
-<code>CENT</code>.</li>
-<li><strong>RespPD</strong> — circulating ANC (<span class="math inline">\(10^3\)</span>/µL), ODE state <code>NB</code>.</li>
+<li>RespPK — serum G-CSF (ng/mL), algebraic quasi-steady-state free
+concentration from the central amount <code>CENT</code>.</li>
+<li>RespPD — circulating ANC (<span class="math inline">\(10^3\)</span>/µL), ODE state <code>NB</code>.</li>
 </ul>
 <p>Eleven ODE states: depot <code>ABS</code>, central <code>CENT</code>,
 nine bone-marrow transit compartments <code>B1</code>–<code>B9</code>,
@@ -807,9 +835,9 @@ identifies each right-hand side; the suffix must match the state name.
 Operators follow R (<code>**</code> for exponentiation).</p>
 <p>The full right-hand sides are built by
 <code>.pfimGcsfModelEquations()</code> in
-<code>example04_execute.R</code>. The evaluation only needs the equation
-list, the algebraic PK output, and baseline initial conditions
-<code>.pfimGcsfBaselineICs()</code>.</p>
+<code>vignette_05_gcse_pkpd_execute.R</code>. The evaluation only needs
+the equation list, the algebraic PK output, and baseline initial
+conditions <code>.pfimGcsfBaselineICs()</code>.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>modelEquations <span class="ot">=</span> <span class="fu">.pfimGcsfModelEquations</span>()</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>outputs <span class="ot">=</span> <span class="fu">list</span>(<span class="at">RespPK =</span> <span class="fu">.pfimGcsfCp</span>(), <span class="at">RespPD =</span> <span class="st">&quot;NB&quot;</span>)</span></code></pre></div>
 </div>
@@ -936,14 +964,14 @@ do not appear in the FIM.</p>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">ModelParameter</span>(<span class="at">name =</span> <span class="st">&quot;KA&quot;</span>,  <span class="at">distribution =</span> <span class="fu">LogNormal</span>(<span class="at">mu =</span> <span class="fl">0.642</span>, <span class="at">omega =</span> <span class="dv">0</span>)),</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">ModelParameter</span>(<span class="at">name =</span> <span class="st">&quot;KEL&quot;</span>, <span class="at">distribution =</span> <span class="fu">LogNormal</span>(<span class="at">mu =</span> <span class="fl">0.148</span>, <span class="at">omega =</span> <span class="fu">sqrt</span>(<span class="fl">0.312</span>))),</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="fu">ModelParameter</span>(<span class="at">name =</span> <span class="st">&quot;VD&quot;</span>,  <span class="at">distribution =</span> <span class="fu">LogNormal</span>(<span class="at">mu =</span> <span class="fl">2.56</span>,  <span class="at">omega =</span> <span class="fu">sqrt</span>(<span class="fl">0.328</span>))),</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="co"># ... remaining parameters as in example04_execute.R</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="co"># ... remaining parameters as in vignette_05_gcse_pkpd_execute.R</span></span>
 <span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="residual-error-model" class="section level1">
 <h1>Residual error model</h1>
-<p>PFIM <code>Combined2</code> stores residual <strong>standard
-deviations</strong> (<code>sigmaInter</code>, <code>sigmaSlope</code>).
-The variance form is</p>
+<p>PFIM <code>Combined2</code> stores residual standard deviations
+(<code>sigmaInter</code>, <code>sigmaSlope</code>). The variance form
+is</p>
 <p><span class="math display">\[
 V = \sigma_{\mathrm{inter}}^2 + (\sigma_{\mathrm{slope}}\, f)^2.
 \]</span></p>
@@ -1155,14 +1183,277 @@ Parameter               Value           SE     RSE(%)
 
 [1] 500.3243</pre>
 </div>
-<div id="relative-standard-errors" class="section level1">
+<div id="pfim-poped-and-cross-tool-equivalence" class="section level1">
+<h1>PFIM, PopED, and cross-tool equivalence</h1>
+<p>This vignette compares PFIM to PopED on G-CSF Design 1. Many PFIM
+examples (workshop material, Tim Waterhouse oral PK) were originally
+built in PopED. The two tools do not share syntax; FIMs and RSE are
+comparable only when the statistical model, design, and variance versus
+SD conventions are aligned.</p>
+<p>This section has three parts:</p>
+<ul>
+<li>General rules, valid for any PopED model translated into PFIM;</li>
+<li>Tim Waterhouse oral PK, the reference PopED layout
+(<code>optimal-design-2023</code>), implemented in
+<code>vignette(&quot;Vignette_04_tim_waterhouse_pediatric&quot;, package = &quot;PFIM&quot;)</code>;</li>
+<li>G-CSF Design 1, the ODE model of this vignette.</li>
+</ul>
+<p>Readers interested only in the G-CSF example can go directly to <a href="#gcsf-poped">G-CSF Design 1</a> and the <a href="#gcsf-rse">relative standard errors</a>.</p>
+<div id="general-rules-all-vignettes" class="section level2">
+<h2>General rules (all vignettes)</h2>
+<div id="variance-or-sd-one-conversion-rule" class="section level3">
+<h3>Variance or SD? One conversion rule</h3>
+<p>PopED stores inter-individual <code>d</code> and residual
+<code>sigma</code> as variances. PFIM stores <code>omega</code> (IIV)
+and <code>sigmaInter</code> / <code>sigmaSlope</code> (residuals) as
+standard deviations on the same scales. When moving from PopED, NONMEM,
+or Tim’s files to PFIM, apply <code>sqrt</code> to each variance
+separately (IIV and each residual component), never to the combined
+expression <span class="math inline">\(\sigma_{\mathrm{add}}^2 +
+(\sigma_{\mathrm{prop}} f)^2\)</span>.</p>
+<p>From PopED or NONMEM to PFIM: <code>omega = sqrt(d)</code> on each
+<code>LogNormal</code>; <code>sigmaSlope = sqrt(sigma[1])</code>,
+<code>sigmaInter = sqrt(sigma[2])</code> for <code>Combined2</code>
+(e.g. <span class="math inline">\(\sqrt{1} = 1\)</span>).</p>
+<p>PFIM only: type SDs directly; outputs label them <span class="math inline">\(\sigma\)</span>, not <span class="math inline">\(\sigma^2\)</span>. Use <code>Constant</code> or
+<code>Proportional</code> when a single error term is enough;
+<code>Combined2</code> matches PopED’s two-term residual model.</p>
+<p>Sanity check: at a typical <span class="math inline">\(f_0\)</span>,
+compare <span class="math inline">\(\sigma_{\mathrm{inter}}^2 +
+(\sigma_{\mathrm{slope}} f_0)^2\)</span> in PFIM to
+<code>sigma[2] + sigma[1] * f_0^2</code> in PopED. Mismatch in FIM, RSE,
+or optimal times often comes from skipping the square root on
+<code>d</code> or <code>sigma</code>.</p>
+</div>
+<div id="naming" class="section level3">
+<h3>Naming</h3>
+<p>Different names are expected. For peer review or cross-checking with
+PopED, align the equivalence table and the variance → SD rule, not a
+literal copy of PopED numbers into PFIM fields.</p>
+</div>
+</div>
+<div id="tim-waterhouse-oral-pk-vignette-04" class="section level2">
+<h2>Tim Waterhouse oral PK (Vignette 04)</h2>
+<p>The tables below refer to the pediatric oral PK example of
+<code>vignette(&quot;Vignette_04_tim_waterhouse_pediatric&quot;, package = &quot;PFIM&quot;)</code>.</p>
+<div id="what-plays-the-same-role" class="section level3">
+<h3>What plays the same role</h3>
+<table>
+<colgroup>
+<col width="16%" />
+<col width="30%" />
+<col width="52%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Topic</th>
+<th>Tim / PopED</th>
+<th>PFIM (Vignette 04)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Structural PK</td>
+<td><code>ff()</code>, <code>fg()</code>; scaling in <code>ff</code>
+with <code>WT</code>, <code>WT_CL</code>, <code>WT_V</code></td>
+<td>One analytic <code>modelEquations</code> string;
+<code>(WT/70)^beta_*</code> inside the formula</td>
+</tr>
+<tr class="even">
+<td>Typical clearance, volume, absorption</td>
+<td><code>bpop</code>: <code>CL</code>, <code>V</code>,
+<code>KA</code></td>
+<td><code>ModelParameter</code>: <code>Cl</code>, <code>V</code>,
+<code>ka</code> (<code>LogNormal</code>, μ on the natural scale,
+e.g. <code>V = 100</code> L)</td>
+</tr>
+<tr class="odd">
+<td>Weight exponents (fixed)</td>
+<td><code>bpop</code>: <code>WT_CL = 0.75</code>, <code>WT_V = 1</code>;
+<code>notfixed_bpop = 0</code> for those</td>
+<td><code>beta_Cl_WT</code>, <code>beta_V_WT</code> with
+<code>fixedMu = TRUE</code></td>
+</tr>
+<tr class="even">
+<td>Pediatric weight</td>
+<td>Covariate <code>a</code> / <code>fg</code>:
+<code>WT = 32</code></td>
+<td>Global symbol <code>WT = 32</code> read from the R environment (not
+<code>Covariate()</code>)</td>
+</tr>
+<tr class="odd">
+<td>IIV on CL, V, KA</td>
+<td><code>d</code>: <code>0.08</code>, <code>0.1</code>,
+<code>0.2</code></td>
+<td><code>omega = sqrt(0.08)</code>, <code>sqrt(0.1)</code>,
+<code>sqrt(0.2)</code> on each <code>LogNormal</code></td>
+</tr>
+<tr class="even">
+<td>Residual error</td>
+<td><code>feps.add.prop</code>; <code>sigma = c(0.05, 1)</code></td>
+<td><code>Combined2</code>; <code>sigmaSlope = sqrt(0.05)</code>,
+<code>sigmaInter = 1</code></td>
+</tr>
+<tr class="odd">
+<td>Dose</td>
+<td><code>a</code>: <code>DOSE = 10</code> (mg); <code>fg</code> uses
+<code>DOSE * 1000</code></td>
+<td><code>Administration</code>: <code>dose = 10 * 1000</code> at each
+<code>timeDose</code></td>
+</tr>
+<tr class="even">
+<td>Sample size</td>
+<td><code>groupsize = 12</code></td>
+<td><code>Arm(..., size = 12)</code></td>
+</tr>
+<tr class="odd">
+<td>Objective</td>
+<td>D-optimal FIM on <code>bpop</code> (estimated thetas)</td>
+<td>D-optimal population FIM on estimable <code>μ</code>
+(<code>fimType = &quot;population&quot;</code>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="design-and-time-scale" class="section level3">
+<h3>Design and time scale</h3>
+<table>
+<colgroup>
+<col width="24%" />
+<col width="75%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>PopED</th>
+<th>PFIM (Vignette 04)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>xt</code>, <code>minxt</code>, <code>maxxt</code> often
+relative to dosing (e.g. hours after dose); steady-state samples use
+<code>model_switch = 2</code> and a dedicated formula</td>
+<td>Calendar time from study start (hours); repeated doses via
+<code>timeDose</code> + superposition of the same oral formula</td>
+</tr>
+<tr class="even">
+<td>Five occasions in Tim: <code>xt = c(5, 24, 24, 24, 168)</code> in
+the SS frame</td>
+<td><code>5</code>, predose weeks 8/12/24, <code>lastDose + 168</code>
+in calendar hours</td>
+</tr>
+</tbody>
+</table>
+<p>Optimization windows in PFIM are chosen to mirror Tim’s protocol;
+optimal times need not match PopED numerically (different time origin
+and PK engine).</p>
+</div>
+<div id="structural-model-implementation" class="section level3">
+<h3>Structural model implementation</h3>
+<p>PopED switches between first-dose and steady-state concentration
+formulas (<code>model_switch</code>). PFIM uses one oral absorption
+expression and superposes daily doses. For a short half-life and
+once-daily dosing, profiles are usually similar but not identical.</p>
+</div>
+<div id="naming-only-no-change-to-the-model" class="section level3">
+<h3>Naming only (no change to the model)</h3>
+<table>
+<colgroup>
+<col width="38%" />
+<col width="61%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>PopED / Tim</th>
+<th>PFIM (Vignette 04)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>CL</code>, <code>KA</code></td>
+<td><code>Cl</code>, <code>ka</code> (case)</td>
+</tr>
+<tr class="even">
+<td><code>WT_CL</code>, <code>WT_V</code></td>
+<td><code>beta_Cl_WT</code>, <code>beta_V_WT</code></td>
+</tr>
+<tr class="odd">
+<td><code>bpop</code>, <code>d</code>, <code>sigma</code>,
+<code>xt</code></td>
+<td><code>modelParameters</code>, <code>modelError</code>,
+<code>SamplingTimes</code> / constraints</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="gcsf-poped" class="section level2">
+<h2>G-CSF Design 1 (this vignette, Vignette 05)</h2>
+<div id="variance-sd-for-this-model" class="section level3">
+<h3>Variance → SD for this model</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Term</th>
+<th>PopED (variance)</th>
+<th>PFIM (SD)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>IIV, e.g. <code>KEL</code></td>
+<td><code>d = 0.312</code></td>
+<td><code>omega = sqrt(0.312)</code></td>
+</tr>
+<tr class="even">
+<td>PK proportional</td>
+<td><code>0.253</code></td>
+<td><code>sigmaSlope = sqrt(0.253)</code></td>
+</tr>
+<tr class="odd">
+<td>ANC proportional</td>
+<td><code>0.0227</code></td>
+<td><code>sigmaSlope = sqrt(0.0227)</code></td>
+</tr>
+<tr class="even">
+<td>ANC additive</td>
+<td><code>2.10</code></td>
+<td><code>sigmaInter = sqrt(2.10)</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="comparing-rse-with-poped" class="section level3">
+<h3>Comparing RSE with PopED</h3>
+<ul>
+<li>Fixed effects (<span class="math inline">\(\mu\)</span>) and IIV
+(<span class="math inline">\(\omega^2\)</span>): both tools report RSE
+on the same scale; values are directly comparable (see tables
+below).</li>
+<li>Residual error: PopED reports the RSE of the variance, PFIM the RSE
+of the SD. By the delta method, <span class="math inline">\(\mathrm{RSE}(\sigma^2) \approx
+2\,\mathrm{RSE}(\sigma)\)</span>.</li>
+<li>Finite differences: <code>perf.fdLinearOnly = TRUE</code> uses
+central differences, as PopED does, so that gradients are computed the
+same way.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="gcsf-rse" class="section level1">
 <h1>Relative standard errors</h1>
-<p>RSE (%) reported by PFIM for Design 1.</p>
+<p>RSE (%) for Design 1. The PopED column is
+<code>get_rse(FIM_gcsf, poped_db_gcsf)</code> for this design, stored as
+<code>gcsf_design1</code> in <code>inst/fixtures/gold-fim.R</code>. That
+block is a PopED reference, not a PFIM result. The other entries in the
+same file (<code>cas1</code>–<code>cas6</code>) are frozen PFIM numbers
+and are not used here. Residual RSE in <code>gcsf_design1</code>
+(<code>rse_sigma_var</code>) is on the variance scale.</p>
 <div id="fixed-effects-mu" class="section level2">
 <h2>Fixed effects (<span class="math inline">\(\mu\)</span>)</h2>
 <table class="table table-striped table-hover table-condensed" style="font-size: 12px; width: auto !important; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
-Fixed-effect RSE (%) for Design 1.
+Fixed-effect RSE (%) for Design 1 (PFIM vs PopED).
 </caption>
 <thead>
 <tr>
@@ -1173,7 +1464,10 @@ Parameter
 Description
 </th>
 <th style="text-align:right;">
-RSE (%)
+PopED RSE (%)
+</th>
+<th style="text-align:right;">
+PFIM RSE (%)
 </th>
 </tr>
 </thead>
@@ -1184,6 +1478,9 @@ RSE (%)
 </td>
 <td style="text-align:right;">
 Absorption rate
+</td>
+<td style="text-align:right;">
+3.289
 </td>
 <td style="text-align:right;">
 3.289
@@ -1199,6 +1496,9 @@ Elimination rate of free G-CSF
 <td style="text-align:right;">
 13.519
 </td>
+<td style="text-align:right;">
+13.519
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1206,6 +1506,9 @@ Elimination rate of free G-CSF
 </td>
 <td style="text-align:right;">
 Central volume
+</td>
+<td style="text-align:right;">
+12.604
 </td>
 <td style="text-align:right;">
 12.604
@@ -1221,6 +1524,9 @@ Equilibrium dissociation constant
 <td style="text-align:right;">
 8.265
 </td>
+<td style="text-align:right;">
+8.265
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1228,6 +1534,9 @@ Equilibrium dissociation constant
 </td>
 <td style="text-align:right;">
 Internalization rate
+</td>
+<td style="text-align:right;">
+3.822
 </td>
 <td style="text-align:right;">
 3.822
@@ -1243,6 +1552,9 @@ Binding capacity (Rmax-related)
 <td style="text-align:right;">
 19.528
 </td>
+<td style="text-align:right;">
+19.528
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1250,6 +1562,9 @@ Binding capacity (Rmax-related)
 </td>
 <td style="text-align:right;">
 Neutrophil elimination from blood
+</td>
+<td style="text-align:right;">
+4.067
 </td>
 <td style="text-align:right;">
 4.066
@@ -1261,6 +1576,9 @@ Neutrophil elimination from blood
 </td>
 <td style="text-align:right;">
 Myeloid transit rate
+</td>
+<td style="text-align:right;">
+17.018
 </td>
 <td style="text-align:right;">
 17.017
@@ -1276,6 +1594,9 @@ Baseline circulating ANC
 <td style="text-align:right;">
 10.771
 </td>
+<td style="text-align:right;">
+10.771
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1283,6 +1604,9 @@ Baseline circulating ANC
 </td>
 <td style="text-align:right;">
 G-CSF EC50 for stimulation
+</td>
+<td style="text-align:right;">
+20.851
 </td>
 <td style="text-align:right;">
 20.851
@@ -1298,6 +1622,9 @@ Max. stimulation of production
 <td style="text-align:right;">
 8.290
 </td>
+<td style="text-align:right;">
+8.290
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1305,6 +1632,9 @@ Max. stimulation of production
 </td>
 <td style="text-align:right;">
 Max. stimulation of maturation
+</td>
+<td style="text-align:right;">
+7.665
 </td>
 <td style="text-align:right;">
 7.665
@@ -1318,7 +1648,7 @@ Max. stimulation of maturation
 <table class="table table-striped table-hover table-condensed" style="font-size: 12px; width: auto !important; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
 IIV variance (<span class="math inline">\(\omega^2\)</span>) RSE (%) for
-Design 1.
+Design 1 (PFIM vs PopED).
 </caption>
 <thead>
 <tr>
@@ -1329,7 +1659,10 @@ Parameter
 Description
 </th>
 <th style="text-align:right;">
-RSE (%)
+PopED RSE (%)
+</th>
+<th style="text-align:right;">
+PFIM RSE (%)
 </th>
 </tr>
 </thead>
@@ -1340,6 +1673,9 @@ RSE (%)
 </td>
 <td style="text-align:right;">
 Baseline circulating ANC
+</td>
+<td style="text-align:right;">
+26.961
 </td>
 <td style="text-align:right;">
 26.961
@@ -1355,6 +1691,9 @@ Elimination rate of free G-CSF
 <td style="text-align:right;">
 32.645
 </td>
+<td style="text-align:right;">
+32.645
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1362,6 +1701,9 @@ Elimination rate of free G-CSF
 </td>
 <td style="text-align:right;">
 Central volume
+</td>
+<td style="text-align:right;">
+31.369
 </td>
 <td style="text-align:right;">
 31.369
@@ -1377,6 +1719,9 @@ Binding capacity (Rmax-related)
 <td style="text-align:right;">
 41.941
 </td>
+<td style="text-align:right;">
+41.941
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1384,6 +1729,9 @@ Binding capacity (Rmax-related)
 </td>
 <td style="text-align:right;">
 G-CSF EC50 for stimulation
+</td>
+<td style="text-align:right;">
+29.157
 </td>
 <td style="text-align:right;">
 29.157
@@ -1399,17 +1747,25 @@ Max. stimulation of production
 <td style="text-align:right;">
 26.407
 </td>
+<td style="text-align:right;">
+26.407
+</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div id="residual-error-sigma" class="section level2">
 <h2>Residual error (<span class="math inline">\(\sigma\)</span>)</h2>
-<p>Console and report rows are labelled <span class="math inline">\(\sigma_{\mathrm{slope/inter}}\)</span> — the
-<strong>Value</strong> column is the SD, not the variance.</p>
+<p>Console and report rows are labelled <span class="math inline">\(\sigma_{\mathrm{slope/inter}}\)</span> — the Value
+column is the SD, not the variance.</p>
+<p>PFIM estimates the residual SD, PopED the residual variance, so their
+RSE are not on the same scale. By the delta method, <span class="math inline">\(\mathrm{RSE}(\sigma^2) \approx
+2\,\mathrm{RSE}(\sigma)\)</span>: the column <span class="math inline">\(2 \times\)</span> PFIM RSE is the one to compare
+with PopED.</p>
 <table class="table table-striped table-hover table-condensed" style="font-size: 12px; width: auto !important; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
-Residual-error SD and RSE (%) for Design 1.
+Residual error for Design 1. Compare the last two columns: <span class="math inline">\(2 \times\)</span> PFIM RSE(SD) <span class="math inline">\(\approx\)</span> RSE(variance), the scale used by
+PopED.
 </caption>
 <thead>
 <tr>
@@ -1420,10 +1776,16 @@ Parameter
 Description
 </th>
 <th style="text-align:right;">
-Value (SD)
+Value PFIM (SD)
 </th>
 <th style="text-align:right;">
-RSE (%)
+PFIM RSE (SD, %)
+</th>
+<th style="text-align:right;">
+2 × PFIM RSE (variance scale, %)
+</th>
+<th style="text-align:right;">
+PopED RSE (variance, %)
 </th>
 </tr>
 </thead>
@@ -1441,6 +1803,12 @@ PK proportional (SD)
 <td style="text-align:right;">
 1.950
 </td>
+<td style="text-align:right;">
+3.900
+</td>
+<td style="text-align:right;">
+3.900
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -1454,6 +1822,12 @@ ANC proportional (SD)
 </td>
 <td style="text-align:right;">
 3.271
+</td>
+<td style="text-align:right;">
+6.541
+</td>
+<td style="text-align:right;">
+6.541
 </td>
 </tr>
 <tr>
@@ -1469,6 +1843,12 @@ ANC additive (SD)
 <td style="text-align:right;">
 3.857
 </td>
+<td style="text-align:right;">
+7.713
+</td>
+<td style="text-align:right;">
+7.713
+</td>
 </tr>
 </tbody>
 </table>
@@ -1476,9 +1856,9 @@ ANC additive (SD)
 </div>
 <div id="diagnostic-plots" class="section level1">
 <h1>Diagnostic plots</h1>
-<p>Overlay of the three dose groups (PK | ANC): <strong>ODE
-re-simulation</strong> on a dense <span class="math inline">\(0..t_{\max}\)</span> grid. Sampling times are
-shown as points. SE and RSE bar charts follow.</p>
+<p>Overlay of the three dose groups (PK | ANC): ODE re-simulation on a
+dense <span class="math inline">\(0..t_{\max}\)</span> grid. Sampling
+times are shown as points. SE and RSE bar charts follow.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>plotOutcomesEvaluationModel</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>PFIM<span class="sc">::</span><span class="fu">plotSE</span>(evaluationPop)</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>PFIM<span class="sc">::</span><span class="fu">plotRSE</span>(evaluationPop)</span></code></pre></div>

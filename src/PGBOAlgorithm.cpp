@@ -20,7 +20,7 @@ using namespace Rcpp;
 
 // Sort the coordinates of one sampling group (1-based indices from R).
 static void sort_group(NumericVector& pos, const IntegerVector& idx_one_based) {
-  const int n = idx_one_based.size();
+  const int n = static_cast<int>( idx_one_based.size() );
   std::vector<double> buf(static_cast<size_t>(n));
   for (int k = 0; k < n; ++k) buf[static_cast<size_t>(k)] = pos[idx_one_based[k] - 1];
   std::sort(buf.begin(), buf.end());
@@ -32,7 +32,7 @@ static IntegerVector load_sorting_group(SEXP group_sexp, int n_pos) {
   IntegerVector grp = group_sexp;
   if (grp.size() == 0)
     stop("PGBOAlgorithm: sorting_groups must not contain empty groups.");
-  for (int k = 0; k < grp.size(); ++k) {
+  for (int k = 0; k < static_cast<int>(grp.size()); ++k) {
     const int idx = grp[k];
     if (IntegerVector::is_na(idx) || idx < 1 || idx > n_pos)
       stop("PGBOAlgorithm: sorting_groups indices must be in 1..length(pos).");
@@ -125,7 +125,7 @@ List pgbo_optimize_Rcpp(NumericVector initial_pos,
         const int pick = (local >= static_cast<int>(grp_idx.size())) ? (static_cast<int>(grp_idx.size()) - 1) : local;
         trial[grp_idx[pick] - 1] += R::rcauchy(0.0, 1.0) * mute_effect;
       } else {
-        for (int k = 0; k < grp_idx.size(); ++k) {
+        for (int k = 0; k < static_cast<int>(grp_idx.size()); ++k) {
           trial[grp_idx[k] - 1] += R::rnorm(0.0, 1.0) * mute_effect;
         }
       }
@@ -133,8 +133,8 @@ List pgbo_optimize_Rcpp(NumericVector initial_pos,
 
       // Accept this group's mutation if R says the constraints are satisfied.
       if (as<bool>(check_valid_group(trial, group_idx + 1))) {
-        NumericVector stored(grp_idx.size());
-        for (int k = 0; k < grp_idx.size(); ++k) stored[k] = trial[grp_idx[k] - 1];
+        NumericVector stored(static_cast<R_xlen_t>(grp_idx.size()));
+        for (int k = 0; k < static_cast<int>(grp_idx.size()); ++k) stored[k] = trial[grp_idx[k] - 1];
         group_values[static_cast<size_t>(group_idx)] = stored;
         has_group[static_cast<size_t>(group_idx)] = 1;
         found = std::all_of(has_group.begin(), has_group.end(),
@@ -147,7 +147,7 @@ List pgbo_optimize_Rcpp(NumericVector initial_pos,
     for (int g = 0; g < n_groups; ++g) {
       const IntegerVector& grp_idx = group_indices[static_cast<size_t>(g)];
       const NumericVector& stored = group_values[static_cast<size_t>(g)];
-      for (int k = 0; k < grp_idx.size(); ++k) {
+      for (int k = 0; k < static_cast<int>(grp_idx.size()); ++k) {
         candidate[grp_idx[k] - 1] = stored[k];
       }
     }

@@ -11,8 +11,8 @@ ModelODEBolus = new_class(
   "ModelODEBolus", package = "PFIM", parent = ModelODE,
   properties = list(
     modelODE     = new_property( class_function, default = NULL ),
-    doseEvent    = new_property( class_list,     default = list() ),
-    solverInputs = new_property( class_list,     default = list() )
+    doseEvent    = new_property( class_list,     default = quote( list() ) ),
+    solverInputs = new_property( class_list,     default = quote( list() ) )
   )
 )
 
@@ -28,7 +28,7 @@ ModelODEDoseInEquations = new_class(
   "ModelODEDoseInEquations", package = "PFIM", parent = ModelODE,
   properties = list(
     modelODEDoseInEquations = new_property( class_function, default = NULL ),
-    solverInputs            = new_property( class_list,     default = list() )
+    solverInputs            = new_property( class_list,     default = quote( list() ) )
   )
 )
 
@@ -45,8 +45,8 @@ ModelODEDoseNotInEquations = new_class(
   "ModelODEDoseNotInEquations", package = "PFIM", parent = ModelODE,
   properties = list(
     modelODE     = new_property( class_function, default = NULL ),
-    doseEvent    = new_property( class_list,     default = list() ),
-    solverInputs = new_property( class_list,     default = list() )
+    doseEvent    = new_property( class_list,     default = quote( list() ) ),
+    solverInputs = new_property( class_list,     default = quote( list() ) )
   )
 )
 

@@ -55,8 +55,6 @@ Return PK equations stored on the dose-in-equation model.
 Return PK equations stored on the dose-event model.
 }
 \examples{
-\dontrun{
 vignette("LibraryOfModels")
-}
 }
 \keyword{internal}

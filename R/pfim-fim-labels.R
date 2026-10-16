@@ -274,30 +274,50 @@ NULL
 #' @keywords internal
 .pfimBarWidth = 0.7
 
-#' SE/RSE bar-chart rows grouped by Greek prefix, in \code{groups} order.
+#' Greek block key for one SE/RSE row label (\code{mu}, \code{beta}, ...).
+#' @noRd
+#' @keywords internal
+.fimSeRseGroupKey = function( label, groups ) {
+  for ( group in groups ) {
+    if ( startsWith( label, .greekConsole[[ group ]] ) )
+      return( group )
+  }
+  .pfimInternalStop( "SE/RSE label does not match a known Greek prefix: ", label )
+}
+
+#' SE/RSE bar-chart rows in \code{show()} / FIM row order (not sorted by name).
 #'
-#' Keeps the full console names (\code{mu_}, \code{omega^2_}, ...) so the
-#' x-axis matches the SE/RSE report table; one facet label per row.
+#' Facets (\code{cat}) follow \code{groups}; x-axis order within each facet matches
+#' the parameter estimation table printed by \code{show()}.
 #' @param seDF SE/RSE table with \code{SE} and \code{RSE} columns.
-#' @param rn Console row names of \code{seDF}.
+#' @param rn Console row names of \code{seDF} (same order as \code{show()}).
 #' @param metric \code{"SE"} or \code{"RSE"}.
 #' @param groups Keys of \code{.greekConsole}, e.g. \code{c("mu", "beta")}.
 #' @return \code{data.frame} with \code{Parameter}, \code{metric} and \code{cat}.
 #' @noRd
 #' @keywords internal
 .fimSeRseGroupedFrame = function( seDF, rn, metric, groups ) {
-  rows   = map( groups, \( group ) which( startsWith( rn, .greekConsole[ group ] ) ) )
-  idx    = unlist( rows )
   values = if ( metric == "SE" ) seDF$SE else seDF$RSE
-  cats   = map2( groups, rows, \( group, r ) rep( .pfimSeRseFacetLabel( metric, group ), length( r ) ) )
+  keys   = map_chr( rn, \( label ) .fimSeRseGroupKey( label, groups ) )
+  cats   = map_chr( keys, \( k ) .pfimSeRseFacetLabel( metric, k ) )
   df     = data.frame(
-    Parameter        = rn[ idx ],
-    y                = values[ idx ],
-    cat              = as.character( unlist( cats ) ),
+    Parameter        = rn,
+    y                = values,
+    cat              = cats,
+    facetKey         = keys,
     stringsAsFactors = FALSE
   )
   names( df )[ 2L ] = metric
   df
+}
+
+#' Facet strip order: \code{mu}, \code{beta}, \code{omega}, \code{gamma}, \code{sigma}.
+#' @noRd
+#' @keywords internal
+.fimSeRseFacetLevelsOrdered = function( metric, groups, catValues ) {
+  labels = map_chr( groups, \( g ) .pfimSeRseFacetLabel( metric, g ) )
+  present = unique( as.character( catValues ) )
+  labels[ labels %in% present ]
 }
 
 #' Faceted SE/RSE bar chart shared by FIM plot methods.
@@ -306,24 +326,36 @@ NULL
 #' number of categories via \code{space = "free_x"} so bar widths stay aligned.
 #' @noRd
 #' @keywords internal
-.fimSeRseBarPlot = function( df, metric, facetLevels ) {
-  # Factor only for plotting order; restore character cols on p$data for tests.
+.fimSeRseBarPlot = function( df, metric, groups ) {
+  if ( missing( groups ) )
+    groups = c( "mu", "beta", "omega", "gamma", "sigma" )
+  if ( !"facetKey" %in% names( df ) ) {
+    df$facetKey = map_chr(
+      as.character( df$Parameter ),
+      \( label ) .fimSeRseGroupKey( label, groups )
+    )
+  }
+  keyLevels = groups[ groups %in% df$facetKey ]
+  paramLevels = as.character( df$Parameter )
   dfPlot = df
-  dfPlot$cat = factor( as.character( dfPlot$cat ), levels = facetLevels )
-  dfPlot$Parameter = factor(
-    as.character( dfPlot$Parameter ),
-    levels = unique( as.character( dfPlot$Parameter ) )
+  dfPlot$facetKey = factor( as.character( dfPlot$facetKey ), levels = keyLevels )
+  dfPlot$Parameter = factor( as.character( dfPlot$Parameter ), levels = paramLevels )
+  # Precomputed plotmath strips + ordered factor levels (mu -> beta -> ...); do not
+  # build strip text in as_labeller() — ggplot may pass a vector and break [[ key ]].
+  stripLevels = map_chr( keyLevels, \( k ) .pfimSeRseFacetLabel( metric, k ) )
+  dfPlot$facetStrip = factor(
+    map_chr( as.character( dfPlot$facetKey ), \( k ) .pfimSeRseFacetLabel( metric, k ) ),
+    levels = stripLevels
   )
-  # Console FIM names stay in data; axis uses plotmath (PDF/Windows-safe Greek).
   p = ggplot( dfPlot, aes( x = .data$Parameter, y = .data[[ metric ]] ) ) +
     geom_col(
       width = .pfimBarWidth, fill = "grey35", show.legend = FALSE
     ) +
     ggplot2::facet_grid(
-      cols     = ggplot2::vars( cat ),
+      cols     = ggplot2::vars( facetStrip ),
       scales   = "free_x",
       space    = "free_x",
-      labeller = ggplot2::label_parsed
+      labeller = ggplot2::labeller( facetStrip = ggplot2::label_parsed )
     ) +
     scale_x_discrete(
       labels = \( br ) parse( text = map_chr( br, .pfimParamPlotmathLabel ), keep.source = FALSE )
@@ -331,7 +363,14 @@ NULL
     labs( x = "Parameter", y = metric ) +
     scale_y_continuous( expand = expansion( mult = c( 0, 0.08 ) ) ) +
     .pfimSeRseTheme()
-  p$data = df
+  # p$data must retain facetStrip (and ordered facetKey) or facet_grid breaks on print.
+  dfOut = df
+  dfOut$facetKey = factor( as.character( df$facetKey ), levels = keyLevels )
+  dfOut$facetStrip = factor(
+    map_chr( as.character( df$facetKey ), \( k ) .pfimSeRseFacetLabel( metric, k ) ),
+    levels = stripLevels
+  )
+  p$data = dfOut
   p
 }
 

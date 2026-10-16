@@ -1,5 +1,6 @@
 ---
 title: "Library of models"
+author: "Romain Leroux"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -8,11 +9,13 @@ vignette: >
   %\VignetteIndexEntry{Library of models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteAuthor{Romain Leroux}
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_knit$set(tangle = FALSE)
 knitr::opts_chunk$set(
+  eval = !nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_")),
   purl = FALSE,
   collapse = TRUE,
   comment = "#>"

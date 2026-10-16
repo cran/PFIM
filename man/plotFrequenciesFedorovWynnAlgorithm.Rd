@@ -10,8 +10,6 @@ A \code{ggplot2} plot object.
 Frequency trajectories of the Fedorov-Wynn algorithm
 }
 \examples{
-\dontrun{
-# help(plotFrequenciesFedorovWynnAlgorithm); vignette("Example01")
-}
+vignette("Vignette_01_discrete_design")
 }
 \keyword{internal}

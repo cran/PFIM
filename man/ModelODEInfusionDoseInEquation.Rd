@@ -17,7 +17,7 @@ ModelODEInfusionDoseInEquation(
   omegaWithIOV = numeric(0),
   samplings = numeric(0),
   modelEquations = list(),
-  wrapper = function() NULL,
+  wrapper = NULL,
   outputFormula = list(),
   outputNames = character(0),
   variableNames = character(0),

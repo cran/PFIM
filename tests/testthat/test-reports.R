@@ -181,7 +181,32 @@ test_that( "plotSE population FIM includes beta bars when covariates are present
   expect_s3_class( p, "ggplot" )
   expect_equal( nrow( p$data ), se_n )
   expect_true( any( p$data$cat == "'SE'~'  '~beta" ) )
-  expect_equal( unique( p$data$cat )[ 1L ], "'SE'~'  '~mu" )
+  fk = unique( as.character( p$data$facetKey ) )
+  expect_equal( fk[ 1L:2L ], c( "mu", "beta" ) )
+})
+
+test_that( "plotSE population FIM facet strips follow mu, beta, omega, gamma, sigma", {
+  groups     = c( "mu", "beta", "omega", "gamma", "sigma" )
+  evaluation = run( cas10_evaluation( "plot_facet_order", "population" ) )
+  p          = plotSE( evaluation )
+  present    = as.character( unique( p$data$facetKey ) )
+  expect_equal( present, groups[ groups %in% present ] )
+  built      = ggplot2::ggplot_build( p )
+  expect_equal(
+    as.character( built$layout$layout$facetStrip ),
+    map_chr( groups[ groups %in% present ], \( g ) PFIM:::.pfimSeRseFacetLabel( "SE", g ) )
+  )
+})
+
+test_that( "plotSE and plotRSE keep the same parameter order as show() / SEAndRSE rownames", {
+  cas        = Filter( function( x ) x$id == "cas3_withCov_noIOV", cov_iov_evaluation_cases() )[[ 1L ]]
+  evaluation = run( build_cov_iov_evaluation( cas ) )
+  fim        = PFIM:::setEvaluationFim( prop( evaluation, "fim" ), evaluation )
+  rn         = rownames( prop( fim, "SEAndRSE" )$SEAndRSE )
+  p_se       = plotSE( evaluation )
+  p_rse      = plotRSE( evaluation )
+  expect_equal( as.character( p_se$data$Parameter ), rn )
+  expect_equal( as.character( p_rse$data$Parameter ), rn )
 })
 
 test_that( "tablesForReport population FIM aligns SE/RSE rows with covariates", {

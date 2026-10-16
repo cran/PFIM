@@ -16,12 +16,12 @@
 ModelParameter = new_class( "ModelParameter",
                             package = "PFIM",
                             properties = list(
-                              name         = new_property(class_character, default = character(0)),
+                              name         = new_property(class_character, default = quote( character(0) )),
                               gamma        = new_property(class_double,    default = 0),
-                              distribution = new_property(NULL | Distribution, default = NULL),
+                              distribution = new_property(.pfimDistributionOrNull, default = NULL),
                               fixedMu      = new_property(class_logical,   default = FALSE),
                               fixedOmega   = new_property(class_logical,   default = FALSE),
-                              value        = new_property(class_double,    default = numeric(0))
+                              value        = new_property(class_double,    default = quote( numeric(0) ))
                             ),
                             validator = function( self ) {
                               n = prop( self, "name" )

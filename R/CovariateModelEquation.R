@@ -1,3 +1,12 @@
+# S7 0.2.2 cannot S4-register unions (class_dispatch -> "Unsupported").
+# Current S7 on R-devel requires it for NULL | Class properties.
+.pfimS4RegisterUnion = function( union ) {
+  # Unions with `NULL` / `function` need methods' S4 metadata before setClassUnion.
+  if ( !isNamespaceLoaded( "methods" ) )
+    loadNamespace( "methods" )
+  tryCatch( S4_register( union ), error = function( e ) invisible( NULL ) )
+}
+
 #' @description
 #' The class \code{CovariateModelEquation} is the base class for the two
 #' covariate structural equations supported by PFIM:
@@ -34,6 +43,9 @@ CovariateModelEquation = new_class(
     )
   }
 )
+S4_register( CovariateModelEquation )
+.pfimCovariateModelEquationOrNull = NULL | CovariateModelEquation
+.pfimS4RegisterUnion( .pfimCovariateModelEquationOrNull )
 
 #' Apply \code{beta} and \code{combinedEffect} to produce the adjusted parameter value.
 #'

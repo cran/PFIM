@@ -36,17 +36,17 @@
 Arm = new_class("Arm", package = "PFIM",
 
                 properties = list(
-                  name = new_property(class_character, default = character(0)),
-                  size = new_property(class_double, default = numeric(0)),
-                  administrations = new_property(class_list, default = list()),
-                  initialConditions = new_property(class_list, default = list()),
-                  samplingTimes = new_property(class_list, default = list()),
-                  administrationsConstraints = new_property(class_list, default = list()),
-                  samplingTimesConstraints = new_property(class_list, default = list()),
-                  evaluationModel = new_property(class_list, default = list()),
-                  evaluationGradients = new_property(class_list, default = list()),
-                  evaluationVariance = new_property(class_list, default = list()),
-                  evaluationFim = new_property(NULL | Fim, default = NULL)
+                  name = new_property(class_character, default = quote( character(0) )),
+                  size = new_property(class_double, default = quote( numeric(0) )),
+                  administrations = new_property(class_list, default = quote( list() )),
+                  initialConditions = new_property(class_list, default = quote( list() )),
+                  samplingTimes = new_property(class_list, default = quote( list() )),
+                  administrationsConstraints = new_property(class_list, default = quote( list() )),
+                  samplingTimesConstraints = new_property(class_list, default = quote( list() )),
+                  evaluationModel = new_property(class_list, default = quote( list() )),
+                  evaluationGradients = new_property(class_list, default = quote( list() )),
+                  evaluationVariance = new_property(class_list, default = quote( list() )),
+                  evaluationFim = new_property(.pfimFimOrNull, default = NULL)
                 ),
                 validator = function( self ) {
                   n = prop( self, "name" )

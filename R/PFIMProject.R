@@ -43,21 +43,21 @@
 
 PFIMProject = new_class("PFIMProject", package = "PFIM",
                         properties = list(
-                          name = new_property(class_character, default = character(0)),
-                          modelClass = new_property(class_character, default = character(0)),
-                          modelEquations = new_property(class_list, default = list()),
-                          modelCovariatesEquation = new_property(class_character, default = character(0)),
-                          modelFromLibrary = new_property(class_list, default = list()),
-                          modelParameters = new_property(class_list, default = list()),
-                          modelCovariates = new_property(class_list, default = list()),
-                          modelError = new_property(class_list, default = list()),
-                          optimizer = new_property(class_character, default = character(0)),
-                          optimizerParameters = new_property(class_list, default = list()),
-                          outputs = new_property(class_list, default = list()),
-                          designs = new_property(class_list, default = list()),
-                          fimType = new_property(class_character, default = character(0)),
-                          fim = new_property(NULL | Fim, default = NULL),
-                          odeSolverParameters = new_property(class_list, default = list()),
+                          name = new_property(class_character, default = quote( character(0) )),
+                          modelClass = new_property(class_character, default = quote( character(0) )),
+                          modelEquations = new_property(class_list, default = quote( list() )),
+                          modelCovariatesEquation = new_property(class_character, default = quote( character(0) )),
+                          modelFromLibrary = new_property(class_list, default = quote( list() )),
+                          modelParameters = new_property(class_list, default = quote( list() )),
+                          modelCovariates = new_property(class_list, default = quote( list() )),
+                          modelError = new_property(class_list, default = quote( list() )),
+                          optimizer = new_property(class_character, default = quote( character(0) )),
+                          optimizerParameters = new_property(class_list, default = quote( list() )),
+                          outputs = new_property(class_list, default = quote( list() )),
+                          designs = new_property(class_list, default = quote( list() )),
+                          fimType = new_property(class_character, default = quote( character(0) )),
+                          fim = new_property(.pfimFimOrNull, default = NULL),
+                          odeSolverParameters = new_property(class_list, default = quote( list() )),
                           numberOfOccasions = new_property(class_numeric, default = NA_real_),
                           cacheScope = new_property( class_character, default = "" )
                         ),
@@ -193,10 +193,12 @@ show = S7::new_external_generic( "methods", "show", "object" )
 #' @rdname Report
 #' @return Invisibly, the path or result from the report generator.
 #' @examples
-#' \dontrun{
-#' source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
-#' tmp = tempfile(fileext = ".html")
-#' Report(ev, outputPath = tempdir(), outputFile = basename(tmp), plotOptions = list())
+#' \donttest{
+#' if (rmarkdown::pandoc_available()) {
+#'   source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
+#'   tmp = tempfile(fileext = ".html")
+#'   Report(ev, outputPath = tempdir(), outputFile = basename(tmp), plotOptions = list())
+#' }
 #' }
 #' @export
 Report = new_generic( "Report", c( "pfimproject" ) )

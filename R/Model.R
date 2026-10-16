@@ -1,3 +1,6 @@
+.pfimFunctionOrNull = NULL | class_function
+.pfimS4RegisterUnion( .pfimFunctionOrNull )
+
 #' @title Model
 #' @description
 #' Internal model object built from a \code{PFIMProject}: parameters, covariates,
@@ -33,33 +36,32 @@
 #' @include CovariateModelEquation.R
 #' @return An S7 object of class \code{Model}.
 #' @export
-
 Model = new_class( "Model", package = "PFIM",
 
                    properties = list(
-                     name                           = new_property( class_character,        default = character(0) ),
-                     modelParameters                = new_property( class_list,             default = list()       ),
-                     modelCovariatesEquation        = new_property( NULL | CovariateModelEquation, default = NULL ),
-                     modelCovariates                = new_property( class_list,             default = list()       ),
-                     covariatesEffect               = new_property( class_list,             default = list()       ),
-                     covariatesCombination          = new_property( class_list,             default = list()       ),
-                     modelParametersWithCovariates  = new_property( class_list,             default = list()       ),
+                     name                           = new_property( class_character,        default = quote( character(0) ) ),
+                     modelParameters                = new_property( class_list,             default = quote( list() )       ),
+                     modelCovariatesEquation        = new_property( .pfimCovariateModelEquationOrNull, default = NULL ),
+                     modelCovariates                = new_property( class_list,             default = quote( list() )       ),
+                     covariatesEffect               = new_property( class_list,             default = quote( list() )       ),
+                     covariatesCombination          = new_property( class_list,             default = quote( list() )       ),
+                     modelParametersWithCovariates  = new_property( class_list,             default = quote( list() )       ),
                      numberOfOccasions              = new_property( class_numeric,          default = 1            ),
-                     omegaWithIOV                   = new_property( class_double,           default = numeric(0)   ),
-                     samplings                      = new_property( class_numeric,          default = numeric(0)   ),
-                     modelEquations                 = new_property( class_list,             default = list()       ),
-                     wrapper                        = new_property( class_function | NULL,  default = NULL         ),
-                     outputFormula                  = new_property( class_list,             default = list()       ),
-                     outputNames                    = new_property( class_character,        default = character(0) ),
-                     variableNames                  = new_property( class_character,        default = character(0) ),
-                     outcomesWithAdministration     = new_property( class_character,        default = character(0) ),
-                     outcomesWithNoAdministration   = new_property( class_character,        default = character(0) ),
-                     modelError                     = new_property( class_list,             default = list()       ),
-                     odeSolverParameters            = new_property( class_list,             default = list()       ),
-                     parametersForComputingGradient = new_property( class_list,             default = list()       ),
-                     initialConditions              = new_property( class_double,           default = numeric(0)   ),
-                     functionArguments              = new_property( class_character,        default = character(0) ),
-                     functionArgumentsSymbol        = new_property( class_list,             default = list()       )
+                     omegaWithIOV                   = new_property( class_double,           default = quote( numeric(0) )   ),
+                     samplings                      = new_property( class_numeric,          default = quote( numeric(0) )   ),
+                     modelEquations                 = new_property( class_list,             default = quote( list() )       ),
+                     wrapper                        = new_property( .pfimFunctionOrNull,    default = NULL         ),
+                     outputFormula                  = new_property( class_list,             default = quote( list() )       ),
+                     outputNames                    = new_property( class_character,        default = quote( character(0) ) ),
+                     variableNames                  = new_property( class_character,        default = quote( character(0) ) ),
+                     outcomesWithAdministration     = new_property( class_character,        default = quote( character(0) ) ),
+                     outcomesWithNoAdministration   = new_property( class_character,        default = quote( character(0) ) ),
+                     modelError                     = new_property( class_list,             default = quote( list() )       ),
+                     odeSolverParameters            = new_property( class_list,             default = quote( list() )       ),
+                     parametersForComputingGradient = new_property( class_list,             default = quote( list() )       ),
+                     initialConditions              = new_property( class_double,           default = quote( numeric(0) )   ),
+                     functionArguments              = new_property( class_character,        default = quote( character(0) ) ),
+                     functionArgumentsSymbol        = new_property( class_list,             default = quote( list() )       )
                    ),
                    validator = function( self ) {
                      .validateS7List( prop( self, "modelParameters" ), ModelParameter, "Model:modelParameters", "ModelParameter" ) %||%
@@ -149,9 +151,7 @@ generateCovariatesCombination     = new_generic( "generateCovariatesCombination"
 #' @param ... Optional method arguments.
 #' @return List of PK model equations for the project compartments.
 #' @examples
-#' \dontrun{
 #' vignette("LibraryOfModels")
-#' }
 #' @name definePKModel
 #' @export
 definePKModel                     = new_generic( "definePKModel",   c( "pkModel", "pfimproject" ) )
@@ -163,9 +163,7 @@ definePKModel                     = new_generic( "definePKModel",   c( "pkModel"
 #' @param ... Optional method arguments.
 #' @return Combined PK/PD equation list for the project.
 #' @examples
-#' \dontrun{
 #' vignette("LibraryOfModels")
-#' }
 #' @name definePKPDModel
 #' @export
 definePKPDModel                   = new_generic( "definePKPDModel", c( "pkModel", "pdModel", "pfimproject" ) )

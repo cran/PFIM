@@ -83,9 +83,7 @@ Project fields use \code{\link{prop}}. Several \code{designs}: all optimizers
 (\code{optimisationAlgorithmOutputs$perDesign}).
 }
 \examples{
-\dontrun{
-vignette("Example01")
-}
+vignette("Vignette_01_discrete_design")
 \donttest{
 source(system.file("examples", "evaluation-minimal.R", package = "PFIM"))
 class(ev)
